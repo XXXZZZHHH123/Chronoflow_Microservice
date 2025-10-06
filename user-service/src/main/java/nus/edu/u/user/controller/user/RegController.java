@@ -26,7 +26,7 @@ import static nus.edu.u.common.enums.ErrorCodeConstants.REG_FAIL;
  * @date 2025-09-10
  */
 @RestController
-@RequestMapping("/reg")
+@RequestMapping("/user/reg")
 @Validated
 @Slf4j
 public class RegController {

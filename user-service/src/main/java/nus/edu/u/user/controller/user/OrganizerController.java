@@ -22,7 +22,7 @@ import java.util.List;
 import static nus.edu.u.common.constant.PermissionConstants.*;
 
 @RestController
-@RequestMapping("/organizer")
+@RequestMapping("/user/organizer")
 @Validated
 @Slf4j
 public class OrganizerController {

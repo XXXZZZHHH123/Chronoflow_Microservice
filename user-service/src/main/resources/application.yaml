@@ -89,3 +89,10 @@ sa-token:
   token-style: uuid
   cookie:
     http-only: true
+
+chronoflow:
+  security:
+    refresh-token-expire: 604800
+  cookie:
+    http-only: true
+    security: false

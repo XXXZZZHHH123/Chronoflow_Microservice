@@ -1,0 +1,23 @@
+package nus.edu.u.user.mapper.role;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import nus.edu.u.user.domain.dataobject.role.RoleDO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
+/**
+ * @author Lu Shuwen
+ * @date 2025-08-31
+ */
+@Mapper
+public interface RoleMapper extends BaseMapper<RoleDO> {
+    /**
+     * Batch counts whether role IDs exist
+     *
+     * @param ids A collection of role IDs
+     * @return The actual number of existing roles
+     */
+    int countByIds(@Param("ids") List<Long> ids);
+}

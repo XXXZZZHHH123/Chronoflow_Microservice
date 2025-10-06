@@ -1,4 +1,4 @@
-package nus.edu.u.attendee;
+package nus.edu.u;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,9 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @date 2025-10-05
  */
 @SpringBootApplication
-public class AttendeeService {
+public class NotificationServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(AttendeeService.class, args);
+        SpringApplication.run(NotificationServiceApplication.class, args);
     }
 }

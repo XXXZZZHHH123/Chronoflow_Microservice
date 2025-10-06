@@ -102,6 +102,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>nus.edu.u</groupId>
             <artifactId>common</artifactId>
         </dependency>

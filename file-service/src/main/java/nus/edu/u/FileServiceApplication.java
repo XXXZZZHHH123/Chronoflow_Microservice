@@ -8,9 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @date 2025-10-05
  */
 @SpringBootApplication
-public class EventService {
+public class FileServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(EventService.class, args);
+        SpringApplication.run(FileServiceApplication.class, args);
     }
 }

@@ -1,4 +1,4 @@
-package nus.edu.u.framework.security.config;
+package nus.edu.u.user.config;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

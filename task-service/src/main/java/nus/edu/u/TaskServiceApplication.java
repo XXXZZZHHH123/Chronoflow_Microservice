@@ -8,9 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @date 2025-10-05
  */
 @SpringBootApplication
-public class TaskService {
+public class TaskServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(TaskService.class, args);
+        SpringApplication.run(TaskServiceApplication.class, args);
     }
 }

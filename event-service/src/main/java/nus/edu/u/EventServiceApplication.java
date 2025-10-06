@@ -1,4 +1,4 @@
-package nus.edu.u.user;
+package nus.edu.u;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,10 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @date 2025-10-05
  */
 @SpringBootApplication
-public class UserService {
+public class EventServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(UserService.class, args);
+        SpringApplication.run(EventServiceApplication.class, args);
     }
-
 }

@@ -1,0 +1,81 @@
+
+spring:
+  cloud:
+    nacos:
+      server-addr: 127.0.0.1:8848 # Nacos host
+      username: # Nacos username
+      password: # Nacos password
+      discovery:
+        namespace: dev
+        group: DEFAULT_GROUP
+      config:
+        namespace: dev
+        group: DEFAULT_GROUP
+
+--- #################### Database config ####################
+spring:
+  autoconfigure:
+    exclude:
+  datasource:
+    druid:
+      web-stat-filter:
+        enabled: true
+      stat-view-servlet:
+        enabled: true
+        allow:
+        url-pattern: /druid/*
+        login-username: lushuwen
+        login-password: lushuwen
+      filter:
+        stat:
+          enabled: true
+          log-slow-sql: true
+          slow-sql-millis: 100
+          merge-sql: true
+        wall:
+          config:
+            multi-statement-allow: true
+    # Multi-datasource
+    dynamic:
+      druid:
+        initial-size: 5
+        min-idle: 10
+        max-active: 20
+        max-wait: 600000
+        time-between-eviction-runs-millis: 60000
+        min-evictable-idle-time-millis: 300000
+        max-evictable-idle-time-millis: 900000
+        validation-query: SELECT 1 FROM DUAL
+        test-while-idle: true
+        test-on-borrow: false
+        test-on-return: false
+      primary: master
+      datasource:
+        master:
+          url: jdbc:mysql://hopper.proxy.rlwy.net:56222/ChronoFlow?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: root
+          password: DoTKPrsSvsikuqxPhelmOIvCLNMcltyK
+        slave:
+          lazy: true # Enable lazy loading to ensure startup speed
+          url: jdbc:mysql://hopper.proxy.rlwy.net:56222/ChronoFlow?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: root
+          password: DoTKPrsSvsikuqxPhelmOIvCLNMcltyK
+
+  # Redis config
+  data:
+    redis:
+      host: nozomi.proxy.rlwy.net
+      port: 42775
+      database: 0
+      password: MmvxXZswsKgtFukcBGteMInEslKuMCTp
+
+# Lock4j config
+lock4j:
+  acquire-timeout: 3000 # Get distributed lock timeout, the default is 3000 milliseconds
+  expire: 30000 # Distributed lock timeout, default is 30 milliseconds
+
+# log config
+logging:
+  level:
+    nus.edu.u: info
+    org.springframework: warn

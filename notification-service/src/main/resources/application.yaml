@@ -1,0 +1,91 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: notification-service
+  profiles:
+    active: dev
+  main:
+    allow-circular-references: true
+  config:
+    import:
+      - optional:classpath:application-${spring.profiles.active}.yaml # Load【dev】config
+      - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml # Load【Nacos】config
+
+  # Servlet Config
+  servlet:
+    # File upload related configuration items
+    multipart:
+      max-file-size: 16MB # Single file size
+      max-request-size: 32MB # Set the total uploaded file size
+
+  # Redis config
+  data:
+    redis:
+      repositories:
+        enabled: false
+      lettuce:
+        pool:
+          # Maximum number of connections in the connection pool
+          max-active: 200
+          # The maximum blocking wait time of the connection pool (a negative value indicates no limit)
+          max-wait: -1ms
+          # Maximum idle connections in the connection pool
+          max-idle: 10
+          # Minimum number of idle connections in the connection pool
+          min-idle: 0
+
+# API docs config
+springdoc:
+  api-docs:
+    enabled: true # 1. 是否开启 Swagger 接文档的元数据
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true # 2.1 是否开启 Swagger 文档的官方 UI 界面
+    path: /swagger-ui
+  default-flat-param-object: true
+
+knife4j:
+  enable: false
+  setting:
+    language: zh_cn
+
+# Mybatis-plus config
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true            # db: user_name -> java: userName
+    cache-enabled: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # dev-only SQL logs
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID     # snowflake-style; or AUTO for DB auto-increment
+      table-underline: true
+
+############## Sa-Token config (文档: https://sa-token.cc) ##############
+sa-token:
+  # token name
+  token-name: Authorization
+  # token validity period (unit: seconds) The default is 30 days, -1 means permanent validity
+  timeout: 86400
+  # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结
+  # Minimum active frequency (unit: seconds). If the token does not access the system within this time,
+  # it will be frozen. The default value of -1 means no limit and never freeze.
+  active-timeout: -1
+  # 是否允许同一账号多地同时登录 （为 true 时允许一起登录, 为 false 时新登录挤掉旧登录）
+  # Whether to allow multiple logins from the same account at the same time
+  # (if true, multiple logins are allowed; if false, new logins will replace old logins)
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个 token （为 true 时所有登录共用一个 token, 为 false 时每次登录新建一个 token）
+  # When multiple people log into the same account, do they share a token?
+  # (If true, all logins share a token; if false, a new token is created for each login.)
+  is-share: true
+  # Whether to output operation logs
+  is-log: true
+  # Jwt key
+  jwt-secret-key: chronoflow123
+  # Token style
+  token-style: uuid
+  cookie:
+    http-only: true

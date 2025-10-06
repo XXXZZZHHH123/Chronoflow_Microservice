@@ -6,7 +6,7 @@
     <parent>
         <groupId>nus.edu.u</groupId>
         <artifactId>ChronoFlow</artifactId>
-        <version>1.0.1</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>task-service</artifactId>

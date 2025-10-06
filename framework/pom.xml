@@ -10,6 +10,8 @@
     </parent>
 
     <artifactId>framework</artifactId>
+    <packaging>jar</packaging>
+    <name>${project.artifactId}</name>
 
     <description>
         core framework
@@ -25,11 +27,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
         <dependency>
@@ -71,7 +68,7 @@
 
         <dependency>
             <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-reactor-spring-boot3-starter</artifactId>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
         </dependency>
 
         <dependency>

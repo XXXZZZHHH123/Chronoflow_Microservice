@@ -1,4 +1,4 @@
-package nus.edu.u.framework.web.handler;
+package nus.edu.u.framework.web;
 
 import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.*;
 

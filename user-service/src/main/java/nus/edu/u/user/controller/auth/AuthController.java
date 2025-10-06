@@ -27,7 +27,7 @@ import static nus.edu.u.common.core.domain.CommonResult.success;
  * @date 2025-08-30
  */
 @RestController
-@RequestMapping("/system/auth")
+@RequestMapping("/auth")
 @Validated
 @Slf4j
 public class AuthController {

@@ -5,7 +5,7 @@ spring:
   application:
     name: gateway
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   config:
     import:
       - optional:classpath:application-${spring.profiles.active}.yaml # Load【dev】config

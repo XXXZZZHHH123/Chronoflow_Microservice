@@ -5,7 +5,7 @@ spring:
   application:
     name: attendee-service
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   main:
     allow-circular-references: true
   config:

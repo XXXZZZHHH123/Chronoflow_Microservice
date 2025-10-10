@@ -2,9 +2,9 @@
 spring:
   cloud:
     nacos:
-      server-addr: 127.0.0.1:8848 # Nacos host
-      username: # Nacos username
-      password: # Nacos password
+      server-addr: ${DEV_NACOS_HOST}:${DEV_NACOS_PORT} # Nacos host
+      username: ${DEV_NACOS_USERNAME} # Nacos username
+      password: ${DEV_NACOS_PASSWORD} # Nacos password
       discovery:
         namespace: dev
         group: DEFAULT_GROUP
@@ -53,23 +53,23 @@ spring:
       datasource:
         master:
           driver-class-name: com.mysql.cj.jdbc.Driver
-          url: jdbc:mysql://hopper.proxy.rlwy.net:56222/ChronoFlow?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-          username: root
-          password: DoTKPrsSvsikuqxPhelmOIvCLNMcltyK
+          url: jdbc:mysql://${DEV_MASTER_DB_HOST}:${DEV_MASTER_DB_PORT}/user?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: ${DEV_MASTER_DB_USER}
+          password: ${DEV_MASTER_DB_PASSWORD}
         slave:
           driver-class-name: com.mysql.cj.jdbc.Driver
           lazy: true # Enable lazy loading to ensure startup speed
-          url: jdbc:mysql://hopper.proxy.rlwy.net:56222/ChronoFlow?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-          username: root
-          password: DoTKPrsSvsikuqxPhelmOIvCLNMcltyK
+          url: jdbc:mysql://${DEV_SlAVE_DB_HOST}:${DEV_SlAVE_DB_PORT}/user?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: ${DEV_SlAVE_DB_USER}
+          password: ${DEV_SlAVE_DB_PASSWORD}
 
   # Redis config
   data:
     redis:
-      host: nozomi.proxy.rlwy.net
-      port: 42775
-      database: 0
-      password: MmvxXZswsKgtFukcBGteMInEslKuMCTp
+      host: ${DEV_REDIS_HOST}
+      port: ${DEV_REDIS_PORT}
+      database: ${DEV_REDIS_DATABASE}
+      password: ${DEV_REDIS_PASSWORD}
 
 # Lock4j config
 lock4j:
@@ -79,5 +79,5 @@ lock4j:
 # log config
 logging:
   level:
-    nus.edu.u: info
+    nus.edu.u: debug
     org.springframework: warn

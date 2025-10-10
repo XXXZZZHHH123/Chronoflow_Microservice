@@ -25,6 +25,8 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<revision>1.0.1</revision>
 		<!-- spring -->
 		<spring-boot.version>3.4.1</spring-boot.version>
@@ -224,7 +226,19 @@
 
 			<dependency>
 				<groupId>cn.dev33</groupId>
+				<artifactId>sa-token-spring-boot3-starter</artifactId>
+				<version>${satoken.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>cn.dev33</groupId>
 				<artifactId>sa-token-redis-template</artifactId>
+				<version>${satoken.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>cn.dev33</groupId>
+				<artifactId>sa-token-redis-jackson</artifactId>
 				<version>${satoken.version}</version>
 			</dependency>
 

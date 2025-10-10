@@ -1,12 +1,20 @@
 spring:
   cloud:
     nacos:
-      server-addr: 127.0.0.1:8848 # Nacos server address
-      username: nacos # Nacos username
-      password: nacos # Nacos password
+      server-addr: ${DEV_NACOS_HOST}:${DEV_NACOS_PORT} # Nacos host
+      username: ${DEV_NACOS_USERNAME} # Nacos username
+      password: ${DEV_NACOS_PASSWORD} # Nacos password
       discovery:
         namespace: dev
         group: DEFAULT_GROUP
       config:
         namespace: dev
         group: DEFAULT_GROUP
+
+  # Redis config
+  data:
+    redis:
+      host: ${DEV_REDIS_HOST}
+      port: ${DEV_REDIS_PORT}
+      database: ${DEV_REDIS_DATABASE}
+      password: ${DEV_REDIS_PASSWORD}

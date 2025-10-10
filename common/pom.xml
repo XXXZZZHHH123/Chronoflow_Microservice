@@ -10,6 +10,8 @@
     </parent>
 
     <artifactId>common</artifactId>
+    <packaging>jar</packaging>
+    <name>${project.artifactId}</name>
 
     <description>
         Common module

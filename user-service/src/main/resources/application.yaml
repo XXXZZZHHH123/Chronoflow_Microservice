@@ -5,7 +5,7 @@ spring:
   application:
     name: user-service
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   main:
     allow-circular-references: true
   config:
@@ -83,9 +83,14 @@ sa-token:
   is-share: true
   # Whether to output operation logs
   is-log: true
-  # Jwt key
-  jwt-secret-key: chronoflow123
   # Token style
   token-style: uuid
   cookie:
     http-only: true
+
+chronoflow:
+  security:
+    refresh-token-expire: 604800
+  cookie:
+    http-only: true
+    security: false

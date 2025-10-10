@@ -2,14 +2,14 @@
 spring:
   cloud:
     nacos:
-      server-addr: 127.0.0.1:8848 # Nacos host
-      username: # Nacos username
-      password: # Nacos password
+      server-addr: ${PROD_NACOS_HOST}:${PROD_NACOS_PORT} # Nacos host
+      username: ${PROD_NACOS_USERNAME} # Nacos username
+      password: ${PROD_NACOS_PASSWORD} # Nacos password
       discovery:
-        namespace: dev
+        namespace: prod
         group: DEFAULT_GROUP
       config:
-        namespace: dev
+        namespace: prod
         group: DEFAULT_GROUP
 
 --- #################### Database config ####################
@@ -52,22 +52,22 @@ spring:
       primary: master
       datasource:
         master:
-          url: jdbc:mysql://hopper.proxy.rlwy.net:56222/ChronoFlow?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-          username: root
-          password: DoTKPrsSvsikuqxPhelmOIvCLNMcltyK
+          url: jdbc:mysql://${PORD_MASTER_DB_HOST}:${PORD_MASTER_DB_PORT}/attendee?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: ${PORD_MASTER_DB_USER}
+          password: ${PORD_MASTER_DB_PASSWORD}
         slave:
           lazy: true # Enable lazy loading to ensure startup speed
-          url: jdbc:mysql://hopper.proxy.rlwy.net:56222/ChronoFlow?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-          username: root
-          password: DoTKPrsSvsikuqxPhelmOIvCLNMcltyK
+          url: jdbc:mysql://${PORD_SLAVE_DB_HOST}:${PORD_SLAVE_DB_PORT}/attendee?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: ${PORD_SLAVE_DB_USER}
+          password: ${PORD_SLAVE_DB_PASSWORD}
 
   # Redis config
   data:
     redis:
-      host: nozomi.proxy.rlwy.net
-      port: 42775
-      database: 0
-      password: MmvxXZswsKgtFukcBGteMInEslKuMCTp
+      host: ${PORD_REDIS_HOST}
+      port: ${PORD_REDIS_PORT}
+      database: ${PORD_REDIS_DATABASE}
+      password: ${PORD_REDIS_PASSWORD}
 
 # Lock4j config
 lock4j:

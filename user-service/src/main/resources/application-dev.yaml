@@ -59,9 +59,9 @@ spring:
         slave:
           driver-class-name: com.mysql.cj.jdbc.Driver
           lazy: true # Enable lazy loading to ensure startup speed
-          url: jdbc:mysql://${DEV_SlAVE_DB_HOST}:${DEV_SlAVE_DB_PORT}/user?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-          username: ${DEV_SlAVE_DB_USER}
-          password: ${DEV_SlAVE_DB_PASSWORD}
+          url: jdbc:mysql://${DEV_SLAVE_DB_HOST}:${DEV_SLAVE_DB_PORT}/user?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: ${DEV_SLAVE_DB_USER}
+          password: ${DEV_SLAVE_DB_PASSWORD}
 
   # Redis config
   data:
@@ -70,6 +70,22 @@ spring:
       port: ${DEV_REDIS_PORT}
       database: ${DEV_REDIS_DATABASE}
       password: ${DEV_REDIS_PASSWORD}
+
+# Dubbo config
+dubbo:
+  registry:
+    address: nacos://${DEV_NACOS_HOST}:${DEV_NACOS_PORT}?username=${DEV_NACOS_USERNAME}&password=${DEV_NACOS_PASSWORD}
+    # This will enable application-level service discovery only (the recommended service discovery method for Dubbo3).
+    # For users upgrading from Dubbo2.x, please set the value to 'all' for smooth migration.
+    register-mode: instance
+    parameters:
+      namespace: dev
+  protocol:
+    name: tri
+    port: 50051
+  application:
+    name: ${spring.application.name}
+    logger: slf4j
 
 # Lock4j config
 lock4j:

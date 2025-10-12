@@ -69,6 +69,22 @@ spring:
       database: ${TEST_REDIS_DATABASE}
       password: ${TEST_REDIS_PASSWORD}
 
+# Dubbo config
+dubbo:
+  registry:
+    address: nacos://${TEST_NACOS_HOST}:${TEST_NACOS_PORT}?username=${TEST_NACOS_USERNAME}&password=${TEST_NACOS_PASSWORD}
+    # This will enable application-level service discovery only (the recommended service discovery method for Dubbo3).
+    # For users upgrading from Dubbo2.x, please set the value to 'all' for smooth migration.
+    register-mode: instance
+    parameters:
+      namespace: test
+  protocol:
+    name: tri
+    port: 50053
+  application:
+    name: ${spring.application.name}
+    logger: slf4j
+
 # Lock4j config
 lock4j:
   acquire-timeout: 3000 # Get distributed lock timeout, the default is 3000 milliseconds

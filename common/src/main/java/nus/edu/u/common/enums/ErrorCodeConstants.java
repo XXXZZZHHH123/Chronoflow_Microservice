@@ -138,4 +138,6 @@ public interface ErrorCodeConstants {
     ErrorCode ATTENDEE_NOT_EXIST = new ErrorCode(10_05_001, "Attendee does not exist");
     ErrorCode UPDATE_ATTENDEE_FAILED = new ErrorCode(10_05_002, "Update attendee failed");
 
+    // ========= Excel ============
+    ErrorCode EMPTY_EXCEL = new ErrorCode(905, "Excel is empty");
 }

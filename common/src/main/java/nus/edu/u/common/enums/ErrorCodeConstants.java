@@ -116,4 +116,26 @@ public interface ErrorCodeConstants {
                     14_02_003,
                     "Permission cannot be deleted because it has been assigned to role(s)");
     ErrorCode CREATE_PERMISSION_FAILED = new ErrorCode(14_02_004, "Create permission failed");
+
+    // ========= Check-in module 10-03-000 ============
+    ErrorCode EVENT_ATTENDEE_NOT_FOUND = new ErrorCode(10_03_001, "Attendee not found");
+    ErrorCode INVALID_CHECKIN_TOKEN = new ErrorCode(10_03_002, "Invalid check-in token");
+    ErrorCode ALREADY_CHECKED_IN = new ErrorCode(10_03_003, "Already checked in");
+    ErrorCode CHECKIN_NOT_STARTED = new ErrorCode(10_03_004, "Check-in has not started yet");
+    ErrorCode CHECKIN_ENDED = new ErrorCode(10_03_005, "Check-in has ended");
+    ErrorCode EVENT_NOT_ACTIVE = new ErrorCode(10_03_006, "Event is not active");
+    ErrorCode ATTENDEE_CREATION_FAILED =
+            new ErrorCode(
+                    1_002_010_002,
+                    "Attendee already exists: This email address has been registered for this event");
+
+    // ========= QR Code module 10-04-000 ============
+    ErrorCode QRCODE_GENERATION_FAILED = new ErrorCode(10_04_001, "Failed to generate QR code");
+    ErrorCode QRCODE_INVALID_CONTENT = new ErrorCode(10_04_002, "Invalid QR code content");
+    ErrorCode QRCODE_INVALID_SIZE = new ErrorCode(10_04_003, "Invalid QR code size");
+
+    // ========= Attendee module 10-05-000 ============
+    ErrorCode ATTENDEE_NOT_EXIST = new ErrorCode(10_05_001, "Attendee does not exist");
+    ErrorCode UPDATE_ATTENDEE_FAILED = new ErrorCode(10_05_002, "Update attendee failed");
+
 }

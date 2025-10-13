@@ -41,15 +41,24 @@ import nus.edu.u.event.mapper.UserGroupMapper;
 import nus.edu.u.event.mapper.UserMapper;
 import nus.edu.u.shared.rpc.group.GroupDTO;
 import nus.edu.u.shared.rpc.group.GroupMemberDTO;
+import nus.edu.u.shared.rpc.user.UserProfileDTO;
+import nus.edu.u.shared.rpc.user.UserRpcService;
+
+import org.apache.dubbo.config.annotation.DubboReference;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.bean.BeanUtil;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class GroupApplicationServiceImpl implements GroupApplicationService {
 
+    @DubboReference
+    private UserRpcService userRpcService;
     private final DeptMapper deptMapper;
     private final UserMapper userMapper;
     private final EventMapper eventMapper;
@@ -61,7 +70,7 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
     public Long createGroup(CreateGroupReqVO reqVO) {
         log.info("Creating group: {}", reqVO.getName());
         EventDO event = eventMapper.selectById(reqVO.getEventId());
-        if (event == null) {
+        if (ObjectUtil.isNull(event)) {
             throw exception(EVENT_NOT_FOUND);
         }
 
@@ -93,7 +102,7 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                         .remark(reqVO.getRemark())
                         .status(CommonStatusEnum.ENABLE.getStatus())
                         .build();
-        dept.setTenantId(event.getTenantId());
+        // dept.setTenantId(event.getTenantId());
 
         deptMapper.insert(dept);
         if (dept.getId() == null) {
@@ -121,24 +130,10 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
             }
         }
 
-        DeptDO update = new DeptDO();
-        update.setId(reqVO.getId());
-        if (reqVO.getName() != null) {
-            update.setName(reqVO.getName());
-        }
-        if (reqVO.getLeadUserId() != null) {
-            update.setLeadUserId(reqVO.getLeadUserId());
-        }
-        if (reqVO.getRemark() != null) {
-            update.setRemark(reqVO.getRemark());
-        }
-        if (reqVO.getSort() != null) {
-            update.setSort(reqVO.getSort());
-        }
-        if (reqVO.getStatus() != null) {
-            update.setStatus(reqVO.getStatus());
-        }
-        deptMapper.updateById(update);
+        DeptDO updateDept = new DeptDO();
+        BeanUtil.copyProperties(reqVO, updateDept);
+
+        deptMapper.updateById(updateDept);
     }
 
     @Override
@@ -157,7 +152,8 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                             .filter(memberId -> !Objects.equals(memberId, existing.getLeadUserId()))
                             .toList();
             if (!normalMemberIds.isEmpty()) {
-                removeMembersFromGroup(id, normalMemberIds);
+                GroupApplicationService proxy = (GroupApplicationService) AopContext.currentProxy();
+                proxy.removeMembersFromGroup(id, normalMemberIds);
             }
 
             if (existing.getLeadUserId() != null) {
@@ -170,8 +166,7 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
         UpdateWrapper<DeptDO> updateWrapper = new UpdateWrapper<>();
         updateWrapper
                 .set("status", CommonStatusEnum.DISABLE.getStatus())
-                .eq("id", id)
-                .set("update_time", LocalDateTime.now());
+                .eq("id", id);
         deptMapper.update(null, updateWrapper);
     }
 
@@ -219,7 +214,7 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
         List<UserGroupDO> relations =
                 userGroupMapper.selectList(
                         new LambdaQueryWrapper<UserGroupDO>().eq(UserGroupDO::getDeptId, groupId));
-        if (CollectionUtils.isEmpty(relations)) {
+        if (ObjectUtil.isEmpty(relations)) {
             return Collections.emptyList();
         }
 
@@ -253,7 +248,7 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
     @Override
     @Transactional
     public void addMembersToGroup(Long groupId, List<Long> userIds) {
-        if (CollectionUtils.isEmpty(userIds)) {
+        if (ObjectUtil.isEmpty(userIds)) {
             return;
         }
 
@@ -280,7 +275,7 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
     @Override
     @Transactional
     public void removeMembersFromGroup(Long groupId, List<Long> userIds) {
-        if (CollectionUtils.isEmpty(userIds)) {
+        if (ObjectUtil.isEmpty(userIds)) {
             return;
         }
 
@@ -407,23 +402,9 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
 
     @Override
     public List<UserProfileRespVO> getAllUserProfiles() {
-        return userMapper.selectList(
-                        new LambdaQueryWrapper<UserDO>()
-                                .eq(UserDO::getDeleted, false)
-                                .eq(UserDO::getStatus, CommonStatusEnum.ENABLE.getStatus()))
-                .stream()
-                .map(
-                        user -> {
-                            UserProfileRespVO profile = new UserProfileRespVO();
-                            profile.setId(user.getId());
-                            profile.setName(user.getUsername());
-                            profile.setEmail(user.getEmail());
-                            profile.setPhone(user.getPhone());
-                            profile.setRoles(Collections.emptyList());
-                            profile.setRegistered(true);
-                            return profile;
-                        })
-                .toList();
+        List<UserProfileDTO> dtos = userRpcService.getEnabledUserProfiles();
+        if (dtos == null || dtos.isEmpty()) return List.of();
+        return userMapper.toVoList(dtos);
     }
 
     private DeptDO ensureGroupExists(Long groupId) {

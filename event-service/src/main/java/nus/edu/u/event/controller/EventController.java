@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
+import static nus.edu.u.common.constant.PermissionConstants.*;
 
 @RestController
 @RequestMapping("/events")
@@ -31,6 +33,7 @@ public class EventController {
 
     private final EventApplicationService eventApplicationService;
 
+    @SaCheckPermission(CREATE_EVENT)
     @PostMapping
     public CommonResult<EventRespVO> create(@Valid @RequestBody EventCreateReqVO request) {
         Long organizerId = StpUtil.getLoginIdAsLong();
@@ -50,6 +53,7 @@ public class EventController {
         return CommonResult.success(eventApplicationService.getEventsByOrganizer(organizerId));
     }
 
+    @SaCheckPermission(UPDATE_EVENT)
     @PatchMapping("/{id}")
     public CommonResult<UpdateEventRespVO> update(
             @PathVariable("id") Long id, @Valid @RequestBody EventUpdateReqVO request) {
@@ -57,16 +61,19 @@ public class EventController {
         return CommonResult.success(respVO);
     }
 
+    @SaCheckPermission(DELETE_EVENT)
     @DeleteMapping("/{id}")
     public CommonResult<Boolean> delete(@PathVariable("id") Long id) {
         return CommonResult.success(eventApplicationService.deleteEvent(id));
     }
 
+    @SaCheckPermission(UPDATE_EVENT)
     @PatchMapping("/{id}/restore")
     public CommonResult<Boolean> restore(@PathVariable("id") Long id) {
         return CommonResult.success(eventApplicationService.restoreEvent(id));
     }
 
+    @SaCheckPermission(ASSIGN_TASK)
     @GetMapping("/{id}/assignable-groups")
     public CommonResult<List<EventGroupRespVO>> assignableGroups(@PathVariable("id") Long eventId) {
         return CommonResult.success(eventApplicationService.findAssignableGroups(eventId));

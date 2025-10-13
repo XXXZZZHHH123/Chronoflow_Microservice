@@ -9,32 +9,26 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>file-service</artifactId>
+    <artifactId>common-api</artifactId>
     <packaging>jar</packaging>
     <name>${project.artifactId}</name>
 
     <dependencies>
-
         <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>nus.edu.u</groupId>
-            <artifactId>framework</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>nus.edu.u</groupId>
-            <artifactId>common-api</artifactId>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -54,5 +48,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

@@ -54,6 +54,8 @@ public interface ErrorCodeConstants {
             new ErrorCode(10_02_006, "User status is invalid, cannot add to group");
     ErrorCode CANNOT_REMOVE_GROUP_LEADER =
             new ErrorCode(10_02_007, "Cannot remove group leader from group");
+    ErrorCode CANNOT_REMOVE_MEMBER_WITH_PENDING_TASKS =
+            new ErrorCode(10_02_009, "Cannot remove member with pending tasks");
     ErrorCode GET_GROUP_ID_FAILED =
             new ErrorCode(10_02_008, "Failed to get group ID after insert ");
     ErrorCode USER_ALREADY_IN_OTHER_GROUP_OF_EVENT =

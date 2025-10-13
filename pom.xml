@@ -22,7 +22,7 @@
 		<module>attendee-service</module>
 		<module>notification-service</module>
 		<module>file-service</module>
-	</modules>
+    </modules>
 
 	<properties>
 		<java.version>17</java.version>

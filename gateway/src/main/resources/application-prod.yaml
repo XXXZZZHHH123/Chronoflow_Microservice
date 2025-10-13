@@ -14,7 +14,7 @@ spring:
   # Redis config
   data:
     redis:
-      host: ${PORD_REDIS_HOST}
-      port: ${PORD_REDIS_PORT}
-      database: ${PORD_REDIS_DATABASE}
-      password: ${PORD_REDIS_PASSWORD}
+      host: ${PROD_REDIS_HOST}
+      port: ${PROD_REDIS_PORT}
+      database: ${PROD_REDIS_DATABASE}
+      password: ${PROD_REDIS_PASSWORD}

@@ -1,12 +1,14 @@
 package nus.edu.u.event.convert;
 
 import java.util.List;
-import nus.edu.u.event.application.dto.EventDTO;
-import nus.edu.u.event.domain.dataobject.EventDO;
-import nus.edu.u.event.interfaces.rest.dto.EventCreateReqVO;
-import nus.edu.u.event.interfaces.rest.dto.EventRespVO;
-import nus.edu.u.event.interfaces.rest.dto.EventUpdateReqVO;
-import nus.edu.u.event.interfaces.rest.dto.UpdateEventRespVO;
+
+import nus.edu.u.event.domain.dataobject.event.EventDO;
+import nus.edu.u.event.domain.dto.event.EventCreateReqVO;
+import nus.edu.u.event.domain.dto.event.EventDTO;
+import nus.edu.u.event.domain.dto.event.EventRespVO;
+import nus.edu.u.event.domain.dto.event.EventUpdateReqVO;
+import nus.edu.u.event.domain.dto.event.UpdateEventRespVO;
+
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

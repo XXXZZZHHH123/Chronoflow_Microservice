@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @SpringBootApplication
 @EnableDubbo
-@MapperScan("nus.edu.u.event.infrastructure.persistence.mapper")
+@MapperScan("nus.edu.u.event.mapper")
 public class EventServiceApplication {
 
     public static void main(String[] args) {

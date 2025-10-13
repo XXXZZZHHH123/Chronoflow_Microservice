@@ -23,7 +23,7 @@ import static nus.edu.u.common.constant.PermissionConstants.*;
  * @date 2025-09-13
  */
 @RestController
-@RequestMapping("/user/roles")
+@RequestMapping("/users/roles")
 @Validated
 @Slf4j
 public class RoleController {

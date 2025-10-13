@@ -21,7 +21,7 @@ import static nus.edu.u.common.core.domain.CommonResult.success;
  * @date 2025-09-29
  */
 @RestController
-@RequestMapping("/user/permissions")
+@RequestMapping("/users/permissions")
 @Validated
 @Slf4j
 public class PermissionController {

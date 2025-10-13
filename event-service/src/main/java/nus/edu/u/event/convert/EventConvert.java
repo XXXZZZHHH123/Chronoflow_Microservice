@@ -14,6 +14,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
+import nus.edu.u.shared.rpc.events.EventRespDTO;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface EventConvert {
@@ -71,4 +72,6 @@ public interface EventConvert {
         @Mapping(target = "endTime", source = "endTime")
     })
     UpdateEventRespVO toUpdateResp(EventDO bean);
+
+    EventRespDTO toRpc(EventRespVO bean);
 }

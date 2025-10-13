@@ -30,6 +30,7 @@ import nus.edu.u.event.domain.dataobject.EventParticipantDO;
 import nus.edu.u.event.enums.TaskStatusEnum;
 import nus.edu.u.event.infrastructure.persistence.mapper.EventMapper;
 import nus.edu.u.event.infrastructure.persistence.mapper.EventParticipantMapper;
+import nus.edu.u.shared.rpc.events.EventRpcService;
 import nus.edu.u.shared.rpc.group.GroupDTO;
 import nus.edu.u.shared.rpc.group.GroupRpcService;
 import nus.edu.u.shared.rpc.task.TaskDTO;
@@ -37,6 +38,7 @@ import nus.edu.u.shared.rpc.task.TaskRpcService;
 import nus.edu.u.shared.rpc.user.UserRpcService;
 import nus.edu.u.event.interfaces.rest.dto.*;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,7 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class EventApplicationServiceImpl implements EventApplicationService {
+@DubboService
+public class EventApplicationServiceImpl implements EventApplicationService{
 
     private final EventMapper eventMapper;
     private final EventParticipantMapper eventParticipantMapper;

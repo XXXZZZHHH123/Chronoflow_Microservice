@@ -89,3 +89,7 @@ sa-token:
   token-style: uuid
   cookie:
     http-only: true
+
+dubbo:
+  application:
+    qos-enable: false

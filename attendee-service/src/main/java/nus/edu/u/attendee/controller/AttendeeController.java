@@ -28,7 +28,7 @@ import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.BAD_REQU
 import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
 @RestController
-@RequestMapping("/system/attendee")
+@RequestMapping("/attendees")
 @Validated
 @Slf4j
 public class AttendeeController {

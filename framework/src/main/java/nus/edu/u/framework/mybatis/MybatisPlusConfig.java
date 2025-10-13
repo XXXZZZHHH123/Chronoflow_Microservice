@@ -62,6 +62,11 @@ public class MybatisPlusConfig {
         return interceptor;
     }
 
+    @Bean
+    public MybatisMetaObjectHandler mybatisMetaObjectHandler() {
+        return new MybatisMetaObjectHandler();
+    }
+
     public static Long getCurrentTenantId() {
         try {
             Object tenantIdObject = StpUtil.getSession().get(SESSION_TENANT_ID);

@@ -62,3 +62,7 @@ mybatis-plus:
     db-config:
       id-type: ASSIGN_ID     # snowflake-style; or AUTO for DB auto-increment
       table-underline: true
+
+dubbo:
+  application:
+    qos-enable: false

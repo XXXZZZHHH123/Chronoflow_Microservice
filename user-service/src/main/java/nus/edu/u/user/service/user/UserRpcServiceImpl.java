@@ -5,9 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.shared.rpc.user.TenantDTO;
 import nus.edu.u.shared.rpc.user.UserInfoDTO;
+import nus.edu.u.shared.rpc.user.UserProfileDTO;
 import nus.edu.u.shared.rpc.user.UserRpcService;
 import nus.edu.u.user.domain.dataobject.tenant.TenantDO;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
+import nus.edu.u.user.domain.vo.user.UserProfileRespVO;
 import nus.edu.u.user.mapper.tenant.TenantMapper;
 import nus.edu.u.user.mapper.user.UserMapper;
 import org.apache.dubbo.config.annotation.DubboService;
@@ -16,6 +18,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.List;
 
 @DubboService
 @Slf4j
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 public class UserRpcServiceImpl implements UserRpcService {
     private final UserMapper userMapper;
     private final TenantMapper tenantMapper;
+    private final UserService userService;
 
     @Override
     public boolean exists(Long userId) {
@@ -55,6 +59,12 @@ public class UserRpcServiceImpl implements UserRpcService {
             log.error("Error getting users for userIds: {}", userIds, e);
             return Collections.emptyMap();
         }
+    }
+
+    @Override
+    public List<UserProfileDTO> getEnabledUserProfiles() {
+        List<UserProfileRespVO> users = userService.getEnabledUserProfiles();
+        return users.stream().map(userMapper::fromVo).toList();
     }
 
     @Override

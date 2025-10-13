@@ -8,4 +8,6 @@ public interface UserRpcService {
     boolean exists(Long userId);
 
     Map<Long, UserInfoDTO> getUsers(Collection<Long> userIds);
+
+    TenantDTO getTenantById(Long tenantId);
 }

@@ -87,6 +87,7 @@ dubbo:
     name: ${spring.application.name}
     logger: slf4j
 
+
 # Lock4j config
 lock4j:
   acquire-timeout: 3000 # Get distributed lock timeout, the default is 3000 milliseconds

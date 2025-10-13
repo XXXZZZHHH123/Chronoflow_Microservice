@@ -94,3 +94,7 @@ chronoflow:
   cookie:
     http-only: true
     security: false
+
+dubbo:
+  application:
+    qos-enable: false

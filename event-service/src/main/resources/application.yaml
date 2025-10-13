@@ -96,9 +96,7 @@ sa-token:
   cookie:
     http-only: true
 
-chronoflow:
-  security:
-    refresh-token-expire: 604800
-  cookie:
-    http-only: true
-    security: false
+dubbo:
+  application:
+    qos-enable: false
+    serialize-check-status: DISABLE

@@ -30,7 +30,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848
+        server-addr: ${DEV_NACOS_HOST}:${DEV_NACOS_PORT}
     gateway:
       routes:
         # User Service

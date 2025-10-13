@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>nus.edu.u</groupId>
+        <artifactId>ChronoFlow</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <properties>
+        <spring-boot.run.skip>true</spring-boot.run.skip>
+    </properties>
+
+    <artifactId>shared-api</artifactId>
+    <packaging>jar</packaging>
+    <name>shared-api</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+</project>

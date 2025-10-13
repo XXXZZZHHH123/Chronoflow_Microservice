@@ -12,6 +12,7 @@
 	<packaging>pom</packaging>
 
 	<modules>
+		<module>shared-api</module>
 		<module>framework</module>
 		<module>common</module>
 		<module>gateway</module>
@@ -259,6 +260,12 @@
 			<dependency>
 				<groupId>nus.edu.u</groupId>
 				<artifactId>common</artifactId>
+				<version>${revision}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>nus.edu.u</groupId>
+				<artifactId>shared-api</artifactId>
 				<version>${revision}</version>
 			</dependency>
 

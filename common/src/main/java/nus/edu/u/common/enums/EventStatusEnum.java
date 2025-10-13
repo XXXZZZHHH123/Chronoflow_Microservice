@@ -7,8 +7,9 @@ import nus.edu.u.common.core.ArrayValuable;
 @Getter
 @AllArgsConstructor
 public enum EventStatusEnum implements ArrayValuable<Integer> {
-    ACTIVE(0, "active"),
-    COMPLETED(1, "completed");
+    NOT_STARTED(0, "not_started"),
+    ACTIVE(1, "active"),
+    COMPLETED(2, "completed");
 
     public static final Integer[] ARRAYS = new Integer[] {0, 1, 2};
 

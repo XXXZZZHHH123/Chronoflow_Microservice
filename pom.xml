@@ -21,7 +21,6 @@
 		<module>attendee-service</module>
 		<module>notification-service</module>
 		<module>file-service</module>
-        <module>common-api</module>
     </modules>
 
 	<properties>
@@ -260,13 +259,6 @@
 			<dependency>
 				<groupId>nus.edu.u</groupId>
 				<artifactId>common</artifactId>
-				<version>${revision}</version>
-			</dependency>
-
-			<!-- Common API module -->
-			<dependency>
-				<groupId>nus.edu.u</groupId>
-				<artifactId>common-api</artifactId>
 				<version>${revision}</version>
 			</dependency>
 

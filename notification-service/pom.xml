@@ -30,11 +30,6 @@
             <artifactId>framework</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>nus.edu.u</groupId>
-            <artifactId>common-api</artifactId>
-        </dependency>
-
     </dependencies>
 
     <build>

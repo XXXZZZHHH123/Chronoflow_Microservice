@@ -106,6 +106,7 @@ public class AttendeeServiceImpl implements AttendeeService {
             throw exception(UPDATE_ATTENDEE_FAILED);
         }
         EventRespDTO event = eventRpcService.getEvent(attendee.getEventId());
+        System.out.println("get event now" + event);
         if (ObjectUtil.isEmpty(event)) {
             throw exception(EVENT_NOT_FOUND);
         }

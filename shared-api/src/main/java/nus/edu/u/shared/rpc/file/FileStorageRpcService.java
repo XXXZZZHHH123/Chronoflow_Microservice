@@ -5,5 +5,5 @@ import java.util.List;
 public interface FileStorageRpcService {
     List<FileResultVO> downloadFilesByTaskLogId(Long taskLogId);
 
-    List<FileResultVO> uploadToTaskLog(FileUploadReqDTO req);
+    List<FileResultVO> uploadToTaskLog(FileUploadReqVO req);
 }

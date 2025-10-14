@@ -16,7 +16,7 @@ import nus.edu.u.task.enums.TaskActionEnum;
 import nus.edu.u.task.enums.TaskStatusEnum;
 import nus.edu.u.task.mapper.TaskMapper;
 import nus.edu.u.shared.rpc.file.FileStorageRpcService;
-import nus.edu.u.shared.rpc.file.FileUploadReqDTO;
+import nus.edu.u.shared.rpc.file.FileUploadReqVO;
 import nus.edu.u.task.service.TaskLogApplicationService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,25 +61,10 @@ public abstract class AbstractTaskStrategy implements TaskStrategy {
             throw exception(TASK_LOG_FILE_FAILED);
         }
 
-        FileUploadReqDTO reqDTO = new FileUploadReqDTO();
-        reqDTO.setTaskLogId(taskLogId);
-        reqDTO.setEventId(eventId);
-        reqDTO.setFiles(
-                files.stream()
-                        .map(
-                                file -> {
-                                    try {
-                                        return FileUploadReqDTO.FileUploadFileDTO.builder()
-                                                .name(file.getOriginalFilename())
-                                                .contentType(file.getContentType())
-                                                .data(file.getBytes())
-                                                .build();
-                                    } catch (IOException ex) {
-                                        throw exception(TASK_LOG_FILE_FAILED);
-                                    }
-                                })
-                        .collect(Collectors.toList()));
-
-        fileStorageRpcService.uploadToTaskLog(reqDTO);
+        FileUploadReqVO reqVO = new FileUploadReqVO();
+        reqVO.setTaskLogId(taskLogId);
+        reqVO.setEventId(eventId);
+        reqVO.setFiles(files);
+        fileStorageRpcService.uploadToTaskLog(reqVO);
     }
 }

@@ -7,4 +7,13 @@ import java.util.Map;
 public interface TaskRpcService {
 
     Map<Long, List<TaskDTO>> getTasksByEventIds(Collection<Long> eventIds);
+
+    /**
+     * Check whether a user still has unfinished tasks within the event.
+     *
+     * @param eventId event identifier
+     * @param userId user identifier
+     * @return true if the user has at least one task that is not completed
+     */
+    boolean hasPendingTasks(Long eventId, Long userId);
 }

@@ -103,5 +103,17 @@ public interface UserMapper extends BaseMapper<UserDO> {
     @InterceptorIgnore(tenantLine = "true")
     Integer updateByIdWithoutTenant(UserDO userDO);
 
-    UserProfileDTO fromVo(UserProfileRespVO vo);
+    default UserProfileDTO fromVo(UserProfileRespVO vo) {
+        if (vo == null) {
+            return null;
+        }
+        UserProfileDTO dto = new UserProfileDTO();
+        dto.setId(vo.getId());
+        dto.setName(vo.getName());
+        dto.setEmail(vo.getEmail());
+        dto.setPhone(vo.getPhone());
+        dto.setRoles(vo.getRoles());
+        dto.setRegistered(vo.isRegistered());
+        return dto;
+    }
 }

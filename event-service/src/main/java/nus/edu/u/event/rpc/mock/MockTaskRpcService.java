@@ -29,4 +29,9 @@ public class MockTaskRpcService implements TaskRpcService {
         }
         return result;
     }
+
+    @Override
+    public boolean hasPendingTasks(Long eventId, Long userId) {
+        return false;
+    }
 }

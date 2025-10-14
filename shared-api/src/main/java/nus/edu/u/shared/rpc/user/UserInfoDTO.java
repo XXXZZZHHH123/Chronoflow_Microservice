@@ -2,6 +2,7 @@ package nus.edu.u.shared.rpc.user;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,4 +19,7 @@ public class UserInfoDTO implements Serializable {
     private Long id;
     private String username;
     private Integer status;
+    private String email;
+    private String phone;
+    private List<RoleBriefDTO> roles;
 }

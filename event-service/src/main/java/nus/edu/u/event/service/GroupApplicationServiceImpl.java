@@ -29,18 +29,19 @@ import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.enums.CommonStatusEnum;
 import nus.edu.u.event.domain.dataobject.event.EventDO;
 import nus.edu.u.event.domain.dataobject.group.DeptDO;
-import nus.edu.u.event.domain.dataobject.user.UserDO;
 import nus.edu.u.event.domain.dataobject.user.UserGroupDO;
 import nus.edu.u.event.domain.dto.group.CreateGroupReqVO;
 import nus.edu.u.event.domain.dto.group.GroupRespVO;
 import nus.edu.u.event.domain.dto.group.UpdateGroupReqVO;
 import nus.edu.u.event.domain.dto.user.UserProfileRespVO;
+import nus.edu.u.event.convert.UserConvert;
 import nus.edu.u.event.mapper.DeptMapper;
 import nus.edu.u.event.mapper.EventMapper;
 import nus.edu.u.event.mapper.UserGroupMapper;
-import nus.edu.u.event.mapper.UserMapper;
 import nus.edu.u.shared.rpc.group.GroupDTO;
 import nus.edu.u.shared.rpc.group.GroupMemberDTO;
+import nus.edu.u.shared.rpc.user.RoleBriefDTO;
+import nus.edu.u.shared.rpc.user.UserInfoDTO;
 import nus.edu.u.shared.rpc.user.UserProfileDTO;
 import nus.edu.u.shared.rpc.user.UserRpcService;
 
@@ -60,10 +61,10 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
     @DubboReference
     private UserRpcService userRpcService;
     private final DeptMapper deptMapper;
-    private final UserMapper userMapper;
     private final EventMapper eventMapper;
     private final UserGroupMapper userGroupMapper;
     private final GroupMemberRemovalService groupMemberRemovalService;
+    private final UserConvert userConvert;
 
     @Override
     @Transactional
@@ -87,10 +88,7 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
         }
 
         if (reqVO.getLeadUserId() != null) {
-            UserDO leadUser = userMapper.selectById(reqVO.getLeadUserId());
-            if (leadUser == null) {
-                throw exception(USER_NOT_FOUND);
-            }
+            ensureUserExists(reqVO.getLeadUserId());
         }
 
         DeptDO dept =
@@ -124,10 +122,7 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
         }
 
         if (reqVO.getLeadUserId() != null) {
-            UserDO leadUser = userMapper.selectById(reqVO.getLeadUserId());
-            if (leadUser == null) {
-                throw exception(USER_NOT_FOUND);
-            }
+            ensureUserExists(reqVO.getLeadUserId());
         }
 
         DeptDO updateDept = new DeptDO();
@@ -156,16 +151,15 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                 proxy.removeMembersFromGroup(id, normalMemberIds);
             }
 
-            if (existing.getLeadUserId() != null) {
-                UpdateWrapper<UserDO> updateWrapper = new UpdateWrapper<>();
-                updateWrapper.set("dept_id", null).eq("id", existing.getLeadUserId());
-                userMapper.update(null, updateWrapper);
-            }
         }
+        // remove any remaining relations (including the lead) to avoid blocking future assignments
+        userGroupMapper.delete(
+                new LambdaQueryWrapper<UserGroupDO>().eq(UserGroupDO::getDeptId, id));
 
         UpdateWrapper<DeptDO> updateWrapper = new UpdateWrapper<>();
         updateWrapper
                 .set("status", CommonStatusEnum.DISABLE.getStatus())
+                .set("deleted", true)
                 .eq("id", id);
         deptMapper.update(null, updateWrapper);
     }
@@ -174,10 +168,7 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
     @Transactional
     public void addMemberToGroup(Long groupId, Long userId) {
         DeptDO group = ensureGroupExists(groupId);
-        UserDO user = userMapper.selectById(userId);
-        if (user == null) {
-            throw exception(USER_NOT_FOUND);
-        }
+        UserInfoDTO user = ensureUserExists(userId);
         if (!CommonStatusEnum.isEnable(user.getStatus())) {
             throw exception(USER_STATUS_INVALID);
         }
@@ -219,25 +210,27 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
         }
 
         Set<Long> userIds =
-                relations.stream().map(UserGroupDO::getUserId).filter(Objects::nonNull).collect(
-                        Collectors.toCollection(HashSet::new));
-        Map<Long, UserDO> users =
-                userMapper.selectBatchIds(userIds).stream()
+                relations.stream()
+                        .map(UserGroupDO::getUserId)
                         .filter(Objects::nonNull)
-                        .collect(Collectors.toMap(UserDO::getId, user -> user));
+                        .collect(Collectors.toCollection(HashSet::new));
+        Map<Long, UserInfoDTO> users = fetchUsers(userIds);
 
         return relations.stream()
                 .map(
                         relation -> {
-                            UserDO user = users.get(relation.getUserId());
+                            UserInfoDTO user = users.get(relation.getUserId());
                             if (user == null || !CommonStatusEnum.isEnable(user.getStatus())) {
                                 return null;
                             }
+                            var role = pickPrimaryRole(user.getRoles());
                             return GroupRespVO.MemberInfo.builder()
                                     .userId(user.getId())
                                     .username(user.getUsername())
                                     .email(user.getEmail())
                                     .phone(user.getPhone())
+                                    .roleId(role != null ? role.getId() : null)
+                                    .roleName(role != null ? role.getName() : null)
                                     .joinTime(relation.getJoinTime())
                                     .build();
                         })
@@ -403,8 +396,54 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
     @Override
     public List<UserProfileRespVO> getAllUserProfiles() {
         List<UserProfileDTO> dtos = userRpcService.getEnabledUserProfiles();
-        if (dtos == null || dtos.isEmpty()) return List.of();
-        return userMapper.toVoList(dtos);
+        if (dtos == null || dtos.isEmpty()) {
+            return List.of();
+        }
+
+        List<UserProfileRespVO> profiles = new ArrayList<>(dtos.size());
+        for (Object dtoObj : dtos) {
+            UserProfileRespVO profile = convertProfile(dtoObj);
+            if (profile != null) {
+                profiles.add(profile);
+            }
+        }
+        return profiles;
+    }
+
+    private UserProfileRespVO convertProfile(Object source) {
+        if (source instanceof UserProfileDTO dto) {
+            return userConvert.toProfile(dto);
+        }
+        if (source instanceof Map<?, ?> map) {
+            UserProfileDTO dto = BeanUtil.toBean(map, UserProfileDTO.class);
+            return userConvert.toProfile(dto);
+        }
+        log.warn("Received unexpected user profile payload type: {}", source == null ? "null" : source.getClass());
+        return null;
+    }
+
+    private RoleBriefDTO pickPrimaryRole(List<RoleBriefDTO> roles) {
+        if (roles == null || roles.isEmpty()) {
+            return null;
+        }
+        return roles.get(0);
+    }
+
+    private UserInfoDTO ensureUserExists(Long userId) {
+        Map<Long, UserInfoDTO> users = fetchUsers(Collections.singleton(userId));
+        UserInfoDTO user = users.get(userId);
+        if (user == null) {
+            throw exception(USER_NOT_FOUND);
+        }
+        return user;
+    }
+
+    private Map<Long, UserInfoDTO> fetchUsers(Collection<Long> userIds) {
+        if (CollectionUtils.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+        Map<Long, UserInfoDTO> users = userRpcService.getUsers(userIds);
+        return users == null ? Collections.emptyMap() : users;
     }
 
     private DeptDO ensureGroupExists(Long groupId) {
@@ -436,12 +475,7 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                         .map(DeptDO::getLeadUserId)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
-        Map<Long, UserDO> leaders =
-                leadUserIds.isEmpty()
-                        ? Collections.emptyMap()
-                        : userMapper.selectBatchIds(leadUserIds).stream()
-                                .filter(Objects::nonNull)
-                                .collect(Collectors.toMap(UserDO::getId, user -> user));
+        Map<Long, UserInfoDTO> leaders = fetchUsers(leadUserIds);
 
         Set<Long> groupIds = collectIds(groups);
         Map<Long, Integer> memberCounts =
@@ -452,20 +486,20 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                                                 .in(UserGroupDO::getDeptId, groupIds))
                                 .stream()
                                 .collect(
-                                        Collectors.groupingBy(
-                                                UserGroupDO::getDeptId,
-                                                Collectors.summingInt(item -> 1)));
+                                                Collectors.groupingBy(
+                                                        UserGroupDO::getDeptId,
+                                                        Collectors.summingInt(item -> 1)));
+        Map<Long, List<GroupRespVO.MemberInfo>> membersByGroup = fetchMembersByGroupIds(groupIds);
 
         return groups.stream()
                 .map(
                         group -> {
                             EventDO event = eventsById.get(group.getEventId());
-                            String leadUserName =
+                            UserInfoDTO leader =
                                     group.getLeadUserId() == null
                                             ? null
-                                            : leaders
-                                                    .getOrDefault(group.getLeadUserId(), new UserDO())
-                                                    .getUsername();
+                                            : leaders.get(group.getLeadUserId());
+                            String leadUserName = leader != null ? leader.getUsername() : null;
                             return GroupRespVO.builder()
                                     .id(group.getId())
                                     .name(group.getName())
@@ -484,6 +518,9 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                                     .eventName(event != null ? event.getName() : null)
                                     .memberCount(
                                             memberCounts.getOrDefault(group.getId(), 0))
+                                    .members(
+                                            membersByGroup.getOrDefault(
+                                                    group.getId(), Collections.emptyList()))
                                     .createTime(group.getCreateTime())
                                     .updateTime(group.getUpdateTime())
                                     .build();
@@ -511,23 +548,23 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
 
         Set<Long> userIds =
                 relations.stream().map(UserGroupDO::getUserId).collect(Collectors.toSet());
-        Map<Long, UserDO> users =
-                userMapper.selectBatchIds(userIds).stream()
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toMap(UserDO::getId, user -> user));
+        Map<Long, UserInfoDTO> users = fetchUsers(userIds);
 
         Map<Long, List<GroupRespVO.MemberInfo>> result = new HashMap<>();
         for (UserGroupDO relation : relations) {
-            UserDO user = users.get(relation.getUserId());
+            UserInfoDTO user = users.get(relation.getUserId());
             if (user == null || !CommonStatusEnum.isEnable(user.getStatus())) {
                 continue;
             }
+            var role = pickPrimaryRole(user.getRoles());
             GroupRespVO.MemberInfo member =
                     GroupRespVO.MemberInfo.builder()
                             .userId(user.getId())
                             .username(user.getUsername())
                             .email(user.getEmail())
                             .phone(user.getPhone())
+                            .roleId(role != null ? role.getId() : null)
+                            .roleName(role != null ? role.getName() : null)
                             .joinTime(relation.getJoinTime())
                             .build();
             result.computeIfAbsent(relation.getDeptId(), key -> new ArrayList<>()).add(member);

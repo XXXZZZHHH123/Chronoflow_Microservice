@@ -2,19 +2,20 @@ package nus.edu.u.shared.rpc.user;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class UserProfileDTO implements Serializable {
-
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class RoleBriefDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
     private Long id;
     private String name;
-    private String email;
-    private String phone;
-    private List<Long> roles;
-    private boolean isRegistered;
+    private String roleKey;
 }

@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import nus.edu.u.user.domain.vo.role.RoleRespVO;;
+import nus.edu.u.user.domain.vo.role.RoleRespVO;
 
 import java.util.List;
 

@@ -10,13 +10,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.event.domain.dataobject.group.DeptDO;
-import nus.edu.u.event.domain.dataobject.task.TaskDO;
 import nus.edu.u.event.domain.dataobject.user.UserGroupDO;
-import nus.edu.u.event.enums.TaskStatusEnum;
 import nus.edu.u.event.mapper.DeptMapper;
-import nus.edu.u.event.mapper.TaskMapper;
 import nus.edu.u.event.mapper.UserGroupMapper;
-
+import nus.edu.u.shared.rpc.task.TaskRpcService;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +26,8 @@ public class GroupMemberRemovalService {
 
     private final UserGroupMapper userGroupMapper;
     private final DeptMapper deptMapper;
-    private final TaskMapper taskMapper;
+    @DubboReference(check = false)
+    private TaskRpcService taskRpcService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void removeMemberFromGroup(Long groupId, Long userId) {
@@ -54,18 +53,13 @@ public class GroupMemberRemovalService {
             throw exception(CANNOT_REMOVE_GROUP_LEADER);
         }
 
-        long pendingTaskCount =
-                taskMapper.selectCount(
-                        new LambdaQueryWrapper<TaskDO>()
-                                .eq(TaskDO::getUserId, userId)
-                                .eq(TaskDO::getEventId, relation.getEventId())
-                                .ne(TaskDO::getStatus, TaskStatusEnum.COMPLETED.getStatus()));
-
-        if (pendingTaskCount > 0) {
+        boolean hasPendingTasks =
+                taskRpcService != null
+                        && taskRpcService.hasPendingTasks(relation.getEventId(), userId);
+        if (hasPendingTasks) {
             log.warn(
-                    "User {} still has {} pending tasks for event {}",
+                    "User {} still has pending tasks for event {}",
                     userId,
-                    pendingTaskCount,
                     relation.getEventId());
             throw exception(CANNOT_REMOVE_MEMBER_WITH_PENDING_TASKS);
         }

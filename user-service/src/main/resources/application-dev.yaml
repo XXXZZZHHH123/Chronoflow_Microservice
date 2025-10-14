@@ -73,7 +73,7 @@ dubbo:
     address: nacos://${DEV_NACOS_HOST}:${DEV_NACOS_PORT}?username=${DEV_NACOS_USERNAME}&password=${DEV_NACOS_PASSWORD}
     # This will enable application-level service discovery only (the recommended service discovery method for Dubbo3).
     # For users upgrading from Dubbo2.x, please set the value to 'all' for smooth migration.
-    register-mode: interface
+    register-mode: instance
     parameters:
       namespace: dev
   protocol:

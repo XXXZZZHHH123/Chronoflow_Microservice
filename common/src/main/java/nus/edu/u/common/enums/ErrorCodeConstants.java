@@ -93,12 +93,25 @@ public interface ErrorCodeConstants {
             new ErrorCode(13_02_003, "The task start time must be earlier than the end time");
     ErrorCode TASK_ASSIGNEE_TENANT_MISMATCH =
             new ErrorCode(13_02_004, "The assigned user does not belong to this event");
-    ErrorCode TASK_NOT_FOUND = new ErrorCode(13_02_005, "Task does not exist");
+    ErrorCode TASK_NOT_FOUND = new ErrorCode(13_02_005, "task does not exist");
     ErrorCode TASK_TIME_OUTSIDE_EVENT =
             new ErrorCode(13_02_006, "The task timeframe must fall within the event timeframe");
-    ErrorCode TASK_CREATE_FAILED = new ErrorCode(13_02_007, "Task creation failed");
-    ErrorCode TASK_UPDATE_FAILED = new ErrorCode(13_02_008, "Task update failed");
-    ErrorCode TASK_DELETE_FAILED = new ErrorCode(13_02_009, "Task delete failed");
+    ErrorCode TASK_CREATE_FAILED = new ErrorCode(13_02_007, "task creation failed");
+    ErrorCode TASK_UPDATE_FAILED = new ErrorCode(13_02_008, "task update failed");
+    ErrorCode TASK_DELETE_FAILED = new ErrorCode(13_02_009, "task delete failed");
+    ErrorCode WRONG_TASK_ACTION_TYPE = new ErrorCode(13_02_010, "task action failed");
+    ErrorCode TASK_LOG_ERROR = new ErrorCode(13_02_011, "task log error");
+    ErrorCode TASK_LOG_FILE_FAILED = new ErrorCode(13_02_012, "task log files upload failed");
+    ErrorCode APPROVE_TASK_FAILED = new ErrorCode(13_02_013, "approve task failed");
+    ErrorCode ASSIGN_TASK_FAILED = new ErrorCode(13_02_014, "assign task failed");
+    ErrorCode BLOCK_TASK_FAILED = new ErrorCode(13_02_015, "block task failed");
+    ErrorCode REJECT_TASK_FAILED = new ErrorCode(13_02_016, "reject task failed");
+    ErrorCode SUBMIT_TASK_FAILED = new ErrorCode(13_02_017, "submit task failed");
+    ErrorCode ACCEPT_TASK_FAILED = new ErrorCode(13_02_018, "accept task failed");
+    ErrorCode MODIFY_OTHER_TASK_ERROR =
+            new ErrorCode(13_02_019, "You can only modify your own task");
+    ErrorCode MODIFY_WRONG_TASK_STATUS =
+            new ErrorCode(13_02_020, "You can't {} the task in {} status");
 
     // ========= RolePermission module 14-01-000 ============
     ErrorCode CREATE_ROLE_FAILED = new ErrorCode(14_01_001, "Create role failed");

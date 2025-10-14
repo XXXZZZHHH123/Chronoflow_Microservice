@@ -9,7 +9,7 @@ spring:
   config:
     import:
       - optional:classpath:application-${spring.profiles.active}.yaml # Load【dev】config
-      - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml # Load【Nacos】config
+      - optional:nacos:${spring.application.name}.yaml # Load【Nacos】config
 
   # Redis config
   data:
@@ -29,8 +29,15 @@ spring:
 
   cloud:
     nacos:
+      server-addr: ${NACOS_HOST}:${NACOS_PORT} # Nacos host
+      username: ${NACOS_USERNAME} # Nacos username
+      password: ${NACOS_PASSWORD} # Nacos password
       discovery:
-        server-addr: ${DEV_NACOS_HOST}:${DEV_NACOS_PORT}
+        namespace: ${spring.profiles.active}
+        group: DEFAULT_GROUP
+      config:
+        namespace: ${spring.profiles.active}
+        group: DEFAULT_GROUP
     gateway:
       routes:
         # User Service

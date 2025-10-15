@@ -1,2 +1,4 @@
 nus.edu.u.framework.web.WebAutoConfiguration
 nus.edu.u.framework.mybatis.MybatisPlusConfig
+nus.edu.u.framework.jackson.JsonConfig
+nus.edu.u.framework.security.SecurityAutoConfiguration

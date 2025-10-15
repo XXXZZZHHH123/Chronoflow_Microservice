@@ -1,5 +1,6 @@
 package nus.edu.u.user.service.auth;
 
+import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjUtil;
@@ -8,6 +9,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.enums.CommonStatusEnum;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
+import nus.edu.u.user.domain.dto.UserPermissionDTO;
 import nus.edu.u.user.domain.dto.UserRoleDTO;
 import nus.edu.u.user.domain.dto.RoleDTO;
 import nus.edu.u.user.domain.dto.UserTokenDTO;
@@ -23,6 +25,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static nus.edu.u.common.constant.CacheConstants.USER_PERMISSION_KEY;
+import static nus.edu.u.common.constant.CacheConstants.USER_ROLE_KEY;
 import static nus.edu.u.common.constant.Constants.DEFAULT_DELIMITER;
 import static nus.edu.u.common.constant.Constants.SESSION_TENANT_ID;
 import static nus.edu.u.common.enums.ErrorCodeConstants.*;
@@ -115,9 +119,14 @@ public class AuthServiceImpl implements AuthService {
     private LoginRespVO getInfo(String refreshToken) {
         UserRoleDTO userRoleDTO =
                 userService.selectUserWithRole(Long.parseLong(StpUtil.getLoginId().toString()));
+        List<UserPermissionDTO> userPermissionList = userService.getUserPermissions(Long.parseLong(StpUtil.getLoginId().toString()));
         if (userRoleDTO == null) {
             throw exception(ACCOUNT_ERROR);
         }
+        SaSession session = StpUtil.getSession();
+        session.set(USER_ROLE_KEY, userRoleDTO.getRoles().stream().map(RoleDTO::getRoleKey).collect(Collectors.toList()));
+        session.set(USER_PERMISSION_KEY, userPermissionList.stream().map(UserPermissionDTO::getPermissionKey).collect(Collectors.toList()));
+
         UserVO userVO =
                 UserVO.builder()
                         .id(userRoleDTO.getUserId())

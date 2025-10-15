@@ -19,14 +19,7 @@ import nus.edu.u.task.domain.vo.taskLog.TaskLogRespVO;
 import nus.edu.u.task.service.TaskApplicationService;
 import nus.edu.u.task.service.TaskLogApplicationService;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/tasks")
@@ -38,21 +31,21 @@ public class TaskController {
     private final TaskLogApplicationService taskLogApplicationService;
 
     @SaCheckPermission(CREATE_TASK)
-    @PostMapping("/events/{eventId}")
+    @PostMapping("{eventId}")
     public CommonResult<TaskRespVO> create(
-            @PathVariable("eventId") Long eventId, @Valid @RequestBody TaskCreateReqVO request) {
+            @PathVariable("eventId") Long eventId, @Valid @ModelAttribute TaskCreateReqVO request) {
         TaskRespVO resp = taskApplicationService.createTask(eventId, request);
         return CommonResult.success(resp);
     }
 
-    @GetMapping("/events/{eventId}/tasks/{taskId}")
+    @GetMapping("{eventId}/{taskId}")
     public CommonResult<TaskRespVO> getTask(
             @PathVariable("eventId") Long eventId, @PathVariable("taskId") Long taskId) {
         TaskRespVO resp = taskApplicationService.getTask(eventId, taskId);
         return CommonResult.success(resp);
     }
 
-    @GetMapping("/events/{eventId}/tasks")
+    @GetMapping("/{eventId}")
     public CommonResult<List<TaskRespVO>> listByEvent(@PathVariable("eventId") Long eventId) {
         List<TaskRespVO> resp = taskApplicationService.listTasksByEvent(eventId);
         return CommonResult.success(resp);
@@ -65,18 +58,18 @@ public class TaskController {
         return CommonResult.success(resp);
     }
 
-    @PatchMapping("/events/{eventId}/tasks/{taskId}")
+    @PatchMapping("{eventId}/{taskId}")
     public CommonResult<TaskRespVO> update(
             @PathVariable("eventId") Long eventId,
             @PathVariable("taskId") Long taskId,
-            @Valid @RequestBody TaskUpdateReqVO request) {
+            @Valid @ModelAttribute TaskUpdateReqVO request) {
         TaskRespVO resp =
                 taskApplicationService.updateTask(eventId, taskId, request, request.getType());
         return CommonResult.success(resp);
     }
 
     @SaCheckPermission(DELETE_TASK)
-    @DeleteMapping("/events/{eventId}/tasks/{taskId}")
+    @DeleteMapping("/{eventId}/{taskId}")
     public CommonResult<Boolean> delete(
             @PathVariable("eventId") Long eventId, @PathVariable("taskId") Long taskId) {
         taskApplicationService.deleteTask(eventId, taskId);
@@ -84,7 +77,7 @@ public class TaskController {
     }
 
     @SaCheckPermission(QUERY_TASK)
-    @GetMapping("/{taskId}/logs")
+    @GetMapping("/{eventId}/log/{taskId}")
     public CommonResult<List<TaskLogRespVO>> logs(@PathVariable("taskId") Long taskId) {
         List<TaskLogRespVO> resp = taskLogApplicationService.getTaskLog(taskId);
         return CommonResult.success(resp);

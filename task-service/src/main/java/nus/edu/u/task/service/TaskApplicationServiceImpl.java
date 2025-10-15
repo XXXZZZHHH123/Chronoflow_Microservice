@@ -53,13 +53,13 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
     private final TaskMapper taskMapper;
 
     @DubboReference(check = false)
-    private final EventRpcService eventRpcService;
+    private EventRpcService eventRpcService;
 
     @DubboReference(check = false)
-    private final UserRpcService userRpcService;
+    private UserRpcService userRpcService;
 
     @DubboReference(check = false)
-    private final GroupRpcService groupRpcService;
+    private GroupRpcService groupRpcService;
 
     private final TaskActionFactory taskActionFactory;
 

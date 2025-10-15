@@ -18,17 +18,20 @@ import nus.edu.u.task.mapper.TaskMapper;
 import nus.edu.u.shared.rpc.file.FileStorageRpcService;
 import nus.edu.u.shared.rpc.file.FileUploadReqVO;
 import nus.edu.u.task.service.TaskLogApplicationService;
+
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 @Component
 public abstract class AbstractTaskStrategy implements TaskStrategy {
 
-    @Resource protected TaskMapper taskMapper;
+    protected TaskMapper taskMapper;
 
-    @Resource protected TaskLogApplicationService taskLogService;
+    protected TaskLogApplicationService taskLogService;
 
-    @Resource protected FileStorageRpcService fileStorageRpcService;
+    @DubboReference(check = false)
+    protected FileStorageRpcService fileStorageRpcService;
 
     public abstract void execute(TaskDO task, TaskActionDTO taskActionDTO, Object... params);
 

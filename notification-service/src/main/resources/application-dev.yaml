@@ -1,20 +1,4 @@
-
 spring:
-  application:
-    name: notification-service
-  cloud:
-    nacos:
-      server-addr: ${DEV_NACOS_HOST}:${DEV_NACOS_PORT} # Nacos host
-      username: ${DEV_NACOS_USERNAME} # Nacos username
-      password: ${DEV_NACOS_PASSWORD} # Nacos password
-      discovery:
-        namespace: dev
-        group: DEFAULT_GROUP
-      config:
-        namespace: dev
-        group: DEFAULT_GROUP
-  autoconfigure:
-    exclude:
   datasource:
     druid:
       web-stat-filter:
@@ -66,22 +50,6 @@ spring:
       port: ${DEV_REDIS_PORT}
       database: ${DEV_REDIS_DATABASE}
       password: ${DEV_REDIS_PASSWORD}
-
-# Dubbo config
-dubbo:
-  registry:
-    address: nacos://${DEV_NACOS_HOST}:${DEV_NACOS_PORT}?username=${DEV_NACOS_USERNAME}&password=${DEV_NACOS_PASSWORD}
-    # This will enable application-level service discovery only (the recommended service discovery method for Dubbo3).
-    # For users upgrading from Dubbo2.x, please set the value to 'all' for smooth migration.
-    register-mode: interface
-    parameters:
-      namespace: dev
-  protocol:
-    name: tri
-    port: 50053
-  application:
-    name: notification-service-rpc
-    logger: slf4j
 
 # Lock4j config
 lock4j:

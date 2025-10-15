@@ -118,3 +118,11 @@ dubbo:
     name: file-service-rpc
     logger: slf4j
     qos-enable: false
+
+
+file:
+  provider: gcs
+
+gcs:
+  bucket: chronoflow-file-service-2025
+  signed-url-expiry-minutes: 15

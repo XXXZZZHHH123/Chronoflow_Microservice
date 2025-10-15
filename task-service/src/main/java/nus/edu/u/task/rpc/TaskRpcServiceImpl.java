@@ -1,22 +1,20 @@
 package nus.edu.u.task.rpc;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nus.edu.u.common.exception.ServiceException;
 import nus.edu.u.shared.rpc.task.TaskDTO;
 import nus.edu.u.shared.rpc.task.TaskRpcService;
-import nus.edu.u.task.domain.dataobject.task.TaskDO;
-import nus.edu.u.task.domain.dataobject.task.TaskLogDO;
+import nus.edu.u.task.convert.TaskRpcConvert;
+import nus.edu.u.task.domain.vo.task.TaskRespVO;
 import nus.edu.u.task.enums.TaskStatusEnum;
-import nus.edu.u.task.mapper.TaskLogMapper;
-import nus.edu.u.task.mapper.TaskMapper;
+import nus.edu.u.task.service.TaskApplicationService;
 import org.apache.dubbo.config.annotation.DubboService;
 
 /**
@@ -30,8 +28,8 @@ import org.apache.dubbo.config.annotation.DubboService;
 @RequiredArgsConstructor
 public class TaskRpcServiceImpl implements TaskRpcService {
 
-    private final TaskMapper taskMapper;
-    private final TaskLogMapper taskLogMapper;
+    private final TaskApplicationService taskApplicationService;
+    private final TaskRpcConvert taskRpcConvert;
 
     @Override
     public Map<Long, List<TaskDTO>> getTasksByEventIds(Collection<Long> eventIds) {
@@ -39,21 +37,25 @@ public class TaskRpcServiceImpl implements TaskRpcService {
             return Map.of();
         }
 
-        List<TaskDO> tasks =
-                taskMapper.selectList(
-                        Wrappers.<TaskDO>lambdaQuery().in(TaskDO::getEventId, eventIds));
-        if (tasks == null || tasks.isEmpty()) {
-            return Map.of();
+        Map<Long, List<TaskDTO>> result = new LinkedHashMap<>();
+        for (Long eventId : eventIds) {
+            if (eventId == null) {
+                continue;
+            }
+            try {
+                List<TaskRespVO> tasks = taskApplicationService.listTasksByEvent(eventId);
+                if (tasks == null || tasks.isEmpty()) {
+                    continue;
+                }
+                List<TaskDTO> dtoList = safeDtoList(tasks);
+                if (!dtoList.isEmpty()) {
+                    result.put(eventId, dtoList);
+                }
+            } catch (ServiceException ex) {
+                log.debug("Unable to fetch tasks for event {}: {}", eventId, ex.getMessage());
+            }
         }
-
-        return tasks.stream()
-                .filter(Objects::nonNull)
-                .filter(task -> task.getEventId() != null)
-                .collect(
-                        Collectors.groupingBy(
-                                TaskDO::getEventId,
-                                LinkedHashMap::new,
-                                Collectors.mapping(this::toTaskDTO, Collectors.toList())));
+        return result;
     }
 
     @Override
@@ -62,21 +64,22 @@ public class TaskRpcServiceImpl implements TaskRpcService {
             return false;
         }
 
-        Long pendingCount =
-                taskMapper.selectCount(
-                        Wrappers.<TaskDO>lambdaQuery()
-                                .eq(TaskDO::getEventId, eventId)
-                                .eq(TaskDO::getUserId, userId)
-                                .and(
-                                        wrapper ->
-                                                wrapper.ne(
-                                                                TaskDO::getStatus,
-                                                                TaskStatusEnum.COMPLETED
-                                                                        .getStatus())
-                                                        .or()
-                                                        .isNull(TaskDO::getStatus)));
-
-        return pendingCount != null && pendingCount > 0;
+        try {
+            return taskApplicationService.listTasksByMember(userId).stream()
+                    .filter(Objects::nonNull)
+                    .filter(task -> Objects.equals(eventId, task.getEventId()))
+                    .anyMatch(
+                            task ->
+                                    !Objects.equals(
+                                            task.getStatus(), TaskStatusEnum.COMPLETED.getStatus()));
+        } catch (ServiceException ex) {
+            log.debug(
+                    "Unable to evaluate pending tasks for event {} and user {}: {}",
+                    eventId,
+                    userId,
+                    ex.getMessage());
+            return false;
+        }
     }
 
     @Override
@@ -85,40 +88,36 @@ public class TaskRpcServiceImpl implements TaskRpcService {
             return;
         }
 
-        List<TaskDO> tasks =
-                taskMapper.selectList(Wrappers.<TaskDO>lambdaQuery().eq(TaskDO::getEventId, eventId));
-        if (tasks == null || tasks.isEmpty()) {
-            if (log.isDebugEnabled()) {
+        try {
+            List<TaskRespVO> tasks = taskApplicationService.listTasksByEvent(eventId);
+            if (tasks == null || tasks.isEmpty()) {
                 log.debug("No tasks to delete for event {}", eventId);
+                return;
             }
-            return;
-        }
-
-        Set<Long> taskIds =
-                tasks.stream()
-                        .map(TaskDO::getId)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet());
-
-        if (!taskIds.isEmpty()) {
-            int removedLogs =
-                    taskLogMapper.delete(
-                            Wrappers.<TaskLogDO>lambdaQuery().in(TaskLogDO::getTaskId, taskIds));
-            if (log.isDebugEnabled()) {
-                log.debug("Removed {} task logs for event {}", removedLogs, eventId);
+            for (TaskRespVO task : tasks) {
+                if (task == null || task.getId() == null) {
+                    continue;
+                }
+                try {
+                    taskApplicationService.deleteTask(eventId, task.getId());
+                } catch (ServiceException ex) {
+                    log.warn(
+                            "Failed to delete task {} for event {}: {}",
+                            task.getId(),
+                            eventId,
+                            ex.getMessage());
+                }
             }
+        } catch (ServiceException ex) {
+            log.debug("Unable to delete tasks for event {}: {}", eventId, ex.getMessage());
         }
-
-        int removedTasks =
-                taskMapper.delete(Wrappers.<TaskDO>lambdaQuery().eq(TaskDO::getEventId, eventId));
-        log.info("Removed {} tasks for event {}", removedTasks, eventId);
     }
 
-    private TaskDTO toTaskDTO(TaskDO task) {
-        return TaskDTO.builder()
-                .id(task.getId())
-                .eventId(task.getEventId())
-                .status(task.getStatus())
-                .build();
+    private List<TaskDTO> safeDtoList(List<TaskRespVO> tasks) {
+        List<TaskDTO> dtoList = taskRpcConvert.toDtoList(tasks);
+        if (dtoList == null) {
+            return List.of();
+        }
+        return dtoList.stream().filter(Objects::nonNull).collect(Collectors.toList());
     }
 }

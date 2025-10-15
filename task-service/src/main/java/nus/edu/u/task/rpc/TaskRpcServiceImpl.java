@@ -6,13 +6,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.shared.rpc.task.TaskDTO;
 import nus.edu.u.shared.rpc.task.TaskRpcService;
 import nus.edu.u.task.domain.dataobject.task.TaskDO;
+import nus.edu.u.task.domain.dataobject.task.TaskLogDO;
 import nus.edu.u.task.enums.TaskStatusEnum;
+import nus.edu.u.task.mapper.TaskLogMapper;
 import nus.edu.u.task.mapper.TaskMapper;
 import org.apache.dubbo.config.annotation.DubboService;
 
@@ -28,6 +31,7 @@ import org.apache.dubbo.config.annotation.DubboService;
 public class TaskRpcServiceImpl implements TaskRpcService {
 
     private final TaskMapper taskMapper;
+    private final TaskLogMapper taskLogMapper;
 
     @Override
     public Map<Long, List<TaskDTO>> getTasksByEventIds(Collection<Long> eventIds) {
@@ -73,6 +77,41 @@ public class TaskRpcServiceImpl implements TaskRpcService {
                                                         .isNull(TaskDO::getStatus)));
 
         return pendingCount != null && pendingCount > 0;
+    }
+
+    @Override
+    public void deleteTasksByEventId(Long eventId) {
+        if (eventId == null) {
+            return;
+        }
+
+        List<TaskDO> tasks =
+                taskMapper.selectList(Wrappers.<TaskDO>lambdaQuery().eq(TaskDO::getEventId, eventId));
+        if (tasks == null || tasks.isEmpty()) {
+            if (log.isDebugEnabled()) {
+                log.debug("No tasks to delete for event {}", eventId);
+            }
+            return;
+        }
+
+        Set<Long> taskIds =
+                tasks.stream()
+                        .map(TaskDO::getId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+        if (!taskIds.isEmpty()) {
+            int removedLogs =
+                    taskLogMapper.delete(
+                            Wrappers.<TaskLogDO>lambdaQuery().in(TaskLogDO::getTaskId, taskIds));
+            if (log.isDebugEnabled()) {
+                log.debug("Removed {} task logs for event {}", removedLogs, eventId);
+            }
+        }
+
+        int removedTasks =
+                taskMapper.delete(Wrappers.<TaskDO>lambdaQuery().eq(TaskDO::getEventId, eventId));
+        log.info("Removed {} tasks for event {}", removedTasks, eventId);
     }
 
     private TaskDTO toTaskDTO(TaskDO task) {

@@ -16,4 +16,11 @@ public interface TaskRpcService {
      * @return true if the user has at least one task that is not completed
      */
     boolean hasPendingTasks(Long eventId, Long userId);
+
+    /**
+     * Remove all tasks associated with the specified event.
+     *
+     * @param eventId event identifier
+     */
+    void deleteTasksByEventId(Long eventId);
 }

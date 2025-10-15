@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * Jackson config
@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Lu Shuwen
  * @date 2025-09-15
  */
-@Configuration
+@AutoConfiguration
 public class JsonConfig {
 
     @Bean

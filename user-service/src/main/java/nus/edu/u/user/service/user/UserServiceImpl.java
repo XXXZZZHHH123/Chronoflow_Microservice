@@ -10,10 +10,7 @@ import nus.edu.u.common.enums.CommonStatusEnum;
 import nus.edu.u.common.exception.ServiceException;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
 import nus.edu.u.user.domain.dataobject.user.UserRoleDO;
-import nus.edu.u.user.domain.dto.CreateUserDTO;
-import nus.edu.u.user.domain.dto.UpdateUserDTO;
-import nus.edu.u.user.domain.dto.UserRoleDTO;
-import nus.edu.u.user.domain.dto.RoleDTO;
+import nus.edu.u.user.domain.dto.*;
 import nus.edu.u.user.domain.vo.user.BulkUpsertUsersRespVO;
 import nus.edu.u.user.domain.vo.user.UserProfileRespVO;
 import nus.edu.u.user.enums.user.UserStatusEnum;
@@ -436,6 +433,11 @@ public class UserServiceImpl implements UserService {
                                                 CommonStatusEnum.ENABLE.getStatus()))
                 .map(this::convertToUserProfileRespVO)
                 .toList();
+    }
+
+    @Override
+    public List<UserPermissionDTO> getUserPermissions(Long userId) {
+        return userMapper.selectUserWithPermission(userId);
     }
 
     // 提取的私有方法

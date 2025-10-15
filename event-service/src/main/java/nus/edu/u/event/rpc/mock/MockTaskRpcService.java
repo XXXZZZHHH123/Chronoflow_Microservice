@@ -34,4 +34,9 @@ public class MockTaskRpcService implements TaskRpcService {
     public boolean hasPendingTasks(Long eventId, Long userId) {
         return false;
     }
+
+    @Override
+    public void deleteTasksByEventId(Long eventId) {
+        // no-op mock
+    }
 }

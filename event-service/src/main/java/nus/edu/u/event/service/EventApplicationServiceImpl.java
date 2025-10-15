@@ -6,7 +6,6 @@ import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -23,16 +22,16 @@ import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.enums.EventStatusEnum;
 import nus.edu.u.event.convert.EventConvert;
 import nus.edu.u.event.domain.dataobject.event.EventDO;
-import nus.edu.u.event.domain.dataobject.event.EventParticipantDO;
 import nus.edu.u.event.domain.dto.event.EventCreateReqVO;
 import nus.edu.u.event.domain.dto.event.EventGroupRespVO;
 import nus.edu.u.event.domain.dto.event.EventRespVO;
 import nus.edu.u.event.domain.dto.event.EventUpdateReqVO;
 import nus.edu.u.event.domain.dto.event.UpdateEventRespVO;
 import nus.edu.u.event.domain.dto.group.GroupRespVO;
+import nus.edu.u.event.domain.dataobject.user.UserGroupDO;
 import nus.edu.u.event.enums.TaskStatusEnum;
 import nus.edu.u.event.mapper.EventMapper;
-import nus.edu.u.event.mapper.EventParticipantMapper;
+import nus.edu.u.event.mapper.UserGroupMapper;
 import nus.edu.u.event.service.validation.EventValidationContext;
 import nus.edu.u.event.service.validation.EventValidationHandler;
 import nus.edu.u.shared.rpc.group.GroupDTO;
@@ -52,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class EventApplicationServiceImpl implements EventApplicationService{
 
     private final EventMapper eventMapper;
-    private final EventParticipantMapper eventParticipantMapper;
+    private final UserGroupMapper userGroupMapper;
     private final EventConvert eventConvert;
     private final GroupApplicationService groupApplicationService;
 
@@ -69,7 +68,6 @@ public class EventApplicationServiceImpl implements EventApplicationService{
         runValidations(EventValidationContext.forCreate(reqVO));
         EventDO event = prepareForCreate(reqVO);
         eventMapper.insert(event);
-        persistParticipants(event.getId(), reqVO.getParticipantUserIds());
         EventDO persisted = eventMapper.selectById(event.getId());
         return toResponse(persisted);
     }
@@ -95,10 +93,10 @@ public class EventApplicationServiceImpl implements EventApplicationService{
                 eventMapper.selectList(
                         new LambdaQueryWrapper<EventDO>().eq(EventDO::getUserId, organizerId));
 
-        List<EventParticipantDO> participantRecords =
-                eventParticipantMapper.selectList(
-                        new LambdaQueryWrapper<EventParticipantDO>()
-                                .eq(EventParticipantDO::getUserId, organizerId));
+        List<UserGroupDO> participantRecords =
+                userGroupMapper.selectList(
+                        new LambdaQueryWrapper<UserGroupDO>()
+                                .eq(UserGroupDO::getUserId, organizerId));
 
         Map<Long, EventDO> eventsById = new LinkedHashMap<>();
         if (organizerEvents != null) {
@@ -109,7 +107,7 @@ public class EventApplicationServiceImpl implements EventApplicationService{
         if (participantRecords != null && !participantRecords.isEmpty()) {
             Set<Long> participantEventIds =
                     participantRecords.stream()
-                            .map(EventParticipantDO::getEventId)
+                            .map(UserGroupDO::getEventId)
                             .filter(Objects::nonNull)
                             .collect(Collectors.toCollection(LinkedHashSet::new));
             participantEventIds.removeAll(eventsById.keySet());
@@ -175,12 +173,6 @@ public class EventApplicationServiceImpl implements EventApplicationService{
         eventConvert.patch(current, reqVO);
         eventMapper.updateById(current);
 
-        if (reqVO.getParticipantUserIds() != null) {
-            eventParticipantMapper.delete(
-                    new LambdaQueryWrapper<EventParticipantDO>().eq(EventParticipantDO::getEventId, id));
-            persistParticipants(id, reqVO.getParticipantUserIds());
-        }
-
         EventDO updated = eventMapper.selectById(id);
         UpdateEventRespVO resp = eventConvert.toUpdateResp(updated);
         if (resp != null) {
@@ -200,8 +192,18 @@ public class EventApplicationServiceImpl implements EventApplicationService{
         if (rows <= 0) {
             throw exception(EVENT_DELETE_FAILED);
         }
-        eventParticipantMapper.delete(
-                new LambdaQueryWrapper<EventParticipantDO>().eq(EventParticipantDO::getEventId, id));
+        if (taskRpcService != null) {
+            try {
+                taskRpcService.deleteTasksByEventId(id);
+            } catch (Exception ex) {
+                log.error("Failed to delete tasks for event {}", id, ex);
+                throw exception(TASK_DELETE_FAILED);
+            }
+        } else {
+            log.warn("TaskRpcService unavailable, skipped deleting tasks for event {}", id);
+        }
+        userGroupMapper.delete(
+                new LambdaQueryWrapper<UserGroupDO>().eq(UserGroupDO::getEventId, id));
         return true;
     }
 
@@ -218,6 +220,7 @@ public class EventApplicationServiceImpl implements EventApplicationService{
         if (rows <= 0) {
             throw exception(EVENT_RESTORE_FAILED);
         }
+        userGroupMapper.restoreByEventId(id);
         return true;
     }
 
@@ -267,27 +270,6 @@ public class EventApplicationServiceImpl implements EventApplicationService{
             event.setStatus(EventStatusEnum.ACTIVE.getCode());
         }
         return event;
-    }
-
-    private void persistParticipants(Long eventId, Collection<Long> participantUserIds) {
-        if (participantUserIds == null || participantUserIds.isEmpty()) {
-            return;
-        }
-        Set<Long> distinctIds =
-                participantUserIds.stream().filter(Objects::nonNull).collect(Collectors.toSet());
-        Map<Long, ?> existingUsers = userRpcService.getUsers(distinctIds);
-        LocalDateTime now = LocalDateTime.now();
-        for (Long userId : distinctIds) {
-            if (!existingUsers.containsKey(userId)) {
-                continue;
-            }
-            EventParticipantDO record =
-                    EventParticipantDO.builder()
-                            .eventId(eventId)
-                            .userId(userId)
-                            .build();
-            eventParticipantMapper.insert(record);
-        }
     }
 
     private void updateStatusesIfNecessary(List<EventDO> events) {
@@ -347,24 +329,27 @@ public class EventApplicationServiceImpl implements EventApplicationService{
         if (eventIds == null || eventIds.isEmpty()) {
             return Map.of();
         }
-        return eventParticipantMapper.selectList(
-                        new LambdaQueryWrapper<EventParticipantDO>()
-                                .in(EventParticipantDO::getEventId, eventIds))
+        return userGroupMapper.selectList(
+                        new LambdaQueryWrapper<UserGroupDO>().in(UserGroupDO::getEventId, eventIds))
                 .stream()
+                .filter(relation -> relation.getEventId() != null && relation.getUserId() != null)
                 .collect(
                         Collectors.groupingBy(
-                                EventParticipantDO::getEventId, Collectors.summingInt(item -> 1)));
+                                UserGroupDO::getEventId,
+                                Collectors.collectingAndThen(
+                                        Collectors.mapping(UserGroupDO::getUserId, Collectors.toSet()),
+                                        Set::size)));
     }
 
     private List<Long> fetchParticipantIdsByEventId(Long eventId) {
         if (eventId == null) {
             return List.of();
         }
-        return eventParticipantMapper.selectList(
-                        new LambdaQueryWrapper<EventParticipantDO>()
-                                .eq(EventParticipantDO::getEventId, eventId))
+        return userGroupMapper.selectList(
+                        new LambdaQueryWrapper<UserGroupDO>()
+                                .eq(UserGroupDO::getEventId, eventId))
                 .stream()
-                .map(EventParticipantDO::getUserId)
+                .map(UserGroupDO::getUserId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();

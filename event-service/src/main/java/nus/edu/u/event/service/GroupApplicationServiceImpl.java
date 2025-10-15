@@ -371,6 +371,10 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                                                     .eventId(group.getEventId())
                                                     .id(group.getId())
                                                     .name(group.getName())
+                                                    .sort(group.getSort())
+                                                    .leadUserId(group.getLeadUserId())
+                                                    .remark(group.getRemark())
+                                                    .status(group.getStatus())
                                                     .members(
                                                             membersByGroup
                                                                     .getOrDefault(

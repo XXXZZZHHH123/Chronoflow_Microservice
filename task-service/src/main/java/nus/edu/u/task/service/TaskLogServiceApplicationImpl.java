@@ -6,22 +6,23 @@ import static nus.edu.u.common.enums.ErrorCodeConstants.TASK_LOG_ERROR;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
-import nus.edu.u.task.domain.dataobject.task.TaskLogDO;
-import nus.edu.u.task.domain.dataobject.user.UserDO;
-import nus.edu.u.task.domain.vo.user.UserVO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.shared.rpc.file.FileResultVO;
-import nus.edu.u.task.domain.vo.taskLog.TaskLogRespVO;
-import nus.edu.u.task.mapper.TaskLogMapper;
-import nus.edu.u.task.mapper.UserMapper;
 import nus.edu.u.shared.rpc.file.FileStorageRpcService;
-
+import nus.edu.u.shared.rpc.user.UserInfoDTO;
+import nus.edu.u.shared.rpc.user.UserRpcService;
+import nus.edu.u.task.domain.dataobject.task.TaskLogDO;
+import nus.edu.u.task.domain.vo.taskLog.TaskLogRespVO;
+import nus.edu.u.task.domain.vo.user.UserVO;
+import nus.edu.u.task.mapper.TaskLogMapper;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +39,8 @@ public class TaskLogServiceApplicationImpl implements TaskLogApplicationService 
 
     private final TaskLogMapper taskLogMapper;
 
-    private final UserMapper userMapper;
+    @DubboReference(check = false)
+    private final UserRpcService userRpcService;
 
     @DubboReference(check = false)
     private final FileStorageRpcService fileStorageRpcService;
@@ -68,34 +70,41 @@ public class TaskLogServiceApplicationImpl implements TaskLogApplicationService 
         if (taskLogList == null || taskLogList.isEmpty()) {
             return Collections.emptyList();
         }
-        List<Long> userIdList =
-                taskLogList.stream().map(TaskLogDO::getTargetUserId).collect(Collectors.toList());
-        userIdList.addAll(
+        Set<Long> userIds =
                 taskLogList.stream()
-                        .map(taskLog -> NumberUtil.parseLong(taskLog.getCreator()))
-                        .toList());
-        List<UserDO> userList = userMapper.selectBatchIds(userIdList);
-        Map<Long, UserDO> userMap =
-                userList.stream().collect(Collectors.toMap(UserDO::getId, user -> user));
+                        .map(TaskLogDO::getTargetUserId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
+        taskLogList.stream()
+                .map(taskLog -> NumberUtil.parseLong(taskLog.getCreator()))
+                .filter(Objects::nonNull)
+                .forEach(userIds::add);
+
+        final Map<Long, UserInfoDTO> userMap;
+        if (!userIds.isEmpty()) {
+            Map<Long, UserInfoDTO> fetchedUsers = userRpcService.getUsers(userIds);
+            if (fetchedUsers != null) {
+                userMap = fetchedUsers;
+            } else {
+                userMap = Map.of();
+            }
+        } else {
+            userMap = Map.of();
+        }
+
         return taskLogList.stream()
                 .map(
                         taskLog -> {
-                            UserDO targetUser = userMap.get(taskLog.getTargetUserId());
-                            UserVO targetUserVO = null;
-                            if (ObjectUtil.isNotNull(targetUser)) {
-                                targetUserVO = new UserVO();
-                                targetUserVO.setId(targetUser.getId());
-                                targetUserVO.setName(targetUser.getUsername());
-                                targetUserVO.setEmail(targetUser.getEmail());
+                            UserInfoDTO targetUser = userMap.get(taskLog.getTargetUserId());
+                            UserVO targetUserVO = toUserVO(targetUser);
+
+                            Long creatorId = NumberUtil.parseLong(taskLog.getCreator());
+                            UserInfoDTO sourceUser = creatorId != null ? userMap.get(creatorId) : null;
+                            UserVO sourceUserVO = toUserVO(sourceUser);
+                            if (ObjectUtil.isNull(sourceUserVO)) {
+                                sourceUserVO = new UserVO();
                             }
-                            UserDO sourceUser =
-                                    userMap.get(NumberUtil.parseLong(taskLog.getCreator()));
-                            UserVO sourceUserVO = new UserVO();
-                            if (ObjectUtil.isNotNull(sourceUser)) {
-                                sourceUserVO.setId(sourceUser.getId());
-                                sourceUserVO.setName(sourceUser.getUsername());
-                                sourceUserVO.setEmail(sourceUser.getEmail());
-                            }
+
                             List<FileResultVO> fileResults =
                                     fileStorageRpcService.downloadFilesByTaskLogId(taskLog.getId());
                             return TaskLogRespVO.builder()
@@ -109,5 +118,16 @@ public class TaskLogServiceApplicationImpl implements TaskLogApplicationService 
                                     .build();
                         })
                 .toList();
+    }
+
+    private UserVO toUserVO(UserInfoDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        return UserVO.builder()
+                .id(dto.getId())
+                .name(dto.getUsername())
+                .email(dto.getEmail())
+                .build();
     }
 }

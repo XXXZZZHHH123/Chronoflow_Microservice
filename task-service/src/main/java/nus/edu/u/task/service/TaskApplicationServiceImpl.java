@@ -5,9 +5,6 @@ import static nus.edu.u.common.enums.ErrorCodeConstants.*;
 import static nus.edu.u.task.enums.TaskActionEnum.getUpdateTaskAction;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,14 +13,25 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import nus.edu.u.shared.rpc.events.EventRespDTO;
+import nus.edu.u.shared.rpc.events.EventRpcService;
+import nus.edu.u.shared.rpc.group.GroupDTO;
+import nus.edu.u.shared.rpc.group.GroupMemberDTO;
+import nus.edu.u.shared.rpc.group.GroupRpcService;
+import nus.edu.u.shared.rpc.user.UserInfoDTO;
+import nus.edu.u.shared.rpc.user.UserRpcService;
+import nus.edu.u.task.action.TaskActionFactory;
+import nus.edu.u.task.builder.TaskRespVOBuilder;
+import nus.edu.u.task.builder.TasksRespVOBuilder;
 import nus.edu.u.task.convert.TaskConvert;
 import nus.edu.u.task.domain.dataobject.group.DeptDO;
-import nus.edu.u.shared.rpc.events.EventRespDTO;
 import nus.edu.u.task.domain.dataobject.task.TaskDO;
 import nus.edu.u.task.domain.dataobject.user.UserDO;
-import nus.edu.u.task.domain.dataobject.user.UserGroupDO;
 import nus.edu.u.task.domain.dto.TaskActionDTO;
 import nus.edu.u.task.domain.vo.task.TaskCreateReqVO;
 import nus.edu.u.task.domain.vo.task.TaskDashboardRespVO;
@@ -31,15 +39,7 @@ import nus.edu.u.task.domain.vo.task.TaskRespVO;
 import nus.edu.u.task.domain.vo.task.TaskUpdateReqVO;
 import nus.edu.u.task.domain.vo.task.TasksRespVO;
 import nus.edu.u.task.enums.TaskActionEnum;
-import nus.edu.u.task.mapper.DeptMapper;
-import nus.edu.u.shared.rpc.events.EventRpcService;
 import nus.edu.u.task.mapper.TaskMapper;
-import nus.edu.u.task.mapper.UserGroupMapper;
-import nus.edu.u.task.mapper.UserMapper;
-import nus.edu.u.task.action.TaskActionFactory;
-import nus.edu.u.task.builder.TaskRespVOBuilder;
-import nus.edu.u.task.builder.TasksRespVOBuilder;
-
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,11 +55,11 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
     @DubboReference(check = false)
     private final EventRpcService eventRpcService;
 
-    private final UserMapper userMapper;
+    @DubboReference(check = false)
+    private final UserRpcService userRpcService;
 
-    private final UserGroupMapper userGroupMapper;
-
-    private final DeptMapper deptMapper;
+    @DubboReference(check = false)
+    private final GroupRpcService groupRpcService;
 
     private final TaskActionFactory taskActionFactory;
 
@@ -71,7 +71,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
             throw exception(EVENT_NOT_FOUND);
         }
 
-        UserDO assignee = userMapper.selectById(reqVO.getTargetUserId());
+        UserDO assignee = fetchUser(reqVO.getTargetUserId());
         if (assignee == null) {
             throw exception(TASK_ASSIGNEE_NOT_FOUND);
         }
@@ -108,10 +108,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                         user -> resolveAssignerGroups(user.getId(), event.getId()))
                 .withAssignee(assignee)
                 .withAssigneeSupplier(
-                        () -> {
-                            Long userId = task.getUserId();
-                            return userId != null ? userMapper.selectById(userId) : null;
-                        })
+                        () -> fetchUser(task.getUserId()))
                 .withAssigneeGroupsResolver(
                         user -> resolveCrudGroups(user.getId(), event.getId(), null))
                 .build();
@@ -135,7 +132,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
 
         UserDO assignee = null;
         if (reqVO.getTargetUserId() != null) {
-            assignee = userMapper.selectById(reqVO.getTargetUserId());
+            assignee = fetchUser(reqVO.getTargetUserId());
             if (assignee == null) {
                 throw exception(TASK_ASSIGNEE_NOT_FOUND);
             }
@@ -146,7 +143,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
             }
         }
 
-        if (!Arrays.asList(getUpdateTaskAction()).contains(type)) {
+        if (!Arrays.asList(getUpdateTaskAction()).contains(reqVO.getType())) {
             throw exception(WRONG_TASK_ACTION_TYPE);
         }
         TaskActionDTO actionDTO =
@@ -173,10 +170,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                         user -> resolveAssignerGroups(user.getId(), event.getId()))
                 .withAssignee(assignee)
                 .withAssigneeSupplier(
-                        () -> {
-                            Long userId = task.getUserId();
-                            return userId != null ? userMapper.selectById(userId) : null;
-                        })
+                        () -> fetchUser(task.getUserId()))
                 .withAssigneeGroupsResolver(
                         user -> resolveCrudGroups(user.getId(), event.getId(), null))
                 .build();
@@ -220,10 +214,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                 .withAssignerGroupsResolver(
                         user -> resolveAssignerGroups(user.getId(), event.getId()))
                 .withAssigneeSupplier(
-                        () -> {
-                            Long userId = task.getUserId();
-                            return userId != null ? userMapper.selectById(userId) : null;
-                        })
+                        () -> fetchUser(task.getUserId()))
                 .withAssigneeGroupsResolver(
                         user -> resolveCrudGroups(user.getId(), event.getId(), null))
                 .build();
@@ -249,10 +240,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                 tasks.stream().map(TaskDO::getUserId).filter(Objects::nonNull).distinct().toList();
 
         Map<Long, UserDO> usersById =
-                userIds.isEmpty()
-                        ? Map.of()
-                        : userMapper.selectBatchIds(userIds).stream()
-                                .collect(Collectors.toMap(UserDO::getId, Function.identity()));
+                userIds.isEmpty() ? Map.of() : fetchUsersByIds(userIds);
 
         Map<Long, List<TaskRespVO.AssignedUserVO.GroupVO>> groupsByUserId =
                 buildCrudGroupsByUser(usersById.keySet(), eventId);
@@ -275,12 +263,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                                                             assignerUser.getId(), eventId))
                                     .withAssignee(user)
                                     .withAssigneeSupplier(
-                                            () -> {
-                                                Long fallbackUserId = task.getUserId();
-                                                return fallbackUserId != null
-                                                        ? userMapper.selectById(fallbackUserId)
-                                                        : null;
-                                            })
+                                            () -> fetchUser(task.getUserId()))
                                     .withAssigneeGroupsResolver(
                                             assignedUser ->
                                                     resolveCrudGroups(
@@ -295,7 +278,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
     @Override
     @Transactional(readOnly = true)
     public List<TaskRespVO> listTasksByMember(Long memberId) {
-        UserDO member = userMapper.selectById(memberId);
+        UserDO member = fetchUser(memberId);
         if (member == null) {
             throw exception(USER_NOT_FOUND);
         }
@@ -339,9 +322,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                                                     return null;
                                                 }
                                                 Long assignerId = fallbackEvent.getOrganizerId();
-                                                return assignerId != null
-                                                        ? userMapper.selectById(assignerId)
-                                                        : null;
+                                                return fetchUser(assignerId);
                                             })
                                     .withAssignerGroupsResolver(
                                             assignerUser ->
@@ -351,12 +332,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                                                             assignerGroupsCache))
                                     .withAssignee(member)
                                     .withAssigneeSupplier(
-                                            () -> {
-                                                Long userId = task.getUserId();
-                                                return userId != null
-                                                        ? userMapper.selectById(userId)
-                                                        : null;
-                                            })
+                                            () -> fetchUser(task.getUserId()))
                                     .withAssigneeGroupsResolver(
                                             assignedUser ->
                                                     resolveCrudGroupsWithCache(
@@ -369,11 +345,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                 .toList();
     }
 
-    private List<TasksRespVO> listDashboardTasksByMember(UserDO member) {
-        List<TaskDO> tasks =
-                taskMapper.selectList(
-                        Wrappers.<TaskDO>lambdaQuery().eq(TaskDO::getUserId, member.getId()));
-
+    private List<TasksRespVO> listDashboardTasksByMember(UserDO member, List<TaskDO> tasks) {
         if (tasks.isEmpty()) {
             return List.of();
         }
@@ -399,12 +371,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                                     .withEventSupplier(() -> fetchEvent(task.getEventId()))
                                     .withAssignee(member)
                                     .withAssigneeSupplier(
-                                            () -> {
-                                                Long userId = task.getUserId();
-                                                return userId != null
-                                                        ? userMapper.selectById(userId)
-                                                        : null;
-                                            })
+                                            () -> fetchUser(task.getUserId()))
                                     .withGroupResolver(
                                             assignedUser ->
                                                     resolveDashboardGroupsWithCache(
@@ -420,15 +387,19 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
     @Override
     @Transactional(readOnly = true)
     public TaskDashboardRespVO getByMemberId(Long memberId) {
-        UserDO member = userMapper.selectById(memberId);
+        UserDO member = fetchUser(memberId);
         if (member == null) {
             throw exception(USER_NOT_FOUND);
         }
 
+        List<TaskDO> memberTasks =
+                taskMapper.selectList(
+                        Wrappers.<TaskDO>lambdaQuery().eq(TaskDO::getUserId, member.getId()));
+
         TaskDashboardRespVO dashboard = new TaskDashboardRespVO();
         dashboard.setMember(toMemberVO(member));
-        dashboard.setGroups(resolveMemberGroups(member));
-        dashboard.setTasks(listDashboardTasksByMember(member));
+        dashboard.setGroups(resolveMemberGroups(member, memberTasks));
+        dashboard.setTasks(listDashboardTasksByMember(member, memberTasks));
         return dashboard;
     }
 
@@ -460,7 +431,11 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
         if (userId == null) {
             return null;
         }
-        return userMapper.selectById(userId);
+        Map<Long, UserInfoDTO> dtoMap = userRpcService.getUsers(List.of(userId));
+        if (dtoMap == null || dtoMap.isEmpty()) {
+            return null;
+        }
+        return toUser(dtoMap.get(userId));
     }
 
     private Map<Long, UserDO> buildAssignersByEventId(Collection<EventRespDTO> events) {
@@ -490,72 +465,140 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
         if (userIds == null || userIds.isEmpty()) {
             return Map.of();
         }
-        return userMapper.selectBatchIds(userIds).stream()
+        Map<Long, UserInfoDTO> dtoMap = userRpcService.getUsers(userIds);
+        if (dtoMap == null || dtoMap.isEmpty()) {
+            return Map.of();
+        }
+        return dtoMap.values().stream()
+                .map(this::toUser)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(UserDO::getId, Function.identity()));
     }
 
     private Map<Long, List<DeptDO>> fetchUserDeptsByEvent(Collection<Long> userIds, Long eventId) {
-        if (userIds == null || userIds.isEmpty()) {
+        if (eventId == null) {
             return Map.of();
         }
-
-        var query = Wrappers.<UserGroupDO>lambdaQuery().in(UserGroupDO::getUserId, userIds);
-        if (eventId != null) {
-            query.eq(UserGroupDO::getEventId, eventId);
-        }
-
-        List<UserGroupDO> relations = userGroupMapper.selectList(query);
-        if (relations == null || relations.isEmpty()) {
-            return Map.of();
-        }
-
-        Map<Long, List<Long>> deptIdsByUserId = new LinkedHashMap<>();
-        for (UserGroupDO relation : relations) {
-            if (relation == null || relation.getUserId() == null || relation.getDeptId() == null) {
-                continue;
-            }
-            deptIdsByUserId
-                    .computeIfAbsent(relation.getUserId(), ignored -> new ArrayList<>())
-                    .add(relation.getDeptId());
-        }
-
-        if (deptIdsByUserId.isEmpty()) {
-            return Map.of();
-        }
-
-        LinkedHashSet<Long> deptIds =
-                deptIdsByUserId.values().stream()
-                        .flatMap(Collection::stream)
-                        .collect(Collectors.toCollection(LinkedHashSet::new));
-        if (deptIds.isEmpty()) {
-            return Map.of();
-        }
-
-        Map<Long, DeptDO> deptsById =
-                deptMapper.selectBatchIds(deptIds).stream()
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toMap(DeptDO::getId, Function.identity()));
-
-        Map<Long, List<DeptDO>> result = new LinkedHashMap<>();
-        for (Map.Entry<Long, List<Long>> entry : deptIdsByUserId.entrySet()) {
-            List<DeptDO> depts =
-                    entry.getValue().stream()
-                            .map(deptsById::get)
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toList());
-            if (!depts.isEmpty()) {
-                result.put(entry.getKey(), depts);
-            }
-        }
-        return result;
+        return fetchUserDeptsByEvents(userIds, List.of(eventId));
     }
 
     private List<DeptDO> fetchUserDeptsByEvent(Long userId, Long eventId) {
-        if (userId == null) {
+        if (userId == null || eventId == null) {
             return List.of();
         }
-        return fetchUserDeptsByEvent(List.of(userId), eventId).getOrDefault(userId, List.of());
+        return fetchUserDeptsByEvents(List.of(userId), List.of(eventId))
+                .getOrDefault(userId, List.of());
+    }
+
+    private Map<Long, List<DeptDO>> fetchUserDeptsByEvents(
+            Collection<Long> userIds, Collection<Long> eventIds) {
+        if (userIds == null
+                || userIds.isEmpty()
+                || eventIds == null
+                || eventIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Long> distinctEventIds =
+                eventIds.stream()
+                        .filter(Objects::nonNull)
+                        .distinct()
+                        .toList();
+        if (distinctEventIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Long, List<GroupDTO>> groupsByEvent =
+                groupRpcService.getGroupsByEventIds(distinctEventIds);
+        if (groupsByEvent == null || groupsByEvent.isEmpty()) {
+            return Map.of();
+        }
+
+        Set<Long> userIdSet =
+                userIds.stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (userIdSet.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Long, List<DeptDO>> result = new LinkedHashMap<>();
+        Map<Long, Set<Long>> seenGroupIds = new LinkedHashMap<>();
+
+        for (List<GroupDTO> groups : groupsByEvent.values()) {
+            if (groups == null || groups.isEmpty()) {
+                continue;
+            }
+            for (GroupDTO group : groups) {
+                DeptDO dept = toDept(group);
+                if (dept == null || dept.getId() == null) {
+                    continue;
+                }
+                Set<Long> memberIds = extractGroupMemberIds(group);
+                for (Long userId : memberIds) {
+                    if (!userIdSet.contains(userId)) {
+                        continue;
+                    }
+                    Set<Long> seenIds =
+                            seenGroupIds.computeIfAbsent(
+                                    userId, ignored -> new LinkedHashSet<>());
+                    if (seenIds.add(dept.getId())) {
+                        result.computeIfAbsent(userId, ignored -> new ArrayList<>()).add(dept);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private Set<Long> extractGroupMemberIds(GroupDTO group) {
+        Set<Long> memberIds = new LinkedHashSet<>();
+        if (group == null) {
+            return memberIds;
+        }
+        if (group.getLeadUserId() != null) {
+            memberIds.add(group.getLeadUserId());
+        }
+        if (group.getMembers() != null) {
+            for (GroupMemberDTO member : group.getMembers()) {
+                if (member != null && member.getUserId() != null) {
+                    memberIds.add(member.getUserId());
+                }
+            }
+        }
+        return memberIds;
+    }
+
+    private DeptDO toDept(GroupDTO group) {
+        if (group == null) {
+            return null;
+        }
+        DeptDO dept = new DeptDO();
+        dept.setId(group.getId());
+        dept.setName(group.getName());
+        dept.setSort(group.getSort());
+        dept.setLeadUserId(group.getLeadUserId());
+        dept.setRemark(group.getRemark());
+        dept.setStatus(group.getStatus());
+        dept.setEventId(group.getEventId());
+        return dept;
+    }
+
+    private UserDO toUser(UserInfoDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        UserDO user = new UserDO();
+        user.setId(dto.getId());
+        user.setUsername(dto.getUsername());
+        user.setStatus(dto.getStatus());
+        user.setTenantId(dto.getTenantId());
+        user.setEmail(dto.getEmail());
+        user.setPhone(dto.getPhone());
+        user.setCreateTime(dto.getCreateTime());
+        user.setUpdateTime(dto.getUpdateTime());
+        return user;
     }
 
     private Map<Long, List<TaskRespVO.AssignedUserVO.GroupVO>> buildCrudGroupsByUser(
@@ -728,12 +771,23 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
         return memberVO;
     }
 
-    private List<TaskDashboardRespVO.GroupVO> resolveMemberGroups(UserDO member) {
+    private List<TaskDashboardRespVO.GroupVO> resolveMemberGroups(
+            UserDO member, List<TaskDO> memberTasks) {
         if (member == null || member.getId() == null) {
             return List.of();
         }
 
-        return fetchUserDeptsByEvent(member.getId(), null).stream()
+        Collection<Long> eventIds =
+                memberTasks.stream()
+                        .map(TaskDO::getEventId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        Map<Long, List<DeptDO>> deptsByUser =
+                fetchUserDeptsByEvents(List.of(member.getId()), eventIds);
+        List<DeptDO> depts = deptsByUser.getOrDefault(member.getId(), List.of());
+
+        return depts.stream()
                 .map(
                         dept -> {
                             TaskDashboardRespVO.GroupVO groupVO = new TaskDashboardRespVO.GroupVO();

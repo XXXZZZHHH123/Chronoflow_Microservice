@@ -15,5 +15,9 @@ public class GroupDTO implements Serializable {
     private Long eventId;
     private Long id;
     private String name;
+    private Integer sort;
+    private Long leadUserId;
+    private String remark;
+    private Integer status;
     private List<GroupMemberDTO> members;
 }

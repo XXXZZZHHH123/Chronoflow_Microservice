@@ -2,13 +2,12 @@ package nus.edu.u.user.mapper.user;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import nus.edu.u.user.domain.dataobject.user.UserRoleDO;
-import org.apache.ibatis.annotations.Mapper;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import nus.edu.u.user.domain.dataobject.user.UserRoleDO;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * @author Lu Shuwen

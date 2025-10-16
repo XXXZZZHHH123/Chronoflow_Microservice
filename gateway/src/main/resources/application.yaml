@@ -139,3 +139,13 @@ sa-token:
   token-style: uuid
   cookie:
     http-only: true
+
+# Heath check
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  info:
+    env:
+      enabled: true

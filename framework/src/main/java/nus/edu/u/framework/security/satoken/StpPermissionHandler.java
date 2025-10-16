@@ -1,15 +1,14 @@
 package nus.edu.u.framework.security.satoken;
 
+import static nus.edu.u.common.constant.CacheConstants.USER_PERMISSION_KEY;
+import static nus.edu.u.common.constant.CacheConstants.USER_ROLE_KEY;
+
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpUtil;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.List;
-
-import static nus.edu.u.common.constant.CacheConstants.USER_PERMISSION_KEY;
-import static nus.edu.u.common.constant.CacheConstants.USER_ROLE_KEY;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lu Shuwen

@@ -1,6 +1,6 @@
 package nus.edu.u.user.service.user;
 
-
+import java.util.List;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
 import nus.edu.u.user.domain.dto.CreateUserDTO;
 import nus.edu.u.user.domain.dto.UpdateUserDTO;
@@ -8,8 +8,6 @@ import nus.edu.u.user.domain.dto.UserPermissionDTO;
 import nus.edu.u.user.domain.dto.UserRoleDTO;
 import nus.edu.u.user.domain.vo.user.BulkUpsertUsersRespVO;
 import nus.edu.u.user.domain.vo.user.UserProfileRespVO;
-
-import java.util.List;
 
 /**
  * User service interface

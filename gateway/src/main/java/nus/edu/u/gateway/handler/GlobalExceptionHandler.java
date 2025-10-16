@@ -1,5 +1,7 @@
 package nus.edu.u.gateway.handler;
 
+import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR;
+
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.core.domain.CommonResult;
 import nus.edu.u.gateway.util.WebFrameworkUtils;
@@ -11,8 +13,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR;
 
 /**
  * @author Lu Shuwen
@@ -42,24 +42,27 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
         return WebFrameworkUtils.writeJSON(exchange, result);
     }
 
-    /**
-     * Handling the ResponseStatusException thrown by Spring Cloud Gateway by default
-     */
-    private CommonResult<?> responseStatusExceptionHandler(ServerWebExchange exchange,
-                                                           ResponseStatusException ex) {
+    /** Handling the ResponseStatusException thrown by Spring Cloud Gateway by default */
+    private CommonResult<?> responseStatusExceptionHandler(
+            ServerWebExchange exchange, ResponseStatusException ex) {
         ServerHttpRequest request = exchange.getRequest();
-        log.error("[responseStatusExceptionHandler][uri({}/{}) Error]", request.getURI(), request.getMethod(), ex);
+        log.error(
+                "[responseStatusExceptionHandler][uri({}/{}) Error]",
+                request.getURI(),
+                request.getMethod(),
+                ex);
         return CommonResult.error(ex.getStatusCode().value(), ex.getReason());
     }
 
-    /**
-     * Handle system exceptions and handle everything
-     */
+    /** Handle system exceptions and handle everything */
     @ExceptionHandler(value = Exception.class)
-    public CommonResult<?> defaultExceptionHandler(ServerWebExchange exchange,
-                                                   Throwable ex) {
+    public CommonResult<?> defaultExceptionHandler(ServerWebExchange exchange, Throwable ex) {
         ServerHttpRequest request = exchange.getRequest();
-        log.error("[defaultExceptionHandler][uri({}/{}) Error]", request.getURI(), request.getMethod(), ex);
+        log.error(
+                "[defaultExceptionHandler][uri({}/{}) Error]",
+                request.getURI(),
+                request.getMethod(),
+                ex);
         // 返回 ERROR CommonResult
         return CommonResult.error(INTERNAL_SERVER_ERROR.getCode(), INTERNAL_SERVER_ERROR.getMsg());
     }

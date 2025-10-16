@@ -1,10 +1,17 @@
 package nus.edu.u.user.service.excel;
 
+import static nus.edu.u.common.enums.ErrorCodeConstants.ROLE_NOT_FOUND;
+import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.EXCEL_FORMAT_ERROR;
+import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.EXCEL_HEADER_MISSING;
+
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.exception.ServiceException;
 import nus.edu.u.user.domain.dataobject.role.RoleDO;
@@ -12,14 +19,6 @@ import nus.edu.u.user.domain.dto.CreateUserDTO;
 import nus.edu.u.user.mapper.role.RoleMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static nus.edu.u.common.enums.ErrorCodeConstants.ROLE_NOT_FOUND;
-import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.EXCEL_FORMAT_ERROR;
-import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.EXCEL_HEADER_MISSING;
 
 @Slf4j
 @Service

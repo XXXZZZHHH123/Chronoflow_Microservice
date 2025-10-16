@@ -1,10 +1,9 @@
 package nus.edu.u.user.enums.permission;
 
+import java.util.Arrays;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import nus.edu.u.common.core.ArrayValuable;
-
-import java.util.Arrays;
 
 /**
  * @author Lu Shuwen

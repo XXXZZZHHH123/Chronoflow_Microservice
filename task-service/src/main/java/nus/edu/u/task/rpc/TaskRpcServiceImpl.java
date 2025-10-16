@@ -86,7 +86,8 @@ public class TaskRpcServiceImpl implements TaskRpcService {
         }
 
         List<TaskDO> tasks =
-                taskMapper.selectList(Wrappers.<TaskDO>lambdaQuery().eq(TaskDO::getEventId, eventId));
+                taskMapper.selectList(
+                        Wrappers.<TaskDO>lambdaQuery().eq(TaskDO::getEventId, eventId));
         if (tasks == null || tasks.isEmpty()) {
             if (log.isDebugEnabled()) {
                 log.debug("No tasks to delete for event {}", eventId);

@@ -9,8 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import nus.edu.u.task.domain.dataobject.user.UserDO;
 import nus.edu.u.framework.mybatis.base.TenantBaseDO;
+import nus.edu.u.task.domain.dataobject.user.UserDO;
 
 /**
  * Department entity that represents an event group.

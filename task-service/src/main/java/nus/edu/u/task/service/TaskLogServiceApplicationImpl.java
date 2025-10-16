@@ -1,7 +1,7 @@
 package nus.edu.u.task.service;
 
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 import static nus.edu.u.common.enums.ErrorCodeConstants.TASK_LOG_ERROR;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -99,7 +99,8 @@ public class TaskLogServiceApplicationImpl implements TaskLogApplicationService 
                             UserVO targetUserVO = toUserVO(targetUser);
 
                             Long creatorId = NumberUtil.parseLong(taskLog.getCreator());
-                            UserInfoDTO sourceUser = creatorId != null ? userMap.get(creatorId) : null;
+                            UserInfoDTO sourceUser =
+                                    creatorId != null ? userMap.get(creatorId) : null;
                             UserVO sourceUserVO = toUserVO(sourceUser);
                             if (ObjectUtil.isNull(sourceUserVO)) {
                                 sourceUserVO = new UserVO();

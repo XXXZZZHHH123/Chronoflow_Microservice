@@ -1,11 +1,10 @@
 package nus.edu.u.shared.rpc.events;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 @Data

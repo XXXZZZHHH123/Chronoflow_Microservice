@@ -66,12 +66,21 @@ public class UserRpcServiceImpl implements UserRpcService {
                 return Collections.emptyMap();
             }
 
-            Set<Long> ids = users.stream().map(UserDO::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+            Set<Long> ids =
+                    users.stream()
+                            .map(UserDO::getId)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet());
 
             Map<Long, List<RoleBriefDTO>> rolesByUser = fetchRolesByUserIds(ids);
 
             return users.stream()
-                    .map(user -> convertToUserInfoDTO(user, rolesByUser.getOrDefault(user.getId(), Collections.emptyList())))
+                    .map(
+                            user ->
+                                    convertToUserInfoDTO(
+                                            user,
+                                            rolesByUser.getOrDefault(
+                                                    user.getId(), Collections.emptyList())))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toMap(UserInfoDTO::getId, user -> user));
         } catch (Exception e) {
@@ -159,7 +168,8 @@ public class UserRpcServiceImpl implements UserRpcService {
                             .name(role.getName())
                             .roleKey(role.getRoleKey())
                             .build();
-            result.computeIfAbsent(relation.getUserId(), key -> new java.util.ArrayList<>()).add(dto);
+            result.computeIfAbsent(relation.getUserId(), key -> new java.util.ArrayList<>())
+                    .add(dto);
         }
         return result;
     }

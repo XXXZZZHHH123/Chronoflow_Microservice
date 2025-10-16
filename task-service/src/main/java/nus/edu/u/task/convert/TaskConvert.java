@@ -1,8 +1,8 @@
 package nus.edu.u.task.convert;
 
-import nus.edu.u.task.domain.vo.task.TaskRespVO;
 import nus.edu.u.task.domain.dataobject.task.TaskDO;
 import nus.edu.u.task.domain.vo.task.TaskCreateReqVO;
+import nus.edu.u.task.domain.vo.task.TaskRespVO;
 import nus.edu.u.task.domain.vo.task.TasksRespVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

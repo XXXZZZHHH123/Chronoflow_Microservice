@@ -11,6 +11,8 @@ import static nus.edu.u.common.enums.ErrorCodeConstants.USER_NOT_FOUND;
 import static nus.edu.u.common.enums.ErrorCodeConstants.USER_STATUS_INVALID;
 import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import java.time.LocalDateTime;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.enums.CommonStatusEnum;
+import nus.edu.u.event.convert.UserConvert;
 import nus.edu.u.event.domain.dataobject.event.EventDO;
 import nus.edu.u.event.domain.dataobject.group.DeptDO;
 import nus.edu.u.event.domain.dataobject.user.UserGroupDO;
@@ -34,7 +37,6 @@ import nus.edu.u.event.domain.dto.group.CreateGroupReqVO;
 import nus.edu.u.event.domain.dto.group.GroupRespVO;
 import nus.edu.u.event.domain.dto.group.UpdateGroupReqVO;
 import nus.edu.u.event.domain.dto.user.UserProfileRespVO;
-import nus.edu.u.event.convert.UserConvert;
 import nus.edu.u.event.mapper.DeptMapper;
 import nus.edu.u.event.mapper.EventMapper;
 import nus.edu.u.event.mapper.UserGroupMapper;
@@ -44,22 +46,18 @@ import nus.edu.u.shared.rpc.user.RoleBriefDTO;
 import nus.edu.u.shared.rpc.user.UserInfoDTO;
 import nus.edu.u.shared.rpc.user.UserProfileDTO;
 import nus.edu.u.shared.rpc.user.UserRpcService;
-
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.bean.BeanUtil;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class GroupApplicationServiceImpl implements GroupApplicationService {
 
-    @DubboReference
-    private UserRpcService userRpcService;
+    @DubboReference private UserRpcService userRpcService;
     private final DeptMapper deptMapper;
     private final EventMapper eventMapper;
     private final UserGroupMapper userGroupMapper;
@@ -150,7 +148,6 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                 GroupApplicationService proxy = (GroupApplicationService) AopContext.currentProxy();
                 proxy.removeMembersFromGroup(id, normalMemberIds);
             }
-
         }
         // remove any remaining relations (including the lead) to avoid blocking future assignments
         userGroupMapper.delete(
@@ -379,15 +376,18 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                                                             membersByGroup
                                                                     .getOrDefault(
                                                                             group.getId(),
-                                                                            Collections
-                                                                                    .emptyList())
+                                                                            Collections.emptyList())
                                                                     .stream()
                                                                     .map(
                                                                             member ->
                                                                                     GroupMemberDTO
                                                                                             .builder()
-                                                                                            .userId(member.getUserId())
-                                                                                            .username(member.getUsername())
+                                                                                            .userId(
+                                                                                                    member
+                                                                                                            .getUserId())
+                                                                                            .username(
+                                                                                                    member
+                                                                                                            .getUsername())
                                                                                             .build())
                                                                     .toList())
                                                     .build())
@@ -422,7 +422,9 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
             UserProfileDTO dto = BeanUtil.toBean(map, UserProfileDTO.class);
             return userConvert.toProfile(dto);
         }
-        log.warn("Received unexpected user profile payload type: {}", source == null ? "null" : source.getClass());
+        log.warn(
+                "Received unexpected user profile payload type: {}",
+                source == null ? "null" : source.getClass());
         return null;
     }
 
@@ -485,14 +487,15 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
         Map<Long, Integer> memberCounts =
                 groupIds.isEmpty()
                         ? Collections.emptyMap()
-                        : userGroupMapper.selectList(
+                        : userGroupMapper
+                                .selectList(
                                         new LambdaQueryWrapper<UserGroupDO>()
                                                 .in(UserGroupDO::getDeptId, groupIds))
                                 .stream()
                                 .collect(
-                                                Collectors.groupingBy(
-                                                        UserGroupDO::getDeptId,
-                                                        Collectors.summingInt(item -> 1)));
+                                        Collectors.groupingBy(
+                                                UserGroupDO::getDeptId,
+                                                Collectors.summingInt(item -> 1)));
         Map<Long, List<GroupRespVO.MemberInfo>> membersByGroup = fetchMembersByGroupIds(groupIds);
 
         return groups.stream()
@@ -520,8 +523,7 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                                                     : CommonStatusEnum.DISABLE.getName())
                                     .eventId(group.getEventId())
                                     .eventName(event != null ? event.getName() : null)
-                                    .memberCount(
-                                            memberCounts.getOrDefault(group.getId(), 0))
+                                    .memberCount(memberCounts.getOrDefault(group.getId(), 0))
                                     .members(
                                             membersByGroup.getOrDefault(
                                                     group.getId(), Collections.emptyList()))
@@ -539,7 +541,8 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                 .collect(Collectors.toSet());
     }
 
-    private Map<Long, List<GroupRespVO.MemberInfo>> fetchMembersByGroupIds(Collection<Long> groupIds) {
+    private Map<Long, List<GroupRespVO.MemberInfo>> fetchMembersByGroupIds(
+            Collection<Long> groupIds) {
         if (CollectionUtils.isEmpty(groupIds)) {
             return Collections.emptyMap();
         }

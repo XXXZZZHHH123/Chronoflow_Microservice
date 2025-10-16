@@ -46,8 +46,7 @@ public final class TasksRespVOBuilder {
         return this;
     }
 
-    public TasksRespVOBuilder withEventMapper(
-            Function<EventRespDTO, TasksRespVO.EventVO> mapper) {
+    public TasksRespVOBuilder withEventMapper(Function<EventRespDTO, TasksRespVO.EventVO> mapper) {
         if (mapper != null) {
             this.eventMapper = mapper;
         }

@@ -3,7 +3,6 @@ package nus.edu.u.event.service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
 import nus.edu.u.event.domain.dto.group.CreateGroupReqVO;
 import nus.edu.u.event.domain.dto.group.GroupRespVO;
 import nus.edu.u.event.domain.dto.group.UpdateGroupReqVO;

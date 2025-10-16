@@ -1,10 +1,15 @@
 package nus.edu.u.user.service.user;
 
+import static nus.edu.u.common.enums.ErrorCodeConstants.*;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
+
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import jakarta.annotation.Resource;
+import java.util.*;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.enums.CommonStatusEnum;
 import nus.edu.u.common.exception.ServiceException;
@@ -22,13 +27,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
-import java.util.regex.Pattern;
-
-import static nus.edu.u.common.enums.ErrorCodeConstants.*;
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
-
 
 /**
  * User service implementation

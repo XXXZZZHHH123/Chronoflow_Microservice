@@ -1,7 +1,12 @@
 package nus.edu.u.attendee.service;
 
+import static nus.edu.u.common.enums.ErrorCodeConstants.*;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
+import static nus.edu.u.framework.mybatis.MybatisPlusConfig.getCurrentTenantId;
+
 import cn.hutool.core.util.ObjectUtil;
-import jakarta.annotation.Resource;
+import java.time.LocalDateTime;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.attendee.domain.dataobject.EventAttendeeDO;
@@ -21,17 +26,9 @@ import nus.edu.u.shared.rpc.events.EventRpcService;
 import nus.edu.u.shared.rpc.user.TenantDTO;
 import nus.edu.u.shared.rpc.user.UserRpcService;
 import org.apache.dubbo.config.annotation.DubboReference;
-import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static nus.edu.u.common.enums.ErrorCodeConstants.*;
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
-import static nus.edu.u.framework.mybatis.MybatisPlusConfig.getCurrentTenantId;
 
 @Service
 @Slf4j
@@ -40,11 +37,12 @@ public class AttendeeServiceImpl implements AttendeeService {
 
     private final EventAttendeeMapper attendeeMapper;
 
-    @DubboReference(check = false) private EventRpcService eventRpcService;
+    @DubboReference(check = false)
+    private EventRpcService eventRpcService;
 
     private final QrCodeService qrCodeService;
 
-//    @Resource private AttendeeEmailService attendeeEmailService;
+    //    @Resource private AttendeeEmailService attendeeEmailService;
 
     @DubboReference private UserRpcService userRpcService;
 
@@ -368,7 +366,7 @@ public class AttendeeServiceImpl implements AttendeeService {
                         .eventDate(event.getStartTime().toString())
                         .organizationName(ObjectUtil.isNotNull(tenant) ? tenant.getName() : null)
                         .build();
-//        attendeeEmailService.sendAttendeeInvite(emailReq);
+        //        attendeeEmailService.sendAttendeeInvite(emailReq);
     }
 
     @Override

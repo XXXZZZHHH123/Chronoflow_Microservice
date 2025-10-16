@@ -1,10 +1,8 @@
 package nus.edu.u.user.service.permission;
 
-
+import java.util.List;
 import nus.edu.u.user.domain.vo.permission.PermissionReqVO;
 import nus.edu.u.user.domain.vo.permission.PermissionRespVO;
-
-import java.util.List;
 
 /**
  * @author Lu Shuwen

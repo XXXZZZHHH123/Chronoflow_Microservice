@@ -1,10 +1,16 @@
 package nus.edu.u.attendee.controller;
 
+import static nus.edu.u.common.constant.PermissionConstants.CREATE_MEMBER;
+import static nus.edu.u.common.core.domain.CommonResult.success;
+import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.BAD_REQUEST;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
+
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaIgnore;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.attendee.domain.vo.attendee.AttendeeInfoRespVO;
 import nus.edu.u.attendee.domain.vo.attendee.AttendeeQrCodeRespVO;
@@ -19,13 +25,6 @@ import nus.edu.u.common.core.domain.CommonResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
-
-import static nus.edu.u.common.constant.PermissionConstants.CREATE_MEMBER;
-import static nus.edu.u.common.core.domain.CommonResult.success;
-import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.BAD_REQUEST;
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
 @RestController
 @RequestMapping("/attendees")

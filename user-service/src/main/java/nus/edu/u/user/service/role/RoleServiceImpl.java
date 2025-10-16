@@ -1,17 +1,23 @@
 package nus.edu.u.user.service.role;
 
+import static nus.edu.u.common.enums.ErrorCodeConstants.*;
+import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.BAD_REQUEST;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
+
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.enums.CommonStatusEnum;
 import nus.edu.u.user.domain.dataobject.permission.PermissionDO;
 import nus.edu.u.user.domain.dataobject.role.RoleDO;
-import nus.edu.u.user.domain.dto.RoleDTO;
 import nus.edu.u.user.domain.dataobject.role.RolePermissionDO;
 import nus.edu.u.user.domain.dataobject.user.UserRoleDO;
+import nus.edu.u.user.domain.dto.RoleDTO;
 import nus.edu.u.user.domain.dto.UserRoleDTO;
 import nus.edu.u.user.domain.vo.permission.PermissionRespVO;
 import nus.edu.u.user.domain.vo.role.RoleAssignReqVO;
@@ -25,13 +31,6 @@ import nus.edu.u.user.service.auth.AuthService;
 import nus.edu.u.user.service.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static nus.edu.u.common.enums.ErrorCodeConstants.*;
-import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.BAD_REQUEST;
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
 @Service
 @Slf4j

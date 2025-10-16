@@ -26,6 +26,7 @@ public class GroupMemberRemovalService {
 
     private final UserGroupMapper userGroupMapper;
     private final DeptMapper deptMapper;
+
     @DubboReference(check = false)
     private TaskRpcService taskRpcService;
 
@@ -57,10 +58,7 @@ public class GroupMemberRemovalService {
                 taskRpcService != null
                         && taskRpcService.hasPendingTasks(relation.getEventId(), userId);
         if (hasPendingTasks) {
-            log.warn(
-                    "User {} still has pending tasks for event {}",
-                    userId,
-                    relation.getEventId());
+            log.warn("User {} still has pending tasks for event {}", userId, relation.getEventId());
             throw exception(CANNOT_REMOVE_MEMBER_WITH_PENDING_TASKS);
         }
 

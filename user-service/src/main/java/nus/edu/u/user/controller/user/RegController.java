@@ -1,5 +1,9 @@
 package nus.edu.u.user.controller.user;
 
+import static nus.edu.u.common.core.domain.CommonResult.error;
+import static nus.edu.u.common.core.domain.CommonResult.success;
+import static nus.edu.u.common.enums.ErrorCodeConstants.REG_FAIL;
+
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -14,10 +18,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import static nus.edu.u.common.core.domain.CommonResult.error;
-import static nus.edu.u.common.core.domain.CommonResult.success;
-import static nus.edu.u.common.enums.ErrorCodeConstants.REG_FAIL;
 
 /**
  * Registration controller

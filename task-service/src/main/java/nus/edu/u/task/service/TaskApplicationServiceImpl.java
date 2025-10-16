@@ -1,7 +1,7 @@
 package nus.edu.u.task.service;
 
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 import static nus.edu.u.common.enums.ErrorCodeConstants.*;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 import static nus.edu.u.task.enums.TaskActionEnum.getUpdateTaskAction;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -107,8 +107,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                 .withAssignerGroupsResolver(
                         user -> resolveAssignerGroups(user.getId(), event.getId()))
                 .withAssignee(assignee)
-                .withAssigneeSupplier(
-                        () -> fetchUser(task.getUserId()))
+                .withAssigneeSupplier(() -> fetchUser(task.getUserId()))
                 .withAssigneeGroupsResolver(
                         user -> resolveCrudGroups(user.getId(), event.getId(), null))
                 .build();
@@ -137,8 +136,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                 throw exception(TASK_ASSIGNEE_NOT_FOUND);
             }
 
-            if (eventTenantId != null
-                    && !Objects.equals(eventTenantId, assignee.getTenantId())) {
+            if (eventTenantId != null && !Objects.equals(eventTenantId, assignee.getTenantId())) {
                 throw exception(TASK_ASSIGNEE_TENANT_MISMATCH);
             }
         }
@@ -169,8 +167,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                 .withAssignerGroupsResolver(
                         user -> resolveAssignerGroups(user.getId(), event.getId()))
                 .withAssignee(assignee)
-                .withAssigneeSupplier(
-                        () -> fetchUser(task.getUserId()))
+                .withAssigneeSupplier(() -> fetchUser(task.getUserId()))
                 .withAssigneeGroupsResolver(
                         user -> resolveCrudGroups(user.getId(), event.getId(), null))
                 .build();
@@ -213,8 +210,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                 .withAssignerSupplier(() -> fetchUser(event.getOrganizerId()))
                 .withAssignerGroupsResolver(
                         user -> resolveAssignerGroups(user.getId(), event.getId()))
-                .withAssigneeSupplier(
-                        () -> fetchUser(task.getUserId()))
+                .withAssigneeSupplier(() -> fetchUser(task.getUserId()))
                 .withAssigneeGroupsResolver(
                         user -> resolveCrudGroups(user.getId(), event.getId(), null))
                 .build();
@@ -239,8 +235,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
         List<Long> userIds =
                 tasks.stream().map(TaskDO::getUserId).filter(Objects::nonNull).distinct().toList();
 
-        Map<Long, UserDO> usersById =
-                userIds.isEmpty() ? Map.of() : fetchUsersByIds(userIds);
+        Map<Long, UserDO> usersById = userIds.isEmpty() ? Map.of() : fetchUsersByIds(userIds);
 
         Map<Long, List<TaskRespVO.AssignedUserVO.GroupVO>> groupsByUserId =
                 buildCrudGroupsByUser(usersById.keySet(), eventId);
@@ -262,8 +257,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                                                     resolveAssignerGroups(
                                                             assignerUser.getId(), eventId))
                                     .withAssignee(user)
-                                    .withAssigneeSupplier(
-                                            () -> fetchUser(task.getUserId()))
+                                    .withAssigneeSupplier(() -> fetchUser(task.getUserId()))
                                     .withAssigneeGroupsResolver(
                                             assignedUser ->
                                                     resolveCrudGroups(
@@ -331,8 +325,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                                                             currentEventId,
                                                             assignerGroupsCache))
                                     .withAssignee(member)
-                                    .withAssigneeSupplier(
-                                            () -> fetchUser(task.getUserId()))
+                                    .withAssigneeSupplier(() -> fetchUser(task.getUserId()))
                                     .withAssigneeGroupsResolver(
                                             assignedUser ->
                                                     resolveCrudGroupsWithCache(
@@ -370,8 +363,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                                     .withEvent(event)
                                     .withEventSupplier(() -> fetchEvent(task.getEventId()))
                                     .withAssignee(member)
-                                    .withAssigneeSupplier(
-                                            () -> fetchUser(task.getUserId()))
+                                    .withAssigneeSupplier(() -> fetchUser(task.getUserId()))
                                     .withGroupResolver(
                                             assignedUser ->
                                                     resolveDashboardGroupsWithCache(
@@ -492,18 +484,12 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
 
     private Map<Long, List<DeptDO>> fetchUserDeptsByEvents(
             Collection<Long> userIds, Collection<Long> eventIds) {
-        if (userIds == null
-                || userIds.isEmpty()
-                || eventIds == null
-                || eventIds.isEmpty()) {
+        if (userIds == null || userIds.isEmpty() || eventIds == null || eventIds.isEmpty()) {
             return Map.of();
         }
 
         List<Long> distinctEventIds =
-                eventIds.stream()
-                        .filter(Objects::nonNull)
-                        .distinct()
-                        .toList();
+                eventIds.stream().filter(Objects::nonNull).distinct().toList();
         if (distinctEventIds.isEmpty()) {
             return Map.of();
         }
@@ -540,8 +526,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                         continue;
                     }
                     Set<Long> seenIds =
-                            seenGroupIds.computeIfAbsent(
-                                    userId, ignored -> new LinkedHashSet<>());
+                            seenGroupIds.computeIfAbsent(userId, ignored -> new LinkedHashSet<>());
                     if (seenIds.add(dept.getId())) {
                         result.computeIfAbsent(userId, ignored -> new ArrayList<>()).add(dept);
                     }

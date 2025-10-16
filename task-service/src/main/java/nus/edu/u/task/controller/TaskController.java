@@ -3,7 +3,6 @@ package nus.edu.u.task.controller;
 import static nus.edu.u.common.constant.PermissionConstants.CREATE_TASK;
 import static nus.edu.u.common.constant.PermissionConstants.DELETE_TASK;
 import static nus.edu.u.common.constant.PermissionConstants.QUERY_TASK;
-import static nus.edu.u.common.constant.PermissionConstants.UPDATE_TASK;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;

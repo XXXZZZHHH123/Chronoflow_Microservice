@@ -37,6 +37,14 @@ spec:
               value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
             - name: SERVER_PORT
               value: "8080"
+            - name: NACOS_HOST
+              value: "10.148.0.3"
+            - name: NACOS_PORT
+              value: "8848"
+            - name: NACOS_USERNAME
+              value: "nacos"
+            - name: NACOS_PASSWORD
+              value: "nacos"
           resources:
             requests:
               memory: "768Mi"

@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Test k8s
  *
  * @author Lu Shuwen
- * @date 2025-10-05
+ * @date 2025-10-17
  */
 @SpringBootApplication
 @EnableDubbo

@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * @author Lu Shuwen
- * @date 2025-10-06
+ * @date 2025-10-17
  */
 @SpringBootApplication
 @EnableDubbo

@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.file.config.FileProviderPropertiesConfig;
 import nus.edu.u.file.domain.dataobject.FileDO;
 import nus.edu.u.file.domain.vo.FileResultVO;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FileStorageServiceImpl implements FileStorageService {
 
     private final FileClientFactory fileClientFactory;

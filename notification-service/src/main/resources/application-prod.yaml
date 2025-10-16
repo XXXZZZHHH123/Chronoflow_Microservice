@@ -1,21 +1,4 @@
-
 spring:
-  cloud:
-    nacos:
-      server-addr: ${PROD_NACOS_HOST}:${PROD_NACOS_PORT} # Nacos host
-      username: ${PROD_NACOS_USERNAME} # Nacos username
-      password: ${PROD_NACOS_PASSWORD} # Nacos password
-      discovery:
-        namespace: prod
-        group: DEFAULT_GROUP
-      config:
-        namespace: prod
-        group: DEFAULT_GROUP
-
---- #################### Database config ####################
-spring:
-  autoconfigure:
-    exclude:
   datasource:
     druid:
       web-stat-filter:
@@ -52,38 +35,22 @@ spring:
       primary: master
       datasource:
         master:
-          url: jdbc:mysql://${PORD_MASTER_DB_HOST}:${PORD_MASTER_DB_PORT}/notification?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-          username: ${PORD_MASTER_DB_USER}
-          password: ${PORD_MASTER_DB_PASSWORD}
+          url: jdbc:mysql://${PROD_MASTER_DB_HOST}:${PROD_MASTER_DB_PORT}/notification?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: ${PROD_MASTER_DB_USER}
+          password: ${PROD_MASTER_DB_PASSWORD}
         slave:
           lazy: true # Enable lazy loading to ensure startup speed
-          url: jdbc:mysql://${PORD_SLAVE_DB_HOST}:${PORD_SLAVE_DB_PORT}/notification?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-          username: ${PORD_SLAVE_DB_USER}
-          password: ${PORD_SLAVE_DB_PASSWORD}
+          url: jdbc:mysql://${PROD_SLAVE_DB_HOST}:${PROD_SLAVE_DB_PORT}/notification?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: ${PROD_SLAVE_DB_USER}
+          password: ${PROD_SLAVE_DB_PASSWORD}
 
   # Redis config
   data:
     redis:
-      host: ${PORD_REDIS_HOST}
-      port: ${PORD_REDIS_PORT}
-      database: ${PORD_REDIS_DATABASE}
-      password: ${PORD_REDIS_PASSWORD}
-
-# Dubbo config
-dubbo:
-  registry:
-    address: nacos://${PROD_NACOS_HOST}:${PROD_NACOS_PORT}?username=${PROD_NACOS_USERNAME}&password=${PROD_NACOS_PASSWORD}
-    # This will enable application-level service discovery only (the recommended service discovery method for Dubbo3).
-    # For users upgrading from Dubbo2.x, please set the value to 'all' for smooth migration.
-    register-mode: instance
-    parameters:
-      namespace: prod
-  protocol:
-    name: tri
-    port: 50053
-  application:
-    name: ${spring.application.name}
-    logger: slf4j
+      host: ${PROD_REDIS_HOST}
+      port: ${PROD_REDIS_PORT}
+      database: ${PROD_REDIS_DATABASE}
+      password: ${PROD_REDIS_PASSWORD}
 
 # Lock4j config
 lock4j:

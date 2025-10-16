@@ -4,17 +4,18 @@ import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import nus.edu.u.user.domain.dataobject.user.UserDO;
-import nus.edu.u.user.domain.dto.UserPermissionDTO;
-import nus.edu.u.user.domain.dto.UserRoleDTO;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import nus.edu.u.shared.rpc.user.UserProfileDTO;
+import nus.edu.u.user.domain.dataobject.user.UserDO;
+import nus.edu.u.user.domain.dto.UserPermissionDTO;
+import nus.edu.u.user.domain.dto.UserRoleDTO;
+import nus.edu.u.user.domain.vo.user.UserProfileRespVO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * User Mapper
@@ -98,4 +99,18 @@ public interface UserMapper extends BaseMapper<UserDO> {
 
     @InterceptorIgnore(tenantLine = "true")
     Integer updateByIdWithoutTenant(UserDO userDO);
+
+    default UserProfileDTO fromVo(UserProfileRespVO vo) {
+        if (vo == null) {
+            return null;
+        }
+        UserProfileDTO dto = new UserProfileDTO();
+        dto.setId(vo.getId());
+        dto.setName(vo.getName());
+        dto.setEmail(vo.getEmail());
+        dto.setPhone(vo.getPhone());
+        dto.setRoles(vo.getRoles());
+        dto.setRegistered(vo.isRegistered());
+        return dto;
+    }
 }

@@ -1,21 +1,4 @@
-
 spring:
-  cloud:
-    nacos:
-      server-addr: ${DEV_NACOS_HOST}:${DEV_NACOS_PORT} # Nacos host
-      username: ${DEV_NACOS_USERNAME} # Nacos username
-      password: ${DEV_NACOS_PASSWORD} # Nacos password
-      discovery:
-        namespace: dev
-        group: DEFAULT_GROUP
-      config:
-        namespace: dev
-        group: DEFAULT_GROUP
-
---- #################### Database config ####################
-spring:
-  autoconfigure:
-    exclude:
   datasource:
     druid:
       web-stat-filter:
@@ -35,7 +18,6 @@ spring:
         wall:
           config:
             multi-statement-allow: true
-    # Multi-datasource
     dynamic:
       druid:
         initial-size: 5
@@ -62,30 +44,12 @@ spring:
           url: jdbc:mysql://${DEV_SLAVE_DB_HOST}:${DEV_SLAVE_DB_PORT}/file?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
           username: ${DEV_SLAVE_DB_USER}
           password: ${DEV_SLAVE_DB_PASSWORD}
-
-  # Redis config
   data:
     redis:
       host: ${DEV_REDIS_HOST}
       port: ${DEV_REDIS_PORT}
       database: ${DEV_REDIS_DATABASE}
       password: ${DEV_REDIS_PASSWORD}
-
-# Dubbo config
-dubbo:
-  registry:
-    address: nacos://${DEV_NACOS_HOST}:${DEV_NACOS_PORT}?username=${DEV_NACOS_USERNAME}&password=${DEV_NACOS_PASSWORD}
-    # This will enable application-level service discovery only (the recommended service discovery method for Dubbo3).
-    # For users upgrading from Dubbo2.x, please set the value to 'all' for smooth migration.
-    register-mode: instance
-    parameters:
-      namespace: dev
-  protocol:
-    name: tri
-    port: 50054
-  application:
-    name: ${spring.application.name}
-    logger: slf4j
 
 # Lock4j config
 lock4j:

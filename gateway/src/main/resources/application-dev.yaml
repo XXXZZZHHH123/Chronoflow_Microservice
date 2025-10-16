@@ -1,16 +1,4 @@
 spring:
-  cloud:
-    nacos:
-      server-addr: ${DEV_NACOS_HOST}:${DEV_NACOS_PORT} # Nacos host
-      username: ${DEV_NACOS_USERNAME} # Nacos username
-      password: ${DEV_NACOS_PASSWORD} # Nacos password
-      discovery:
-        namespace: dev
-        group: DEFAULT_GROUP
-      config:
-        namespace: dev
-        group: DEFAULT_GROUP
-
   # Redis config
   data:
     redis:
@@ -18,3 +6,19 @@ spring:
       port: ${DEV_REDIS_PORT}
       database: ${DEV_REDIS_DATABASE}
       password: ${DEV_REDIS_PASSWORD}
+  cloud:
+    gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns: "*"
+            allowed-methods:
+              - "GET"
+              - "POST"
+              - "DELETE"
+              - "PUT"
+              - "OPTIONS"
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 360000

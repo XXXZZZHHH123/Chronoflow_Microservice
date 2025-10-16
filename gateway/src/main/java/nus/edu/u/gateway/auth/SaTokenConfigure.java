@@ -1,6 +1,7 @@
 package nus.edu.u.gateway.auth;
 
 import cn.dev33.satoken.reactor.filter.SaReactorFilter;
+import cn.dev33.satoken.router.SaHttpMethod;
 import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
@@ -26,11 +27,14 @@ public class SaTokenConfigure {
         return new SaReactorFilter()
                 .addInclude("/**")
                 .addExclude(authConfig.getWhiteList().toArray(new String[0]))
-                .setAuth(obj -> {
-                    StpUtil.checkLogin();
-                    // 校验权限 SaRouter.match("/api/test1", r -> StpUtil.checkPermission("api.test1"));
-                })
+                .setAuth(
+                        obj -> {
+                            SaRouter.notMatch(SaHttpMethod.OPTIONS).free(r -> StpUtil.checkLogin());
+                            // 校验权限 SaRouter.match("/api/test1", r ->
+                            // StpUtil.checkPermission("api.test1"));
+                            // TODO 拆分stater SaRouter.match("/actuator/**", r ->
+                            // StpUtil.checkRole("ADMIN"));
+                        })
                 .setError(e -> SaResult.error(e.getMessage()));
     }
-
 }

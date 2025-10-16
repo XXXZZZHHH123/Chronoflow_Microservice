@@ -1,8 +1,7 @@
 package nus.edu.u.user.domain.vo.user;
 
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class UserProfileRespVO {

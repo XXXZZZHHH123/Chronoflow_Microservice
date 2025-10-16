@@ -1,19 +1,21 @@
 package nus.edu.u.user.service.user;
 
+import static nus.edu.u.common.enums.ErrorCodeConstants.*;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
+
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import jakarta.annotation.Resource;
+import java.util.*;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.enums.CommonStatusEnum;
 import nus.edu.u.common.exception.ServiceException;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
 import nus.edu.u.user.domain.dataobject.user.UserRoleDO;
-import nus.edu.u.user.domain.dto.CreateUserDTO;
-import nus.edu.u.user.domain.dto.UpdateUserDTO;
-import nus.edu.u.user.domain.dto.UserRoleDTO;
-import nus.edu.u.user.domain.dto.RoleDTO;
+import nus.edu.u.user.domain.dto.*;
 import nus.edu.u.user.domain.vo.user.BulkUpsertUsersRespVO;
 import nus.edu.u.user.domain.vo.user.UserProfileRespVO;
 import nus.edu.u.user.enums.user.UserStatusEnum;
@@ -25,13 +27,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
-import java.util.regex.Pattern;
-
-import static nus.edu.u.common.enums.ErrorCodeConstants.*;
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
-
 
 /**
  * User service implementation
@@ -436,6 +431,11 @@ public class UserServiceImpl implements UserService {
                                                 CommonStatusEnum.ENABLE.getStatus()))
                 .map(this::convertToUserProfileRespVO)
                 .toList();
+    }
+
+    @Override
+    public List<UserPermissionDTO> getUserPermissions(Long userId) {
+        return userMapper.selectUserWithPermission(userId);
     }
 
     // 提取的私有方法

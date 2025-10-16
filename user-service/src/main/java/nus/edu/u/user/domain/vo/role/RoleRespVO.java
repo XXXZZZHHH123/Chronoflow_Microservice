@@ -1,12 +1,11 @@
 package nus.edu.u.user.domain.vo.role;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import nus.edu.u.user.domain.vo.permission.PermissionRespVO;
-
-import java.util.List;
 
 @Data
 @NoArgsConstructor

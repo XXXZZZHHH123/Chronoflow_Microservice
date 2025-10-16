@@ -8,10 +8,22 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   main:
     allow-circular-references: true
+  cloud:
+    nacos:
+      server-addr: ${NACOS_HOST}:${NACOS_PORT} # Nacos host
+      username: ${NACOS_USERNAME} # Nacos username
+      password: ${NACOS_PASSWORD} # Nacos password
+      discovery:
+        namespace: ${spring.profiles.active}
+        group: DEFAULT_GROUP
+      config:
+        namespace: ${spring.profiles.active}
+        group: DEFAULT_GROUP
   config:
     import:
       - optional:classpath:application-${spring.profiles.active}.yaml # Load【dev】config
-      - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml # Load【Nacos】config
+      - optional:nacos:${spring.application.name}.yaml # Load【Nacos】config
+      - optional:nacos:common-config.yaml
 
   # Servlet Config
   servlet:
@@ -89,3 +101,30 @@ sa-token:
   token-style: uuid
   cookie:
     http-only: true
+
+# Dubbo config
+dubbo:
+  registry:
+    address: nacos://${NACOS_HOST}:${NACOS_PORT}?username=${NACOS_USERNAME}&password=${NACOS_PASSWORD}
+    # This will enable application-level service discovery only (the recommended service discovery method for Dubbo3).
+    # For users upgrading from Dubbo2.x, please set the value to 'all' for smooth migration.
+    register-mode: instance
+    parameters:
+      namespace: ${spring.profiles.active}
+  protocol:
+    name: tri
+    port: 50056
+  application:
+    name: attendee-service-rpc
+    logger: slf4j
+    qos-enable: false
+
+# Heath check
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  info:
+    env:
+      enabled: true

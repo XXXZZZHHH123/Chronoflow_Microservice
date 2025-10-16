@@ -1,24 +1,24 @@
 package nus.edu.u.user.controller.auth;
 
+import static nus.edu.u.common.constant.SecurityConstants.REFRESH_TOKEN_COOKIE_NAME;
+import static nus.edu.u.common.constant.SecurityConstants.REFRESH_TOKEN_REMEMBER_COOKIE_MAX_AGE;
+import static nus.edu.u.common.core.domain.CommonResult.success;
+
 import cn.dev33.satoken.annotation.SaIgnore;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.core.domain.CommonResult;
-import nus.edu.u.user.config.CookieConfig;
 import nus.edu.u.framework.security.factory.AbstractCookieFactory;
 import nus.edu.u.framework.security.factory.LongLifeRefreshTokenCookie;
 import nus.edu.u.framework.security.factory.ZeroLifeRefreshTokenCookie;
+import nus.edu.u.user.config.CookieConfig;
 import nus.edu.u.user.domain.vo.auth.LoginReqVO;
 import nus.edu.u.user.domain.vo.auth.LoginRespVO;
 import nus.edu.u.user.service.auth.AuthService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import static nus.edu.u.common.constant.SecurityConstants.REFRESH_TOKEN_COOKIE_NAME;
-import static nus.edu.u.common.constant.SecurityConstants.REFRESH_TOKEN_REMEMBER_COOKIE_MAX_AGE;
-import static nus.edu.u.common.core.domain.CommonResult.success;
 
 /**
  * Authentication controller
@@ -27,7 +27,7 @@ import static nus.edu.u.common.core.domain.CommonResult.success;
  * @date 2025-08-30
  */
 @RestController
-@RequestMapping("/user/auth")
+@RequestMapping("/users/auth")
 @Validated
 @Slf4j
 public class AuthController {

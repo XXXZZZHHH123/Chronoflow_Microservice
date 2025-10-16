@@ -9,7 +9,7 @@ spring:
   config:
     import:
       - optional:classpath:application-${spring.profiles.active}.yaml # Load【dev】config
-      - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml # Load【Nacos】config
+      - optional:nacos:${spring.application.name}.yaml # Load【Nacos】config
 
   # Redis config
   data:
@@ -29,52 +29,59 @@ spring:
 
   cloud:
     nacos:
+      server-addr: ${NACOS_HOST}:${NACOS_PORT} # Nacos host
+      username: ${NACOS_USERNAME} # Nacos username
+      password: ${NACOS_PASSWORD} # Nacos password
       discovery:
-        server-addr: 127.0.0.1:8848
+        namespace: ${spring.profiles.active}
+        group: DEFAULT_GROUP
+      config:
+        namespace: ${spring.profiles.active}
+        group: DEFAULT_GROUP
     gateway:
       routes:
         # User Service
         - id: user
           uri: lb://user-service
           predicates:
-            - Path=/user/**
+            - Path=/users/**
           filters:
-            - RewritePath=/user/v3/api-docs, /v3/api-docs
+            - RewritePath=/users/v3/api-docs, /v3/api-docs
         # Event Service
         - id: event
           uri: lb://event-service
           predicates:
-            - Path=/event/**
+            - Path=/events/**
           filters:
-            - RewritePath=/event/v3/api-docs, /v3/api-docs
+            - RewritePath=/events/v3/api-docs, /v3/api-docs
         # Task Service
         - id: task
           uri: lb://task-service
           predicates:
-            - Path=/task/**
+            - Path=/tasks/**
           filters:
-            - RewritePath=/task/v3/api-docs, /v3/api-docs
+            - RewritePath=/tasks/v3/api-docs, /v3/api-docs
         # Attendee Service
         - id: attendee
           uri: lb://attendee-service
           predicates:
-            - Path=/attendee/**
+            - Path=/attendees/**
           filters:
-            - RewritePath=/attendee/v3/api-docs, /v3/api-docs
+            - RewritePath=/attendees/v3/api-docs, /v3/api-docs
         # File Service
         - id: file
           uri: lb://file-service
           predicates:
-            - Path=/file/**
+            - Path=/files/**
           filters:
-            - RewritePath=/file/v3/api-docs, /v3/api-docs
+            - RewritePath=/files/v3/api-docs, /v3/api-docs
         # Notification Service
         - id: notification
           uri: lb://notification-service
           predicates:
-            - Path=/notification/**
+            - Path=/notifications/**
           filters:
-            - RewritePath=/notification/v3/api-docs, /v3/api-docs
+            - RewritePath=/notifications/v3/api-docs, /v3/api-docs
       x-forwarded:
         prefix-enabled: false
 
@@ -85,28 +92,28 @@ knife4j:
     routes:
       - name: user-service
         service-name: user-service
-        url: /user/v3/api-docs
+        url: /users/v3/api-docs
       - name: event-service
         service-name: event-service
-        url: /event/v3/api-docs
+        url: /events/v3/api-docs
       - name: task-service
         service-name: task-service
-        url: /task/v3/api-docs
+        url: /tasks/v3/api-docs
       - name: attendee-service
         service-name: attendee-service
-        url: /attendee/v3/api-docs
+        url: /attendees/v3/api-docs
       - name: file-service
         service-name: file-service
-        url: /file/v3/api-docs
+        url: /files/v3/api-docs
       - name: notification-service
         service-name: notification-service
-        url: /notification/v3/api-docs
+        url: /notifications/v3/api-docs
 
 gateway:
   white-list:
-    - /user/auth/login
-    - /user/auth/refresh
-    - /user/reg/**
+    - /users/auth/login
+    - /users/auth/refresh
+    - /users/reg/**
 
 ############## Sa-Token config (文档: https://sa-token.cc) ##############
 sa-token:
@@ -132,3 +139,13 @@ sa-token:
   token-style: uuid
   cookie:
     http-only: true
+
+# Heath check
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  info:
+    env:
+      enabled: true

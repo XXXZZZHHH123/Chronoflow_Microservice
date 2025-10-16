@@ -1,20 +1,8 @@
 spring:
-  cloud:
-    nacos:
-      server-addr: ${PROD_NACOS_HOST}:${PROD_NACOS_PORT} # Nacos host
-      username: ${PROD_NACOS_USERNAME} # Nacos username
-      password: ${PROD_NACOS_PASSWORD} # Nacos password
-      discovery:
-        namespace: prod
-        group: DEFAULT_GROUP
-      config:
-        namespace: prod
-        group: DEFAULT_GROUP
-
   # Redis config
   data:
     redis:
-      host: ${PORD_REDIS_HOST}
-      port: ${PORD_REDIS_PORT}
-      database: ${PORD_REDIS_DATABASE}
-      password: ${PORD_REDIS_PASSWORD}
+      host: ${PROD_REDIS_HOST}
+      port: ${PROD_REDIS_PORT}
+      database: ${PROD_REDIS_DATABASE}
+      password: ${PROD_REDIS_PASSWORD}

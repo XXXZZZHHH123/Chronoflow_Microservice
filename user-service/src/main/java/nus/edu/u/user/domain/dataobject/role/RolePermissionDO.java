@@ -2,12 +2,11 @@ package nus.edu.u.user.domain.dataobject.role;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serial;
+import java.io.Serializable;
 import lombok.*;
 import nus.edu.u.framework.mybatis.base.TenantBaseDO;
 import nus.edu.u.user.domain.dataobject.permission.PermissionDO;
-
-import java.io.Serial;
-import java.io.Serializable;
 
 /**
  * @author Lu Shuwen

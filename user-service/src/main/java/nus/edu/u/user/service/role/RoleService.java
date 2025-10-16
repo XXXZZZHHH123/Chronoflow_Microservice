@@ -1,10 +1,9 @@
 package nus.edu.u.user.service.role;
 
+import java.util.List;
 import nus.edu.u.user.domain.vo.role.RoleAssignReqVO;
 import nus.edu.u.user.domain.vo.role.RoleReqVO;
 import nus.edu.u.user.domain.vo.role.RoleRespVO;
-
-import java.util.List;
 
 public interface RoleService {
 

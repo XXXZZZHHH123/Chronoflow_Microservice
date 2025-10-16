@@ -1,8 +1,12 @@
 package nus.edu.u.user.controller.user;
 
+import static nus.edu.u.common.constant.PermissionConstants.*;
+
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import java.io.IOException;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.core.domain.CommonResult;
 import nus.edu.u.user.convert.UserConvert;
@@ -16,13 +20,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.List;
-
-import static nus.edu.u.common.constant.PermissionConstants.*;
-
 @RestController
-@RequestMapping("/user/organizer")
+@RequestMapping("/users/organizer")
 @Validated
 @Slf4j
 public class OrganizerController {

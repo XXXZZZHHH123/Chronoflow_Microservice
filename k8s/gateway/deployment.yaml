@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: e1271986/gateway:latest
+          image: e1241986/gateway:latest
           imagePullPolicy: Always
           ports:
             - name: http

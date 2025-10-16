@@ -3,7 +3,10 @@ package nus.edu.u.gateway;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-/** Test k8s */
+/**
+ * @author Lu Shuwen
+ * @date 2025-10-06
+ */
 @SpringBootApplication
 public class Gateway {
 

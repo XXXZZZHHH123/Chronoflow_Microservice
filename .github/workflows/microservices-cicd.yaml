@@ -176,12 +176,23 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+        with:
+          install_components: 'gke-gcloud-auth-plugin'
+
+      - name: Configure kubectl plugin
+        run: |
+          echo "USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> $GITHUB_ENV
 
       - name: Get GKE credentials
         run: |
           gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} \
             --region=${{ env.GCP_REGION }} \
             --project=${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Verify kubectl connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
 
       - name: Deploy to GKE
         run: |

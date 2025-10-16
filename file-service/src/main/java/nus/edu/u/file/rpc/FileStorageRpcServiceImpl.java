@@ -23,11 +23,11 @@ public class FileStorageRpcServiceImpl implements FileStorageRpcService {
     }
 
     @Override
-    public List<FileResultVO> uploadToTaskLog(FileUploadReqVO req) {
+    public void uploadToTaskLog(FileUploadReqVO req) {
         if (req == null) {
             throw new IllegalArgumentException("req must not be null");
-        };
-        return defaultList(fileRpcConvert.toRpcList(fileStorageService.uploadToTaskLog(fileRpcConvert.toDomain(req))));
+        }
+        fileStorageService.uploadToTaskLog(fileRpcConvert.toDomain(req));
     }
 
     private List<FileResultVO> defaultList(List<FileResultVO> source) {

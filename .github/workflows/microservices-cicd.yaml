@@ -194,13 +194,68 @@ jobs:
           kubectl cluster-info
           kubectl get nodes
 
-      - name: Deploy to GKE
+      - name: Prepare Kubernetes manifests
         run: |
+          IMAGE_TAG="${{ github.ref_name }}-${{ github.sha }}"
+          IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}:$IMAGE_TAG"
+
+          if [ ! -f "k8s/${{ matrix.service }}/deployment.yaml" ]; then
+          echo "⚠️ Kubernetes manifest 不存在: k8s/${{ matrix.service }}/deployment.yaml"
+          echo "使用 kubectl set image 方式更新..."
+          echo "USE_MANIFEST=false" >> $GITHUB_ENV
+          else
+          echo "✅ 找到 Kubernetes manifest"
+          echo "USE_MANIFEST=true" >> $GITHUB_ENV
+          
+          mkdir -p /tmp/k8s/${{ matrix.service }}
+          
+          cp k8s/${{ matrix.service }}/*.yaml /tmp/k8s/${{ matrix.service }}/
+          sed -i "s|DOCKER_HUB_USERNAME/${{ matrix.service }}:latest|$IMAGE|g" /tmp/k8s/${{ matrix.service }}/deployment.yaml
+          fi
+
+      - name: Deploy to GKE (using manifests)
+        if: env.USE_MANIFEST == 'true'
+        run: |
+          kubectl apply -f /tmp/k8s/${{ matrix.service }}/ -n microservices
+          
+      - name: Deploy to GKE (using set image)
+        if: env.USE_MANIFEST == 'false'
+        run: |
+          echo "🚀 使用 kubectl set image 部署 ${{ matrix.service }}..."
+          IMAGE_TAG="${{ github.ref_name }}-${{ github.sha }}"
+          IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}:$IMAGE_TAG"
+          
+          # 检查 deployment 是否存在
+          if kubectl get deployment ${{ matrix.service }} -n microservices &> /dev/null; then
+          echo "更新现有 Deployment..."
           kubectl set image deployment/${{ matrix.service }} \
-            ${{ matrix.service }}=${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}:${{ github.ref_name }}-${{ github.sha }} \
-            -n microservices
+           ${{ matrix.service }}=$IMAGE \
+           -n microservices
+          else
+          echo "⚠️ Deployment 不存在，请先创建 Kubernetes manifests 或手动创建 Deployment"
+          exit 1
+          fi
+
+      - name: Wait for rollout to complete
+        run: |
+          echo "⏳ 等待部署完成..."
+          kubectl rollout status deployment/${{ matrix.service }} \
+          -n microservices \
+          --timeout=5m
 
       - name: Verify deployment
         run: |
-          kubectl rollout status deployment/${{ matrix.service }} -n microservices
+          echo "✅ 部署状态:"
+          kubectl get deployment ${{ matrix.service }} -n microservices
+          echo ""
+          echo "📊 Pod 状态:"
           kubectl get pods -n microservices -l app=${{ matrix.service }}
+          echo ""
+          echo "🔗 Service 信息:"
+          kubectl get service ${{ matrix.service }} -n microservices 2>/dev/null || echo "Service 未配置"
+          echo ""
+          echo "📝 最近事件:"
+          kubectl get events -n microservices \
+            --field-selector involvedObject.name=${{ matrix.service }} \
+            --sort-by='.lastTimestamp' \
+            | tail -10

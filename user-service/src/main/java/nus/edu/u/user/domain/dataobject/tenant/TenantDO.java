@@ -2,13 +2,12 @@ package nus.edu.u.user.domain.dataobject.tenant;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serial;
+import java.io.Serializable;
 import lombok.*;
 import nus.edu.u.common.enums.CommonStatusEnum;
 import nus.edu.u.framework.mybatis.base.BaseDO;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
-
-import java.io.Serial;
-import java.io.Serializable;
 
 /**
  * Tenant data object for table sys_tenant

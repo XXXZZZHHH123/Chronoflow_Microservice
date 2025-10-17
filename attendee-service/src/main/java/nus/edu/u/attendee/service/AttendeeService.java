@@ -1,15 +1,12 @@
 package nus.edu.u.attendee.service;
 
-
-
+import java.util.List;
 import nus.edu.u.attendee.domain.vo.attendee.AttendeeInfoRespVO;
 import nus.edu.u.attendee.domain.vo.attendee.AttendeeQrCodeRespVO;
 import nus.edu.u.attendee.domain.vo.attendee.AttendeeReqVO;
 import nus.edu.u.attendee.domain.vo.checkin.CheckInRespVO;
 import nus.edu.u.attendee.domain.vo.checkin.GenerateQrCodesReqVO;
 import nus.edu.u.attendee.domain.vo.checkin.GenerateQrCodesRespVO;
-
-import java.util.List;
 
 public interface AttendeeService {
     /**

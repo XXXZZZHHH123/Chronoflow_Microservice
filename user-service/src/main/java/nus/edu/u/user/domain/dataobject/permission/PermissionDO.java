@@ -2,13 +2,12 @@ package nus.edu.u.user.domain.dataobject.permission;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serial;
+import java.io.Serializable;
 import lombok.*;
 import nus.edu.u.common.enums.CommonStatusEnum;
 import nus.edu.u.framework.mybatis.base.TenantBaseDO;
 import nus.edu.u.user.enums.permission.PermissionTypeEnum;
-
-import java.io.Serial;
-import java.io.Serializable;
 
 /**
  * @author Lu Shuwen

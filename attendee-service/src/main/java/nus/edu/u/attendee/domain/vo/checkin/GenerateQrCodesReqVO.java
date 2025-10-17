@@ -2,10 +2,9 @@ package nus.edu.u.attendee.domain.vo.checkin;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.Data;
 import nus.edu.u.attendee.domain.vo.attendee.AttendeeReqVO;
-
-import java.util.List;
 
 @Data
 public class GenerateQrCodesReqVO {

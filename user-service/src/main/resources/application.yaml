@@ -117,6 +117,16 @@ dubbo:
     logger: slf4j
     qos-enable: false
 
+# Heath check
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  info:
+    env:
+      enabled: true
+
 chronoflow:
   security:
     refresh-token-expire: 604800

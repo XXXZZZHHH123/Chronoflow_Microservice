@@ -1,20 +1,19 @@
 package nus.edu.u.user.service.auth;
 
+import static nus.edu.u.common.constant.CacheConstants.LOGIN_REFRESH_TOKEN_KEY;
+import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.EXPIRED_LOGIN_CREDENTIALS;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
+
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.user.config.SecurityProperties;
 import nus.edu.u.user.domain.dto.UserTokenDTO;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.TimeUnit;
-
-import static nus.edu.u.common.constant.CacheConstants.LOGIN_REFRESH_TOKEN_KEY;
-import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.EXPIRED_LOGIN_CREDENTIALS;
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
 /**
  * Token service implementation

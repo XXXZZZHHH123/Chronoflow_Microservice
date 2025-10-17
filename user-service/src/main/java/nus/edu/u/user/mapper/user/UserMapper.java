@@ -4,21 +4,18 @@ import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-
-import nus.edu.u.shared.rpc.user.UserProfileDTO;
-import nus.edu.u.user.domain.dataobject.user.UserDO;
-import nus.edu.u.user.domain.dto.UserPermissionDTO;
-import nus.edu.u.user.domain.dto.UserRoleDTO;
-import nus.edu.u.user.domain.vo.user.UserProfileRespVO;
-
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import nus.edu.u.shared.rpc.user.UserProfileDTO;
+import nus.edu.u.user.domain.dataobject.user.UserDO;
+import nus.edu.u.user.domain.dto.UserPermissionDTO;
+import nus.edu.u.user.domain.dto.UserRoleDTO;
+import nus.edu.u.user.domain.vo.user.UserProfileRespVO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * User Mapper

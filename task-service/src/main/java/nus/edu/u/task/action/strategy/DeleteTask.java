@@ -1,12 +1,12 @@
 package nus.edu.u.task.action.strategy;
 
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 import static nus.edu.u.common.enums.ErrorCodeConstants.TASK_DELETE_FAILED;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
+import nus.edu.u.task.action.AbstractTaskStrategy;
 import nus.edu.u.task.domain.dataobject.task.TaskDO;
 import nus.edu.u.task.domain.dto.TaskActionDTO;
 import nus.edu.u.task.enums.TaskActionEnum;
-import nus.edu.u.task.action.AbstractTaskStrategy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,7 +27,6 @@ public class DeleteTask extends AbstractTaskStrategy {
         if (!isSuccess) {
             throw exception(TASK_DELETE_FAILED);
         }
-        taskLogService.insertTaskLog(
-                task.getId(), null, getType().getCode(), null);
+        taskLogService.insertTaskLog(task.getId(), null, getType().getCode(), null);
     }
 }

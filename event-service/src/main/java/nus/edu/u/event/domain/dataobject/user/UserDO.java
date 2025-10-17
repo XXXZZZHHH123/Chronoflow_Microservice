@@ -13,8 +13,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import nus.edu.u.framework.mybatis.base.TenantBaseDO;
 import nus.edu.u.common.enums.CommonStatusEnum;
+import nus.edu.u.framework.mybatis.base.TenantBaseDO;
 
 @TableName(value = "sys_user", autoResultMap = true)
 @Data

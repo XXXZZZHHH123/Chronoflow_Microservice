@@ -3,11 +3,10 @@ package nus.edu.u.attendee.domain.dataobject;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.*;
-import nus.edu.u.framework.mybatis.base.TenantBaseDO;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import lombok.*;
+import nus.edu.u.framework.mybatis.base.TenantBaseDO;
 
 /**
  * Event Attendee data object for table event_attendee

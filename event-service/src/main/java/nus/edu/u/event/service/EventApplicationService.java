@@ -1,7 +1,6 @@
 package nus.edu.u.event.service;
 
 import java.util.List;
-
 import nus.edu.u.event.domain.dto.event.EventCreateReqVO;
 import nus.edu.u.event.domain.dto.event.EventGroupRespVO;
 import nus.edu.u.event.domain.dto.event.EventRespVO;

@@ -2,10 +2,9 @@ package nus.edu.u.attendee.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import java.util.List;
 import nus.edu.u.attendee.domain.dataobject.EventAttendeeDO;
 import org.apache.ibatis.annotations.Mapper;
-
-import java.util.List;
 
 /**
  * Event Attendee Mapper

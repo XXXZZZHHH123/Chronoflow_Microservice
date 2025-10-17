@@ -1,6 +1,5 @@
 package nus.edu.u.user.service.auth;
 
-
 import nus.edu.u.user.domain.dto.UserTokenDTO;
 
 /**

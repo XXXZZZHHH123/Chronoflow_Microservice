@@ -1,137 +1,137 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>nus.edu.u</groupId>
-	<artifactId>ChronoFlow</artifactId>
-	<version>${revision}</version>
+    <groupId>nus.edu.u</groupId>
+    <artifactId>ChronoFlow</artifactId>
+    <version>${revision}</version>
 
-	<name>ChronoFlow</name>
-	<description>ChronoFlow-For individual event management</description>
-	<packaging>pom</packaging>
+    <name>ChronoFlow</name>
+    <description>ChronoFlow-For individual event management</description>
+    <packaging>pom</packaging>
 
-	<modules>
-		<module>shared-api</module>
-		<module>framework</module>
-		<module>common</module>
-		<module>gateway</module>
+    <modules>
+        <module>shared-api</module>
+        <module>framework</module>
+        <module>common</module>
+        <module>gateway</module>
         <module>user-service</module>
-		<module>event-service</module>
-		<module>task-service</module>
-		<module>attendee-service</module>
-		<module>notification-service</module>
-		<module>file-service</module>
+        <module>event-service</module>
+        <module>task-service</module>
+        <module>attendee-service</module>
+        <module>notification-service</module>
+        <module>file-service</module>
     </modules>
 
-	<properties>
-		<java.version>17</java.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<revision>1.0.1</revision>
-		<!-- spring -->
-		<spring-boot.version>3.4.1</spring-boot.version>
-		<spring-cloud.version>2024.0.0</spring-cloud.version>
-		<spring-cloud-alibaba.version>2023.0.3.2</spring-cloud-alibaba.version>
-		<!-- Web -->
-		<springdoc.version>2.7.0</springdoc.version>
-		<knife4j.version>4.6.0</knife4j.version>
-		<dubbo.version>3.3.0</dubbo.version>
-		<!-- Database -->
-		<mybatis-plus.version>3.5.5</mybatis-plus.version>
-		<druid.version>1.2.24</druid.version>
-		<dynamic-datasource.version>4.3.1</dynamic-datasource.version>
-		<redisson.version>3.41.0</redisson.version>
-		<mysql.version>8.0.33</mysql.version>
-		<!-- Distributed lock -->
-		<lock4j.version>2.2.7</lock4j.version>
-		<!-- Utils -->
-		<fastjson.version>2.0.57</fastjson.version>
-		<commons.io.version>2.19.0</commons.io.version>
-		<poi.version>4.1.2</poi.version>
-		<guava.version>33.4.0-jre</guava.version>
-		<jakarta-validation.version>3.0.2</jakarta-validation.version>
-		<lombok.version>1.18.36</lombok.version>
-		<hutool.version>5.8.35</hutool.version>
-		<satoken.version>1.44.0</satoken.version>
-		<mapstruct.version>1.5.5.Final</mapstruct.version>
-		<easyexcel.version>3.3.2</easyexcel.version>
-		<zxing-core.version>3.5.3</zxing-core.version>
-		<zxing-javase.version>3.5.3</zxing-javase.version>
-		<gcs.version>2.22.2</gcs.version>
-	</properties>
+    <properties>
+        <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <revision>1.0.1</revision>
+        <!-- spring -->
+        <spring-boot.version>3.4.1</spring-boot.version>
+        <spring-cloud.version>2024.0.0</spring-cloud.version>
+        <spring-cloud-alibaba.version>2023.0.3.2</spring-cloud-alibaba.version>
+        <!-- Web -->
+        <springdoc.version>2.7.0</springdoc.version>
+        <knife4j.version>4.6.0</knife4j.version>
+        <dubbo.version>3.3.0</dubbo.version>
+        <!-- Database -->
+        <mybatis-plus.version>3.5.5</mybatis-plus.version>
+        <druid.version>1.2.24</druid.version>
+        <dynamic-datasource.version>4.3.1</dynamic-datasource.version>
+        <redisson.version>3.41.0</redisson.version>
+        <mysql.version>8.0.33</mysql.version>
+        <!-- Distributed lock -->
+        <lock4j.version>2.2.7</lock4j.version>
+        <!-- Utils -->
+        <fastjson.version>2.0.57</fastjson.version>
+        <commons.io.version>2.19.0</commons.io.version>
+        <poi.version>4.1.2</poi.version>
+        <guava.version>33.4.0-jre</guava.version>
+        <jakarta-validation.version>3.0.2</jakarta-validation.version>
+        <lombok.version>1.18.36</lombok.version>
+        <hutool.version>5.8.35</hutool.version>
+        <satoken.version>1.44.0</satoken.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <easyexcel.version>3.3.2</easyexcel.version>
+        <zxing-core.version>3.5.3</zxing-core.version>
+        <zxing-javase.version>3.5.3</zxing-javase.version>
+        <gcs.version>2.22.2</gcs.version>
+    </properties>
 
-	<dependencyManagement>
-		<dependencies>
+    <dependencyManagement>
+        <dependencies>
 
-			<!-- SpringBoot-->
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>${spring-boot.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
+            <!-- SpringBoot-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
-			<!-- Spring cloud -->
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
+            <!-- Spring cloud -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
-			<!-- Spring cloud alibaba -->
-			<dependency>
-				<groupId>com.alibaba.cloud</groupId>
-				<artifactId>spring-cloud-alibaba-dependencies</artifactId>
-				<version>${spring-cloud-alibaba.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
+            <!-- Spring cloud alibaba -->
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
 
-			<dependency>
-				<groupId>org.apache.dubbo</groupId>
-				<artifactId>dubbo-bom</artifactId>
-				<version>${dubbo.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
+            <dependency>
+                <groupId>org.apache.dubbo</groupId>
+                <artifactId>dubbo-bom</artifactId>
+                <version>${dubbo.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
-			<!-- Multi-datasource -->
-			<dependency>
-				<groupId>com.alibaba</groupId>
-				<artifactId>druid-spring-boot-3-starter</artifactId>
-				<version>${druid.version}</version>
-			</dependency>
+            <!-- Multi-datasource -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-3-starter</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>com.baomidou</groupId>
-				<artifactId>dynamic-datasource-spring-boot3-starter</artifactId>
-				<version>${dynamic-datasource.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>dynamic-datasource-spring-boot3-starter</artifactId>
+                <version>${dynamic-datasource.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>com.mysql</groupId>
-				<artifactId>mysql-connector-j</artifactId>
-				<version>${mysql.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
+                <version>${mysql.version}</version>
+            </dependency>
 
-			<!-- MyBatis-Plus -->
-			<dependency>
-				<groupId>com.baomidou</groupId>
-				<artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-				<version>${mybatis-plus.version}</version>
-			</dependency>
+            <!-- MyBatis-Plus -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
 
-			<!-- Google Utils -->
-			<dependency>
-				<groupId>com.google.guava</groupId>
-				<artifactId>guava</artifactId>
-				<version>${guava.version}</version>
-			</dependency>
+            <!-- Google Utils -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
 
 			<!--Google cloud storage -->
 			<dependency>
@@ -147,7 +147,7 @@
   				<type>pom</type>
   				<scope>import</scope>
 				</dependency>
-	
+
 			<!-- Lock -->
 			<dependency>
 				<groupId>com.baomidou</groupId>
@@ -161,311 +161,340 @@
 				</exclusions>
 			</dependency>
 
-			<!-- swagger 3 -->
-			<dependency>
-				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
-				<version>${springdoc.version}</version>
-			</dependency>
+            <!-- swagger 3 -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>com.github.xingfudeshi</groupId>
-				<artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-				<version>${knife4j.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>com.github.xingfudeshi</groupId>
+                <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+                <version>${knife4j.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>com.github.xiaoymin</groupId> <!-- 接口文档 UI：knife4j【网关专属】 -->
-				<artifactId>knife4j-gateway-spring-boot-starter</artifactId>
-				<version>4.5.0</version>
-			</dependency>
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId> <!-- 接口文档 UI：knife4j【网关专属】 -->
+                <artifactId>knife4j-gateway-spring-boot-starter</artifactId>
+                <version>4.5.0</version>
+            </dependency>
 
-			<!-- validation annotation -->
-			<dependency>
-				<groupId>jakarta.validation</groupId>
-				<artifactId>jakarta.validation-api</artifactId>
-				<version>${jakarta-validation.version}</version>
-			</dependency>
+            <!-- validation annotation -->
+            <dependency>
+                <groupId>jakarta.validation</groupId>
+                <artifactId>jakarta.validation-api</artifactId>
+                <version>${jakarta-validation.version}</version>
+            </dependency>
 
-			<!-- client of redis -->
-			<dependency>
-				<groupId>org.redisson</groupId>
-				<artifactId>redisson-spring-boot-starter</artifactId>
-				<version>${redisson.version}</version>
-			</dependency>
+            <!-- client of redis -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
 
-			<!-- Alibaba JSON parser -->
-			<dependency>
-				<groupId>com.alibaba.fastjson2</groupId>
-				<artifactId>fastjson2</artifactId>
-				<version>${fastjson.version}</version>
-			</dependency>
+            <!-- Alibaba JSON parser -->
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
 
-			<!-- hutool utils -->
-			<dependency>
-				<groupId>cn.hutool</groupId>
-				<artifactId>hutool-all</artifactId>
-				<version>${hutool.version}</version>
-			</dependency>
+            <!-- hutool utils -->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
 
-			<!-- io Utils -->
-			<dependency>
-				<groupId>commons-io</groupId>
-				<artifactId>commons-io</artifactId>
-				<version>${commons.io.version}</version>
-			</dependency>
+            <!-- io Utils -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
+            </dependency>
 
-			<!-- excel Utils -->
-			<dependency>
-				<groupId>org.apache.poi</groupId>
-				<artifactId>poi-ooxml</artifactId>
-				<version>${poi.version}</version>
-			</dependency>
+            <!-- excel Utils -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
 
-			<!-- Lombok -->
-			<dependency>
-				<groupId>org.projectlombok</groupId>
-				<artifactId>lombok</artifactId>
-				<version>${lombok.version}</version>
-			</dependency>
+            <!-- Lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
 
-			<!-- mapstruct -->
-			<dependency>
-				<groupId>org.mapstruct</groupId>
-				<artifactId>mapstruct</artifactId>
-				<version>${mapstruct.version}</version>
-			</dependency>
+            <!-- mapstruct -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
 
-			<!-- sa-token -->
-			<dependency>
-				<groupId>cn.dev33</groupId>
-				<artifactId>sa-token-reactor-spring-boot3-starter</artifactId>
-				<version>${satoken.version}</version>
-			</dependency>
+            <!-- sa-token -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-reactor-spring-boot3-starter</artifactId>
+                <version>${satoken.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>cn.dev33</groupId>
-				<artifactId>sa-token-spring-boot3-starter</artifactId>
-				<version>${satoken.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-spring-boot3-starter</artifactId>
+                <version>${satoken.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>cn.dev33</groupId>
-				<artifactId>sa-token-redis-template</artifactId>
-				<version>${satoken.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-redis-template</artifactId>
+                <version>${satoken.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>cn.dev33</groupId>
-				<artifactId>sa-token-redis-jackson</artifactId>
-				<version>${satoken.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-redis-jackson</artifactId>
+                <version>${satoken.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>cn.dev33</groupId>
-				<artifactId>sa-token-dubbo3</artifactId>
-				<version>${satoken.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-dubbo3</artifactId>
+                <version>${satoken.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>com.alibaba</groupId>
-				<artifactId>easyexcel</artifactId>
-				<version>${easyexcel.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>easyexcel</artifactId>
+                <version>${easyexcel.version}</version>
+            </dependency>
 
-			<!-- Framework module -->
-			<dependency>
-				<groupId>nus.edu.u</groupId>
-				<artifactId>framework</artifactId>
-				<version>${revision}</version>
-			</dependency>
+            <!-- Framework module -->
+            <dependency>
+                <groupId>nus.edu.u</groupId>
+                <artifactId>framework</artifactId>
+                <version>${revision}</version>
+            </dependency>
 
-			<!-- Common module -->
-			<dependency>
-				<groupId>nus.edu.u</groupId>
-				<artifactId>common</artifactId>
-				<version>${revision}</version>
-			</dependency>
+            <!-- Common module -->
+            <dependency>
+                <groupId>nus.edu.u</groupId>
+                <artifactId>common</artifactId>
+                <version>${revision}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>nus.edu.u</groupId>
-				<artifactId>shared-api</artifactId>
-				<version>${revision}</version>
-			</dependency>
+            <dependency>
+                <groupId>nus.edu.u</groupId>
+                <artifactId>shared-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>com.google.zxing</groupId>
-				<artifactId>core</artifactId>
-				<version>${zxing-core.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>com.google.zxing</groupId>
+                <artifactId>core</artifactId>
+                <version>${zxing-core.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>com.google.zxing</groupId>
-				<artifactId>javase</artifactId>
-				<version>${zxing-javase.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>com.google.zxing</groupId>
+                <artifactId>javase</artifactId>
+                <version>${zxing-javase.version}</version>
+            </dependency>
 
-		</dependencies>
-	</dependencyManagement>
+        </dependencies>
+    </dependencyManagement>
 
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-maven-plugin</artifactId>
-					<version>${spring-boot.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>com.diffplug.spotless</groupId>
-					<artifactId>spotless-maven-plugin</artifactId>
-					<version>2.43.0</version>
-					<configuration>
-						<java>
-							<googleJavaFormat>
-								<style>AOSP</style>
-							</googleJavaFormat>
-						</java>
-					</configuration>
-					<executions>
-						<execution>
-							<id>spotless-check</id>
-							<goals><goal>check</goal></goals>
-							<phase>verify</phase>
-						</execution>
-					</executions>
-				</plugin>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.diffplug.spotless</groupId>
+                    <artifactId>spotless-maven-plugin</artifactId>
+                    <version>2.43.0</version>
+                    <configuration>
+                        <java>
+                            <googleJavaFormat>
+                                <style>AOSP</style>
+                            </googleJavaFormat>
+                        </java>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>spotless-check</id>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                            <phase>verify</phase>
+                        </execution>
+                    </executions>
+                </plugin>
 
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-checkstyle-plugin</artifactId>
-					<version>3.3.1</version>
-					<configuration>
-						<configLocation>google_checks.xml</configLocation>
-						<consoleOutput>true</consoleOutput>
-						<failOnViolation>true</failOnViolation>
-					</configuration>
-					<executions>
-						<execution>
-							<id>checkstyle-verify</id>
-							<phase>verify</phase>
-							<goals><goal>check</goal></goals>
-						</execution>
-					</executions>
-				</plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>3.3.1</version>
+                    <configuration>
+                        <configLocation>google_checks.xml</configLocation>
+                        <consoleOutput>true</consoleOutput>
+                        <failOnViolation>true</failOnViolation>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>checkstyle-verify</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
 
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.11.0</version>
-					<configuration>
-						<source>${java.version}</source>
-						<target>${java.version}</target>
-						<fork>true</fork>
-						<annotationProcessorPaths>
-							<!-- MapStruct 注解处理器 -->
-							<path>
-								<groupId>org.mapstruct</groupId>
-								<artifactId>mapstruct-processor</artifactId>
-								<version>${mapstruct.version}</version>
-							</path>
-							<!-- Lombok 注解处理器（如果用了 Lombok） -->
-							<path>
-								<groupId>org.projectlombok</groupId>
-								<artifactId>lombok</artifactId>
-								<version>${lombok.version}</version>
-							</path>
-							<path>
-								<groupId>org.projectlombok</groupId>
-								<artifactId>lombok-mapstruct-binding</artifactId>
-								<version>0.2.0</version>
-							</path>
-						</annotationProcessorPaths>
-					</configuration>
-				</plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <fork>true</fork>
+                        <annotationProcessorPaths>
+                            <!-- MapStruct 注解处理器 -->
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${mapstruct.version}</version>
+                            </path>
+                            <!-- Lombok 注解处理器（如果用了 Lombok） -->
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>0.2.0</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
 
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-war-plugin</artifactId>
-					<version>3.1.0</version>
-					<configuration>
-						<failOnMissingWebXml>false</failOnMissingWebXml>
-						<warName>${project.artifactId}</warName>
-					</configuration>
-				</plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <configuration>
+                        <failOnMissingWebXml>false</failOnMissingWebXml>
+                        <warName>${project.artifactId}</warName>
+                    </configuration>
+                </plugin>
 
-				<plugin>
-      <groupId>org.jacoco</groupId>
-      <artifactId>jacoco-maven-plugin</artifactId>
-      <version>0.8.12</version>
-      <inherited>true</inherited>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.12</version>
+                    <inherited>true</inherited>
 
-      <configuration>
-        <excludes>
-          <exclude>**/generated/**</exclude>
-          <exclude>**/*Generated*</exclude>
-          <exclude>**/*MapperImpl.class</exclude>
-        </excludes>
-      </configuration>
+                    <configuration>
+                        <excludes>
+                            <exclude>**/generated/**</exclude>
+                            <exclude>**/*Generated*</exclude>
+                            <exclude>**/*MapperImpl.class</exclude>
+                        </excludes>
+                    </configuration>
 
-      <executions>
-        <execution>
-          <id>prepare-agent</id>
-          <goals>
-            <goal>prepare-agent</goal>
-          </goals>
-          <configuration>
-            <excludes>
-              <exclude>**/generated/**</exclude>
-              <exclude>**/*Generated*</exclude>
-              <exclude>**/*MapperImpl.class</exclude>
-            </excludes>
-          </configuration>
-        </execution>
+                    <executions>
+                        <execution>
+                            <id>prepare-agent</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                            <configuration>
+                                <excludes>
+                                    <exclude>**/generated/**</exclude>
+                                    <exclude>**/*Generated*</exclude>
+                                    <exclude>**/*MapperImpl.class</exclude>
+                                </excludes>
+                            </configuration>
+                        </execution>
 
-        <execution>
-          <id>report</id>
-          <phase>verify</phase>
-          <goals>
-            <goal>report</goal>
-          </goals>
-          <configuration>
-            <excludes>
-              <exclude>**/generated/**</exclude>
-              <exclude>**/*Generated*</exclude>
-              <exclude>**/*MapperImpl.class</exclude>
-            </excludes>
-          </configuration>
-        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                            <configuration>
+                                <excludes>
+                                    <exclude>**/generated/**</exclude>
+                                    <exclude>**/*Generated*</exclude>
+                                    <exclude>**/*MapperImpl.class</exclude>
+                                </excludes>
+                            </configuration>
+                        </execution>
 
-        <execution>
-          <id>report-aggregate</id>
-          <phase>verify</phase>
-          <goals>
-            <goal>report-aggregate</goal>
-          </goals>
-          <configuration>
-            <excludes>
-              <exclude>**/generated/**</exclude>
-              <exclude>**/*Generated*</exclude>
-              <exclude>**/*MapperImpl.class</exclude>
-            </excludes>
-          </configuration>
-        </execution>
-      </executions>
-    </plugin>
-			</plugins>
-		</pluginManagement>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<inherited>false</inherited>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+                        <execution>
+                            <id>report-aggregate</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>report-aggregate</goal>
+                            </goals>
+                            <configuration>
+                                <excludes>
+                                    <exclude>**/generated/**</exclude>
+                                    <exclude>**/*Generated*</exclude>
+                                    <exclude>**/*MapperImpl.class</exclude>
+                                </excludes>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <inherited>false</inherited>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.5.0</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

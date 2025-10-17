@@ -1,14 +1,13 @@
 package nus.edu.u.event.convert;
 
 import java.util.List;
-
 import nus.edu.u.event.domain.dataobject.event.EventDO;
 import nus.edu.u.event.domain.dto.event.EventCreateReqVO;
 import nus.edu.u.event.domain.dto.event.EventDTO;
 import nus.edu.u.event.domain.dto.event.EventRespVO;
 import nus.edu.u.event.domain.dto.event.EventUpdateReqVO;
 import nus.edu.u.event.domain.dto.event.UpdateEventRespVO;
-
+import nus.edu.u.shared.rpc.events.EventRespDTO;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,7 +15,6 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
-import nus.edu.u.shared.rpc.events.EventRespDTO;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface EventConvert {

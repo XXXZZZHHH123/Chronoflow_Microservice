@@ -1,5 +1,7 @@
 package nus.edu.u.attendee.service.qrcode;
 
+import static nus.edu.u.common.enums.ErrorCodeConstants.QRCODE_GENERATION_FAILED;
+
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.WriterException;
@@ -7,13 +9,6 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-import lombok.extern.slf4j.Slf4j;
-import nus.edu.u.attendee.domain.vo.qrcode.QrCodeReqVO;
-import nus.edu.u.attendee.domain.vo.qrcode.QrCodeRespVO;
-import nus.edu.u.common.exception.ServiceException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -21,8 +16,12 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static nus.edu.u.common.enums.ErrorCodeConstants.QRCODE_GENERATION_FAILED;
+import lombok.extern.slf4j.Slf4j;
+import nus.edu.u.attendee.domain.vo.qrcode.QrCodeReqVO;
+import nus.edu.u.attendee.domain.vo.qrcode.QrCodeRespVO;
+import nus.edu.u.common.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j

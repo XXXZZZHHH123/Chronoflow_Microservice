@@ -13,7 +13,6 @@ import nus.edu.u.event.domain.dto.group.GroupRespVO;
 import nus.edu.u.event.domain.dto.group.UpdateGroupReqVO;
 import nus.edu.u.event.domain.dto.user.UserProfileRespVO;
 import nus.edu.u.event.service.GroupApplicationService;
-
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;

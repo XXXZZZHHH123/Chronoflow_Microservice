@@ -124,3 +124,13 @@ dubbo:
     name: event-service-rpc
     logger: slf4j
     qos-enable: false
+
+# Heath check
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  info:
+    env:
+      enabled: true

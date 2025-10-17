@@ -1,9 +1,15 @@
 package nus.edu.u.user.service.permission;
 
+import static nus.edu.u.common.enums.ErrorCodeConstants.*;
+import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.BAD_REQUEST;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
+
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
+import java.util.List;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.user.domain.dataobject.permission.PermissionDO;
 import nus.edu.u.user.domain.dataobject.role.RolePermissionDO;
@@ -13,13 +19,6 @@ import nus.edu.u.user.enums.permission.PermissionTypeEnum;
 import nus.edu.u.user.mapper.permission.PermissionMapper;
 import nus.edu.u.user.mapper.role.RolePermissionMapper;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Objects;
-
-import static nus.edu.u.common.enums.ErrorCodeConstants.*;
-import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.BAD_REQUEST;
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
 /**
  * @author Lu Shuwen

@@ -1,10 +1,8 @@
 package nus.edu.u.attendee.service.qrcode;
 
-
+import java.io.IOException;
 import nus.edu.u.attendee.domain.vo.qrcode.QrCodeReqVO;
 import nus.edu.u.attendee.domain.vo.qrcode.QrCodeRespVO;
-
-import java.io.IOException;
 
 /**
  * QR Code service interface

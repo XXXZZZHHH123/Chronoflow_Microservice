@@ -1,9 +1,8 @@
 package nus.edu.u.attendee.domain.vo.attendee;
 
+import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Data;
-
-import java.time.LocalDateTime;
 
 @Data
 @Builder

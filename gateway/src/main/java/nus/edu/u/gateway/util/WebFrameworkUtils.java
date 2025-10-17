@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
 /**
  * Web 工具类
  *
- * copy from yudao-spring-boot-starter-web 的 WebFrameworkUtils 类
+ * <p>copy from yudao-spring-boot-starter-web 的 WebFrameworkUtils 类
  *
  * @author 芋道源码
  */
@@ -60,29 +60,42 @@ public class WebFrameworkUtils {
         ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON_UTF8);
         // 设置 body
-        return response.writeWith(Mono.fromSupplier(() -> {
-            DataBufferFactory bufferFactory = response.bufferFactory();
-            try {
-                return bufferFactory.wrap(JsonUtils.toJsonByte(object));
-            } catch (Exception ex) {
-                ServerHttpRequest request = exchange.getRequest();
-                log.error("[writeJSON][uri({}/{}) 发生异常]", request.getURI(), request.getMethod(), ex);
-                return bufferFactory.wrap(new byte[0]);
-            }
-        }));
+        return response.writeWith(
+                Mono.fromSupplier(
+                        () -> {
+                            DataBufferFactory bufferFactory = response.bufferFactory();
+                            try {
+                                return bufferFactory.wrap(JsonUtils.toJsonByte(object));
+                            } catch (Exception ex) {
+                                ServerHttpRequest request = exchange.getRequest();
+                                log.error(
+                                        "[writeJSON][uri({}/{}) 发生异常]",
+                                        request.getURI(),
+                                        request.getMethod(),
+                                        ex);
+                                return bufferFactory.wrap(new byte[0]);
+                            }
+                        }));
     }
 
     /**
      * 获得客户端 IP
      *
-     * 参考 {@link ServletUtil} 的 getClientIP 方法
+     * <p>参考 {@link ServletUtil} 的 getClientIP 方法
      *
      * @param exchange 请求
      * @param otherHeaderNames 其它 header 名字的数组
      * @return 客户端 IP
      */
     public static String getClientIP(ServerWebExchange exchange, String... otherHeaderNames) {
-        String[] headers = { "X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR" };
+        String[] headers = {
+            "X-Forwarded-For",
+            "X-Real-IP",
+            "Proxy-Client-IP",
+            "WL-Proxy-Client-IP",
+            "HTTP_CLIENT_IP",
+            "HTTP_X_FORWARDED_FOR"
+        };
         if (ArrayUtil.isNotEmpty(otherHeaderNames)) {
             headers = ArrayUtil.addAll(headers, otherHeaderNames);
         }
@@ -112,5 +125,4 @@ public class WebFrameworkUtils {
     public static Route getGatewayRoute(ServerWebExchange exchange) {
         return exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
     }
-
 }

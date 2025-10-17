@@ -22,13 +22,13 @@ import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.enums.EventStatusEnum;
 import nus.edu.u.event.convert.EventConvert;
 import nus.edu.u.event.domain.dataobject.event.EventDO;
+import nus.edu.u.event.domain.dataobject.user.UserGroupDO;
 import nus.edu.u.event.domain.dto.event.EventCreateReqVO;
 import nus.edu.u.event.domain.dto.event.EventGroupRespVO;
 import nus.edu.u.event.domain.dto.event.EventRespVO;
 import nus.edu.u.event.domain.dto.event.EventUpdateReqVO;
 import nus.edu.u.event.domain.dto.event.UpdateEventRespVO;
 import nus.edu.u.event.domain.dto.group.GroupRespVO;
-import nus.edu.u.event.domain.dataobject.user.UserGroupDO;
 import nus.edu.u.event.enums.TaskStatusEnum;
 import nus.edu.u.event.mapper.EventMapper;
 import nus.edu.u.event.mapper.UserGroupMapper;
@@ -38,7 +38,6 @@ import nus.edu.u.shared.rpc.group.GroupDTO;
 import nus.edu.u.shared.rpc.task.TaskDTO;
 import nus.edu.u.shared.rpc.task.TaskRpcService;
 import nus.edu.u.shared.rpc.user.UserRpcService;
-
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class EventApplicationServiceImpl implements EventApplicationService{
+public class EventApplicationServiceImpl implements EventApplicationService {
 
     private final EventMapper eventMapper;
     private final UserGroupMapper userGroupMapper;
@@ -245,7 +244,8 @@ public class EventApplicationServiceImpl implements EventApplicationService{
                                     .map(
                                             member ->
                                                     new EventGroupRespVO.Member(
-                                                            member.getUserId(), member.getUsername()))
+                                                            member.getUserId(),
+                                                            member.getUsername()))
                                     .toList();
             resp.setMembers(members);
             result.add(resp);
@@ -320,8 +320,7 @@ public class EventApplicationServiceImpl implements EventApplicationService{
         }
         response.setJoiningParticipants(participantCounts.getOrDefault(event.getId(), 0));
         response.setGroups(groupsByEventId.getOrDefault(event.getId(), List.of()));
-        response.setTaskStatus(
-                taskStatusByEventId.getOrDefault(event.getId(), emptyTaskStatus()));
+        response.setTaskStatus(taskStatusByEventId.getOrDefault(event.getId(), emptyTaskStatus()));
         return response;
     }
 
@@ -329,7 +328,8 @@ public class EventApplicationServiceImpl implements EventApplicationService{
         if (eventIds == null || eventIds.isEmpty()) {
             return Map.of();
         }
-        return userGroupMapper.selectList(
+        return userGroupMapper
+                .selectList(
                         new LambdaQueryWrapper<UserGroupDO>().in(UserGroupDO::getEventId, eventIds))
                 .stream()
                 .filter(relation -> relation.getEventId() != null && relation.getUserId() != null)
@@ -337,7 +337,8 @@ public class EventApplicationServiceImpl implements EventApplicationService{
                         Collectors.groupingBy(
                                 UserGroupDO::getEventId,
                                 Collectors.collectingAndThen(
-                                        Collectors.mapping(UserGroupDO::getUserId, Collectors.toSet()),
+                                        Collectors.mapping(
+                                                UserGroupDO::getUserId, Collectors.toSet()),
                                         Set::size)));
     }
 
@@ -345,9 +346,9 @@ public class EventApplicationServiceImpl implements EventApplicationService{
         if (eventId == null) {
             return List.of();
         }
-        return userGroupMapper.selectList(
-                        new LambdaQueryWrapper<UserGroupDO>()
-                                .eq(UserGroupDO::getEventId, eventId))
+        return userGroupMapper
+                .selectList(
+                        new LambdaQueryWrapper<UserGroupDO>().eq(UserGroupDO::getEventId, eventId))
                 .stream()
                 .map(UserGroupDO::getUserId)
                 .filter(Objects::nonNull)
@@ -364,7 +365,10 @@ public class EventApplicationServiceImpl implements EventApplicationService{
                             .map(
                                     summary -> {
                                         EventRespVO.GroupVO vo = new EventRespVO.GroupVO();
-                                        vo.setId(summary.getId() != null ? summary.getId().toString() : null);
+                                        vo.setId(
+                                                summary.getId() != null
+                                                        ? summary.getId().toString()
+                                                        : null);
                                         vo.setName(summary.getName());
                                         return vo;
                                     })

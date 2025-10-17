@@ -1,7 +1,7 @@
 package nus.edu.u.event.service.validation;
 
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 import static nus.edu.u.common.enums.ErrorCodeConstants.TIME_RANGE_INVALID;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;

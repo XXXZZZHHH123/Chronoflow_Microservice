@@ -1,9 +1,8 @@
 package nus.edu.u.user.domain.vo.role;
 
 import jakarta.validation.constraints.Size;
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 /**
  * @author Lu Shuwen

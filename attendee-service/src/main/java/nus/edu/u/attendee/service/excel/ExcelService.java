@@ -1,5 +1,9 @@
 package nus.edu.u.attendee.service.excel;
 
+import static nus.edu.u.common.enums.ErrorCodeConstants.EMPTY_EXCEL;
+import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.EXCEL_FORMAT_ERROR;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
+
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
@@ -7,26 +11,22 @@ import com.alibaba.excel.event.AnalysisEventListener;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
-import lombok.extern.slf4j.Slf4j;
-import nus.edu.u.attendee.domain.vo.attendee.AttendeeReqVO;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static nus.edu.u.common.enums.ErrorCodeConstants.EMPTY_EXCEL;
-import static nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.EXCEL_FORMAT_ERROR;
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
+import lombok.extern.slf4j.Slf4j;
+import nus.edu.u.attendee.domain.vo.attendee.AttendeeReqVO;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
 public class ExcelService {
 
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
     public List<AttendeeReqVO> importAttendees(MultipartFile file) {
         try {
             List<AttendeeReqVO> attendeeList = new ArrayList<>();

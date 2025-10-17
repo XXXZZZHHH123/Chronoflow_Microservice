@@ -18,6 +18,7 @@ import nus.edu.u.task.enums.TaskStatusEnum;
 import nus.edu.u.task.mapper.TaskLogMapper;
 import nus.edu.u.task.mapper.TaskMapper;
 import org.apache.dubbo.config.annotation.DubboService;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * RPC implementation exposing task data to other bounded contexts.
@@ -34,6 +35,7 @@ public class TaskRpcServiceImpl implements TaskRpcService {
     private final TaskLogMapper taskLogMapper;
 
     @Override
+    @Transactional
     public Map<Long, List<TaskDTO>> getTasksByEventIds(Collection<Long> eventIds) {
         if (eventIds == null || eventIds.isEmpty()) {
             return Map.of();

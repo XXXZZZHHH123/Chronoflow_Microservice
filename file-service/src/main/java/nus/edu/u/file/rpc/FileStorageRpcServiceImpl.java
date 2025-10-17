@@ -10,7 +10,7 @@ import nus.edu.u.shared.rpc.file.FileStorageRpcService;
 import nus.edu.u.shared.rpc.file.FileUploadReqVO;
 import org.apache.dubbo.config.annotation.DubboService;
 
-@DubboService
+@DubboService(retries = 0, cluster = "failfast")
 @RequiredArgsConstructor
 public class FileStorageRpcServiceImpl implements FileStorageRpcService {
 

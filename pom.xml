@@ -140,6 +140,14 @@
 				<version>${gcs.version}</version>
 			</dependency>
 
+			<dependency>
+  				<groupId>io.grpc</groupId>
+  				<artifactId>grpc-bom</artifactId>
+  				<version>1.63.0</version> <!-- 与你想用的版本一致 -->
+  				<type>pom</type>
+  				<scope>import</scope>
+				</dependency>
+	
 			<!-- Lock -->
 			<dependency>
 				<groupId>com.baomidou</groupId>

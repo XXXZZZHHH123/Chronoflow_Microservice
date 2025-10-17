@@ -72,8 +72,7 @@ public class EventRpcServiceImpl implements EventRpcService {
     private int countParticipants(Long eventId) {
         return userGroupMapper
                 .selectList(
-                        new LambdaQueryWrapper<UserGroupDO>()
-                                .eq(UserGroupDO::getEventId, eventId))
+                        new LambdaQueryWrapper<UserGroupDO>().eq(UserGroupDO::getEventId, eventId))
                 .stream()
                 .map(UserGroupDO::getUserId)
                 .filter(Objects::nonNull)

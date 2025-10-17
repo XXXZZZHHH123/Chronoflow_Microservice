@@ -128,3 +128,11 @@ management:
   info:
     env:
       enabled: true
+
+
+file:
+  provider: gcs
+
+gcs:
+  bucket: chronoflow-file-service-2025
+  signed-url-expiry-minutes: 15

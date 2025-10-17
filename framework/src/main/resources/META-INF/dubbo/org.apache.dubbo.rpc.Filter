@@ -1,0 +1,1 @@
+exceptionFilter=nus.edu.u.framework.web.DubboExceptionFilter

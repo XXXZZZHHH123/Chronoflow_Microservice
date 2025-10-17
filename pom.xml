@@ -22,6 +22,7 @@
         <module>attendee-service</module>
         <module>notification-service</module>
         <module>file-service</module>
+        <module>wsgateway</module>
     </modules>
 
     <properties>
@@ -274,6 +275,12 @@
             <dependency>
                 <groupId>nus.edu.u</groupId>
                 <artifactId>shared-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>nus.edu.u</groupId>
+                <artifactId>wsgateway</artifactId>
                 <version>${revision}</version>
             </dependency>
 

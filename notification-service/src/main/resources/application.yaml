@@ -96,8 +96,6 @@ sa-token:
   is-share: true
   # Whether to output operation logs
   is-log: true
-  # Jwt key
-  jwt-secret-key: chronoflow123
   # Token style
   token-style: uuid
   cookie:

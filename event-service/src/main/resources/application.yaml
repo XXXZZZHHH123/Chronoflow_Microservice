@@ -44,9 +44,9 @@ spring:
           # The maximum blocking wait time of the connection pool (a negative value indicates no limit)
           max-wait: -1ms
           # Maximum idle connections in the connection pool
-      max-idle: 10
-      # Minimum number of idle connections in the connection pool
-      min-idle: 0
+          max-idle: 10
+          # Minimum number of idle connections in the connection pool
+          min-idle: 0
 
 remote:
   user-service:

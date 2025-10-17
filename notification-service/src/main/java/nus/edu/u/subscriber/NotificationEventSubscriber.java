@@ -17,7 +17,6 @@ import java.util.Map;
 public class NotificationEventSubscriber {
 
     private static final String SUBSCRIPTION = "chronoflow-notification-sub";
-    private static final String DEAD_LETTER_TOPIC = "chronoflow-notification-dlq";
 
     private final PubSubTemplate pubSubTemplate;
     private final ObjectMapper objectMapper;
@@ -57,16 +56,6 @@ public class NotificationEventSubscriber {
 
             } catch (Exception e) {
                 log.error("[PUBSUB] Error processing message", e);
-
-                try {
-                    // Optionally forward the bad message to DLQ for inspection
-                    if (data != null) {
-                        pubSubTemplate.publish(DEAD_LETTER_TOPIC,
-                                String.format("{\"original\":%s,\"error\":\"%s\"}", data, e.getMessage()));
-                    }
-                } catch (Exception dlqEx) {
-                    log.error("[PUBSUB] Failed to publish to DLQ", dlqEx);
-                }
 
                 // Always ack to avoid infinite retry loops
                 message.ack();

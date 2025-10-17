@@ -40,7 +40,7 @@ public class AttendeeNotificationMapper {
                 .channel(NotificationChannel.EMAIL)
                 .to(req.getToEmail())
                 .recipientKey("email:" + req.getToEmail())
-                .templateId("attendee-invite")
+                .templateId("attendee-qr-invite")
                 .variables(vars)
                 .locale(Locale.ENGLISH)
                 .attachments(attachments)

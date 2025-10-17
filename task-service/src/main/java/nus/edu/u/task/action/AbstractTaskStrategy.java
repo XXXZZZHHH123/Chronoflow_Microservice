@@ -11,10 +11,8 @@ import java.io.UncheckedIOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import nus.edu.u.shared.rpc.file.FileStorageRpcService;
-import nus.edu.u.shared.rpc.file.FileUploadReqVO;
-import nus.edu.u.shared.rpc.file.FileStorageRpcService;
-import nus.edu.u.shared.rpc.file.FileUploadReqVO;
-import nus.edu.u.shared.rpc.file.FileUploadReqVO.FileResource;
+import nus.edu.u.shared.rpc.file.FileUploadReqDTO;
+import nus.edu.u.shared.rpc.file.FileUploadReqDTO.FileResource;
 import nus.edu.u.task.domain.dataobject.task.TaskDO;
 import nus.edu.u.task.domain.dto.TaskActionDTO;
 import nus.edu.u.task.enums.TaskActionEnum;
@@ -66,8 +64,8 @@ public abstract class AbstractTaskStrategy implements TaskStrategy {
             throw exception(TASK_LOG_FILE_FAILED);
         }
 
-        FileUploadReqVO reqVO =
-                FileUploadReqVO.builder()
+        FileUploadReqDTO reqVO =
+                FileUploadReqDTO.builder()
                         .taskLogId(taskLogId)
                         .eventId(eventId)
                         .files(toRpcFiles(files))

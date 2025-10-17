@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FileResultVO implements Serializable {
+public class FileResultDTO implements Serializable {
 
     @Serial private static final long serialVersionUID = 1L;
 

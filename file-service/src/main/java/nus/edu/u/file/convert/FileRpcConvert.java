@@ -7,9 +7,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import nus.edu.u.shared.rpc.file.FileResultVO;
-import nus.edu.u.shared.rpc.file.FileUploadReqVO;
-import nus.edu.u.shared.rpc.file.FileUploadReqVO.FileResource;
+import nus.edu.u.shared.rpc.file.FileResultDTO;
+import nus.edu.u.shared.rpc.file.FileUploadReqDTO;
+import nus.edu.u.shared.rpc.file.FileUploadReqDTO.FileResource;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,11 +17,11 @@ import org.springframework.web.multipart.MultipartFile;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface FileRpcConvert {
 
-    FileResultVO toRpc(nus.edu.u.file.domain.vo.FileResultVO bean);
+    FileResultDTO toRpc(nus.edu.u.file.domain.vo.FileResultVO bean);
 
-    List<FileResultVO> toRpcList(List<nus.edu.u.file.domain.vo.FileResultVO> list);
+    List<FileResultDTO> toRpcList(List<nus.edu.u.file.domain.vo.FileResultVO> list);
 
-    default nus.edu.u.file.domain.vo.FileUploadReqVO toDomain(FileUploadReqVO req) {
+    default nus.edu.u.file.domain.vo.FileUploadReqVO toDomain(FileUploadReqDTO req) {
         if (req == null) {
             return null;
         }

@@ -19,7 +19,8 @@ public class FileStorageRpcServiceImpl implements FileStorageRpcService {
 
     @Override
     public List<FileResultDTO> downloadFilesByTaskLogId(Long taskLogId) {
-        return defaultList(fileRpcConvert.toRpcList(fileStorageService.downloadFilesByTaskLogId(taskLogId)));
+        return defaultList(
+                fileRpcConvert.toRpcList(fileStorageService.downloadFilesByTaskLogId(taskLogId)));
     }
 
     @Override

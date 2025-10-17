@@ -1,7 +1,7 @@
 package nus.edu.u.task.action;
 
-import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 import static nus.edu.u.common.enums.ErrorCodeConstants.*;
+import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;

@@ -351,6 +351,7 @@ public class AttendeeServiceImpl implements AttendeeService {
                 }
             } catch (Exception e) {
                 log.error("Failed to get tenant info via RPC for tenantId: {}", currentTenantId, e);
+                throw exception(ATTENDEE_CREATION_FAILED);
             }
         }
 
@@ -366,7 +367,7 @@ public class AttendeeServiceImpl implements AttendeeService {
                         .eventId(event.getId())
                         .eventLocation(event.getLocation())
                         .eventDate(event.getStartTime().toString())
-                        .organizationName(ObjectUtil.isNotNull(tenant) ? tenant.getName() : null)
+                        .organizationName(ObjectUtil.isNotNull(tenant) ? tenant.getName() : "")
                         .build();
 
         attendeeNotificationPublisher.sendAttendeeInviteEmail(emailReq);

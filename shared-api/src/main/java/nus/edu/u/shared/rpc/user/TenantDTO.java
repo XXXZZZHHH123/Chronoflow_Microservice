@@ -1,6 +1,8 @@
 package nus.edu.u.shared.rpc.user;
 
 import java.io.Serial;
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TenantDTO {
+public class TenantDTO implements Serializable {
     @Serial private static final long serialVersionUID = 1L;
 
     private Long id;

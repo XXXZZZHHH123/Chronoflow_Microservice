@@ -14,6 +14,6 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public String send(NotificationRequestDTO request) {
-        return factory.strategy(request.channel()).send(request);
+        return factory.strategy(request.getChannel()).send(request);
     }
 }

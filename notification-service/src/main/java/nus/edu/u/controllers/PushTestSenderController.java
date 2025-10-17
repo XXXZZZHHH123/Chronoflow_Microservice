@@ -1,11 +1,12 @@
 package nus.edu.u.controllers;
 
-import com.chronoflow.notification.core.push.PushNotificationSender;
-import com.chronoflow.notification.domain.dto.common.AttachmentDTO;
-import com.chronoflow.notification.domain.dto.common.NotificationRequestDTO;
-import com.chronoflow.notification.enums.common.NotificationChannel;
-import com.chronoflow.notification.enums.common.NotificationEventType;
+
 import lombok.RequiredArgsConstructor;
+import nus.edu.u.core.push.PushNotificationSender;
+import nus.edu.u.domain.dto.common.AttachmentDTO;
+import nus.edu.u.domain.dto.common.NotificationRequestDTO;
+import nus.edu.u.enums.common.NotificationChannel;
+import nus.edu.u.enums.common.NotificationEventType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

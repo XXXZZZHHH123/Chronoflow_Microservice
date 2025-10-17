@@ -1,4 +1,4 @@
-package nus.edu.u.domain.dto.common;
+package nus.edu.u.task.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

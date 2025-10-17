@@ -1,15 +1,16 @@
 package nus.edu.u.controllers;
 
-import com.chronoflow.notification.domain.dto.email.AttendeeInviteReqDTO;
-import com.chronoflow.notification.domain.dto.email.RegOrganizerReqDTO;
-import com.chronoflow.notification.domain.dto.email.RegSearchReqDTO;
-import com.chronoflow.notification.domain.dto.test.AttendeeInviteReqDTOTest;
-import com.chronoflow.notification.services.domains.attendee.AttendeeNotificationService;
-import com.chronoflow.notification.services.domains.member.MemberNotificationService;
-import com.chronoflow.notification.services.domains.organizer.OrganizerNotificationService;
-import com.chronoflow.notification.services.push.PushService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import nus.edu.u.domain.dto.email.AttendeeInviteReqDTO;
+import nus.edu.u.domain.dto.email.RegOrganizerReqDTO;
+import nus.edu.u.domain.dto.email.RegSearchReqDTO;
+import nus.edu.u.domain.dto.test.AttendeeInviteReqDTOTest;
+import nus.edu.u.services.domains.attendee.AttendeeNotificationService;
+import nus.edu.u.services.domains.member.MemberNotificationService;
+import nus.edu.u.services.domains.organizer.OrganizerNotificationService;
+import nus.edu.u.services.push.PushService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

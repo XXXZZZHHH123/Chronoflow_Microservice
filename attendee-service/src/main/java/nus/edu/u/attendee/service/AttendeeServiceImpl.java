@@ -19,10 +19,12 @@ import nus.edu.u.attendee.domain.vo.checkin.GenerateQrCodesReqVO;
 import nus.edu.u.attendee.domain.vo.checkin.GenerateQrCodesRespVO;
 import nus.edu.u.attendee.domain.vo.qrcode.QrCodeRespVO;
 import nus.edu.u.attendee.mapper.EventAttendeeMapper;
+import nus.edu.u.attendee.publisher.AttendeeNotificationPublisher;
 import nus.edu.u.attendee.service.qrcode.QrCodeService;
 import nus.edu.u.common.enums.EventStatusEnum;
 import nus.edu.u.shared.rpc.events.EventRespDTO;
 import nus.edu.u.shared.rpc.events.EventRpcService;
+import nus.edu.u.shared.rpc.notification.dto.Attendee.AttendeeInviteReqDTO;
 import nus.edu.u.shared.rpc.user.TenantDTO;
 import nus.edu.u.shared.rpc.user.UserRpcService;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -42,7 +44,7 @@ public class AttendeeServiceImpl implements AttendeeService {
 
     private final QrCodeService qrCodeService;
 
-    //    @Resource private AttendeeEmailService attendeeEmailService;
+    private final AttendeeNotificationPublisher attendeeNotificationPublisher;
 
     @DubboReference private UserRpcService userRpcService;
 
@@ -352,8 +354,8 @@ public class AttendeeServiceImpl implements AttendeeService {
             }
         }
 
-        AttendeeInviteReqVO emailReq =
-                AttendeeInviteReqVO.builder()
+        AttendeeInviteReqDTO emailReq =
+                AttendeeInviteReqDTO.builder()
                         .toEmail(attendee.getAttendeeEmail())
                         .attendeeMobile(attendee.getAttendeeMobile())
                         .attendeeName(attendee.getAttendeeName())
@@ -366,7 +368,8 @@ public class AttendeeServiceImpl implements AttendeeService {
                         .eventDate(event.getStartTime().toString())
                         .organizationName(ObjectUtil.isNotNull(tenant) ? tenant.getName() : null)
                         .build();
-        //        attendeeEmailService.sendAttendeeInvite(emailReq);
+
+        attendeeNotificationPublisher.sendAttendeeInviteEmail(emailReq);
     }
 
     @Override

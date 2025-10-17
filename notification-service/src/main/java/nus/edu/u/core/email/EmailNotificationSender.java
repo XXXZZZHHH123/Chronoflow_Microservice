@@ -33,25 +33,25 @@ public class EmailNotificationSender implements NotificationSender {
     @Override
     public String send(NotificationRequestDTO request) {
         // Fallback locale
-        Locale locale = request.locale() != null ? request.locale() : Locale.ENGLISH;
+        Locale locale = request.getLocale()!= null ? request.getLocale() : Locale.ENGLISH;
 
         // Render email template directly via channel-specific service
         RenderedTemplateDTO rendered =
-                emailTemplateService.render(request.templateId(), request.variables(), locale);
+                emailTemplateService.render(request.getTemplateId(), request.getVariables(), locale);
 
         // Merge attachments (template + runtime)
         List<AttachmentDTO> attachments = new ArrayList<>();
         if (rendered.getAttachments() != null) attachments.addAll(rendered.getAttachments());
-        if (request.attachments() != null) attachments.addAll(request.attachments());
+        if (request.getAttachments() != null) attachments.addAll(request.getAttachments());
 
         // Build channel-specific DTO
         EmailRequestDTO email = EmailRequestDTO.builder()
-                .to(request.to())
-                .recipientKey(request.recipientKey())
+                .to(request.getTo())
+                .recipientKey(request.getRecipientKey())
                 .subject(rendered.getSubject())
                 .html(rendered.getHtml())
-                .eventId(request.eventId())
-                .type(request.type())
+                .eventId(request.getEventId())
+                .type(request.getType())
                 .attachments(attachments)
                 .build();
 

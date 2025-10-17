@@ -1,14 +1,13 @@
 package nus.edu.u.core.ws;
-
-import com.chronoflow.notification.core.common.NotificationSender;
-import com.chronoflow.notification.domain.dto.common.NotificationRequestDTO;
-import com.chronoflow.notification.domain.dto.common.RenderedTemplateDTO;
-import com.chronoflow.notification.domain.dto.ws.WsRequestDTO;
-import com.chronoflow.notification.enums.common.NotificationChannel;
-import com.chronoflow.notification.services.template.push.PushTemplateService;
-import com.chronoflow.notification.services.ws.WsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nus.edu.u.core.common.NotificationSender;
+import nus.edu.u.domain.dto.common.NotificationRequestDTO;
+import nus.edu.u.domain.dto.common.RenderedTemplateDTO;
+import nus.edu.u.domain.dto.ws.WsRequestDTO;
+import nus.edu.u.enums.common.NotificationChannel;
+import nus.edu.u.services.template.push.PushTemplateService;
+import nus.edu.u.services.ws.WsService;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
@@ -29,13 +28,13 @@ public class WsNotificationSender implements NotificationSender {
 
     @Override
     public String send(NotificationRequestDTO request) {
-        if (request.userId() == null || request.userId().isBlank()) {
+        if (request.getUserId() == null || request.getUserId().isBlank()) {
             throw new IllegalArgumentException("userId is required for WebSocket notifications");
         }
-        if (request.eventId() == null || request.eventId().isBlank()) {
+        if (request.getEventId() == null || request.getEventId().isBlank()) {
             throw new IllegalArgumentException("eventId is required for WebSocket notifications");
         }
-        if (request.type() == null) {
+        if (request.getType() == null) {
             throw new IllegalArgumentException("type (NotificationEventType) is required");
         }
 
@@ -45,15 +44,15 @@ public class WsNotificationSender implements NotificationSender {
         Map<String, Object> extras;
         try {
             RenderedTemplateDTO rendered = templateService.render(
-                    request.templateId(),
-                    request.variables(),
-                    request.locale() == null ? Locale.ENGLISH : request.locale()
+                    request.getTemplateId(),
+                    request.getVariables(),
+                    request.getLocale() == null ? Locale.ENGLISH : request.getLocale()
             );
             title  = rendered.getTitle()  != null ? rendered.getTitle()  : "Notification";
             body   = rendered.getBody()   != null ? rendered.getBody()   : "";
             extras = rendered.getExtras() != null ? rendered.getExtras() : Map.of();
         } catch (Exception ex) {
-            Map<String, Object> vars = request.variables() == null ? Map.of() : request.variables();
+            Map<String, Object> vars = request.getVariables() == null ? Map.of() : request.getVariables();
             title  = String.valueOf(vars.getOrDefault("title", "Notification"));
             body   = String.valueOf(vars.getOrDefault("body", ""));
             @SuppressWarnings("unchecked")
@@ -63,12 +62,12 @@ public class WsNotificationSender implements NotificationSender {
             log.debug("[WS] template fallback: {}", ex.getMessage());
         }
 
-        String recipientKey = "ws:user:" + request.userId();
+        String recipientKey = "ws:user:" + request.getUserId();
 
         WsRequestDTO dto = WsRequestDTO.builder()
-                .userId(request.userId())
-                .eventId(request.eventId())
-                .type(request.type())
+                .userId(request.getUserId())
+                .eventId(request.getEventId())
+                .type(request.getType())
                 .title(title)
                 .recipientKey(recipientKey)
                 .body(body)
@@ -78,7 +77,7 @@ public class WsNotificationSender implements NotificationSender {
         String result = wsService.send(dto);
 
         log.info("[WS] notification initiated for userId={} eventId={} status={}",
-                request.userId(), request.eventId(), result);
+                request.getUserId(), request.getEventId(), result);
 
         return result;
     }

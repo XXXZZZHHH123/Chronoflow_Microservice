@@ -1,46 +1,56 @@
 package nus.edu.u.domain.dto.common;
 
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import nus.edu.u.enums.common.NotificationChannel;
 import nus.edu.u.enums.common.NotificationEventType;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-@Builder
-public record NotificationRequestDTO(
+@Data
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
+public class NotificationRequestDTO {
 
-        /** Channel to send through (EMAIL, PUSH, WS) */
-        @NotNull NotificationChannel channel,
+    @NotNull
+    private NotificationChannel channel;
 
-        /** Recipient address or user target (email, device token, etc.) */
-        String to,
+    private String to;
 
-        /** Optional higher-level user identifier (for PUSH / WS fan-out) */
-        String userId,
+    private String userId;
 
-        /** Optional derived identifier (e.g. "email:xxx", "ws:user123") */
-        String recipientKey,
+    private String recipientKey;
 
-        /** Template identifier (e.g. "organizer-welcome", "member-invite") */
-        String templateId,
+    private String templateId;
 
-        /** Dynamic variables for the template */
-        Map<String, Object> variables,
+    private Map<String, Object> variables;
 
-        /** Locale for i18n templates */
-        Locale locale,
+    private Locale locale;
 
-        /** Optional attachments (images, PDFs, inline resources) */
-        List<AttachmentDTO> attachments,
+    private List<AttachmentDTO> attachments;
 
-        /** Required for idempotency — unique per logical event */
-        @NotBlank String eventId,
+    @NotBlank
+    private String eventId;
 
-        /** Notification type (enum) — ORGANIZER_WELCOME, MEMBER_INVITE, ATTENDEE_INVITE */
-        @NotNull NotificationEventType type
-) {}
+    @NotNull
+    private NotificationEventType type;
+
+    /** Immutable-style helper methods */
+    public NotificationRequestDTO withLocale(Locale locale) {
+        return this.toBuilder().locale(locale).build();
+    }
+
+    public NotificationRequestDTO withVariables(Map<String, Object> vars) {
+        return this.toBuilder().variables(vars).build();
+    }
+
+    public NotificationRequestDTO withTemplateId(String templateId) {
+        return this.toBuilder().templateId(templateId).build();
+    }
+}

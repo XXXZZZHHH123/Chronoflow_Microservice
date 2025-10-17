@@ -141,6 +141,10 @@ aws:
     access-key: ${AWS_ACCESS_KEY}
     secret-key: ${AWS_SECRET_KEY}
 
+
+email:
+  from: no-reply@chronoflowse.xyz
+
 notification:
   ws:
     enabled: true

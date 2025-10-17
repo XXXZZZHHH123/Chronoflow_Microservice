@@ -1,8 +1,9 @@
 package nus.edu.u.controllers;
 
-import com.chronoflow.notification.domain.dto.common.NewTaskAssignmentDTO;
-import com.chronoflow.notification.services.domains.task.TaskAssignmentService;
+
 import lombok.RequiredArgsConstructor;
+import nus.edu.u.domain.dto.common.NewTaskAssignmentDTO;
+import nus.edu.u.services.domains.task.TaskAssignmentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;

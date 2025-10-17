@@ -1,14 +1,15 @@
 package nus.edu.u.core.push;
 
-import com.chronoflow.notification.core.common.NotificationSender;
-import com.chronoflow.notification.domain.dto.common.NotificationRequestDTO;
-import com.chronoflow.notification.domain.dto.common.RenderedTemplateDTO;
-import com.chronoflow.notification.domain.dto.push.PushRequestDTO;
-import com.chronoflow.notification.enums.common.NotificationChannel;
-import com.chronoflow.notification.services.push.PushService;
-import com.chronoflow.notification.services.template.push.PushTemplateService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nus.edu.u.core.common.NotificationSender;
+import nus.edu.u.domain.dto.common.NotificationRequestDTO;
+import nus.edu.u.domain.dto.common.RenderedTemplateDTO;
+import nus.edu.u.domain.dto.push.PushRequestDTO;
+import nus.edu.u.enums.common.NotificationChannel;
+import nus.edu.u.services.push.PushService;
+import nus.edu.u.services.template.push.PushTemplateService;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
@@ -34,7 +35,7 @@ public class PushNotificationSender implements NotificationSender {
     @Override
     public String send(NotificationRequestDTO request) {
         // --- Validation ---
-        if (request.userId() == null || request.userId().isBlank()) {
+        if (request.getUserId() == null || request.getUserId().isBlank()) {
             throw new IllegalArgumentException("userId is required for push notifications");
         }
 
@@ -45,9 +46,9 @@ public class PushNotificationSender implements NotificationSender {
 
         try {
             RenderedTemplateDTO rendered = pushTemplateService.render(
-                    request.templateId(),
-                    request.variables(),
-                    request.locale() == null ? Locale.ENGLISH : request.locale()
+                    request.getTemplateId(),
+                    request.getVariables(),
+                    request.getLocale() == null ? Locale.ENGLISH : request.getLocale()
             );
             title  = rendered.getTitle() != null ? rendered.getTitle() : "Notification";
             body   = rendered.getBody()  != null ? rendered.getBody()  : "";
@@ -55,7 +56,7 @@ public class PushNotificationSender implements NotificationSender {
 
         } catch (Exception templateErr) {
             // Graceful fallback if no template or rendering fails
-            Map<String, Object> vars = request.variables() == null ? Map.of() : request.variables();
+            Map<String, Object> vars = request.getVariables() == null ? Map.of() : request.getVariables();
             title  = String.valueOf(vars.getOrDefault("title", "Notification"));
             body   = String.valueOf(vars.getOrDefault("body", ""));
             extras = (Map<String, Object>) vars.getOrDefault("extras", Map.of());
@@ -64,17 +65,17 @@ public class PushNotificationSender implements NotificationSender {
 
         // --- Build and delegate to PushService ---
         PushRequestDTO base = PushRequestDTO.builder()
-                .eventId(request.eventId())
+                .eventId(request.getEventId())
                 .title(title)
                 .body(body)
                 .data(extras)
-                .type(request.type())
+                .type(request.getType())
                 .build();
 
-        pushService.sendToUser(request.userId(), base);
+        pushService.sendToUser(request.getUserId(), base);
 
         log.info("Push notification initiated for userId={}, eventId={}",
-                request.userId(), request.eventId());
+                request.getUserId(), request.getEventId());
 
         return "ACCEPTED";
     }

@@ -24,6 +24,8 @@ spring:
       - optional:classpath:application-${spring.profiles.active}.yaml # Load【dev】config
       - optional:nacos:${spring.application.name}.yaml # Load【Nacos】config
       - optional:nacos:common-config.yaml
+      # sentinel
+      - optional:nacos:sentinel-common.yaml
 
   # Servlet Config
   servlet:

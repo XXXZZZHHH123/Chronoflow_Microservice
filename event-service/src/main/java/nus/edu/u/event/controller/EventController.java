@@ -4,6 +4,7 @@ import static nus.edu.u.common.constant.PermissionConstants.*;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import nus.edu.u.event.domain.dto.event.EventGroupRespVO;
 import nus.edu.u.event.domain.dto.event.EventRespVO;
 import nus.edu.u.event.domain.dto.event.EventUpdateReqVO;
 import nus.edu.u.event.domain.dto.event.UpdateEventRespVO;
+import nus.edu.u.event.handler.EventSentinelHandler;
 import nus.edu.u.event.service.EventApplicationService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,6 +36,13 @@ public class EventController {
 
     @SaCheckPermission(CREATE_EVENT)
     @PostMapping
+    @SentinelResource(
+            value = "createEvent",
+            blockHandlerClass = EventSentinelHandler.class,
+            blockHandler = "createEventBlockHandler",
+            fallbackClass = EventSentinelHandler.class,
+            fallback = "createEventFallback"
+    )
     public CommonResult<EventRespVO> create(@Valid @RequestBody EventCreateReqVO request) {
         Long organizerId = StpUtil.getLoginIdAsLong();
         request.setOrganizerId(organizerId);
@@ -54,6 +63,14 @@ public class EventController {
 
     @SaCheckPermission(UPDATE_EVENT)
     @PatchMapping("/{id}")
+    @SentinelResource(
+            value = "updateEvent",
+            blockHandlerClass = EventSentinelHandler.class,
+            blockHandler = "updateEventBlockHandler",
+            fallbackClass = EventSentinelHandler.class,
+            fallback = "updateEventFallback"
+    )
+
     public CommonResult<UpdateEventRespVO> update(
             @PathVariable("id") Long id, @Valid @RequestBody EventUpdateReqVO request) {
         UpdateEventRespVO respVO = eventApplicationService.updateEvent(id, request);
@@ -62,12 +79,26 @@ public class EventController {
 
     @SaCheckPermission(DELETE_EVENT)
     @DeleteMapping("/{id}")
+    @SentinelResource(
+            value = "deleteEvent",
+            blockHandlerClass = EventSentinelHandler.class,
+            blockHandler = "deleteEventBlockHandler",
+            fallbackClass = EventSentinelHandler.class,
+            fallback = "deleteEventFallback"
+    )
     public CommonResult<Boolean> delete(@PathVariable("id") Long id) {
         return CommonResult.success(eventApplicationService.deleteEvent(id));
     }
 
     @SaCheckPermission(UPDATE_EVENT)
     @PatchMapping("/{id}/restore")
+    @SentinelResource(
+            value = "restoreEvent",
+            blockHandlerClass = EventSentinelHandler.class,
+            blockHandler = "restoreEventBlockHandler",
+            fallbackClass = EventSentinelHandler.class,
+            fallback = "restoreEventFallback"
+    )
     public CommonResult<Boolean> restore(@PathVariable("id") Long id) {
         return CommonResult.success(eventApplicationService.restoreEvent(id));
     }

@@ -1,6 +1,7 @@
 package nus.edu.u.common.enums;
 
 import nus.edu.u.common.exception.ErrorCode;
+import nus.edu.u.common.exception.ServerException;
 
 /**
  * Error code enum class
@@ -155,4 +156,6 @@ public interface ErrorCodeConstants {
 
     // ========= Excel ============
     ErrorCode EMPTY_EXCEL = new ErrorCode(905, "Excel is empty");
+    ErrorCode TOO_MANY_REQUESTS = new ErrorCode(429, "Too many requests");
+    ErrorCode SERVICE_DEGRADED = new ErrorCode(503, "Service degraded");
 }

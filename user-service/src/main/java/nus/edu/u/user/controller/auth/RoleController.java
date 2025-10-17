@@ -3,6 +3,7 @@ package nus.edu.u.user.controller.auth;
 import static nus.edu.u.common.constant.PermissionConstants.*;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -11,6 +12,8 @@ import nus.edu.u.common.core.domain.CommonResult;
 import nus.edu.u.user.domain.vo.role.RoleAssignReqVO;
 import nus.edu.u.user.domain.vo.role.RoleReqVO;
 import nus.edu.u.user.domain.vo.role.RoleRespVO;
+import nus.edu.u.user.handler.SentinelBlockHandler;
+import nus.edu.u.user.handler.SentinelFallbackHandler;
 import nus.edu.u.user.service.role.RoleService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -30,23 +33,51 @@ public class RoleController {
     @Resource private RoleService roleService;
 
     @GetMapping
+    @SentinelResource(
+            value = "/users/roles",
+            blockHandlerClass = SentinelBlockHandler.class,
+            blockHandler = "handleListBlock",
+            fallbackClass = SentinelFallbackHandler.class,
+            fallback = "handleListFallback"
+    )
     public CommonResult<List<RoleRespVO>> listRoles() {
         return CommonResult.success(roleService.listRoles());
     }
 
     @SaCheckPermission(CREATE_ROLE)
     @PostMapping
+    @SentinelResource(
+            value = "POST:/users/roles",
+            blockHandlerClass = SentinelBlockHandler.class,
+            blockHandler = "handleCreateBlock",
+            fallbackClass = SentinelFallbackHandler.class,
+            fallback = "handleCreateFallback"
+    )
     public CommonResult<RoleRespVO> createRole(@RequestBody @Valid RoleReqVO roleReqVO) {
         return CommonResult.success(roleService.createRole(roleReqVO));
     }
 
     @GetMapping("/{roleId}")
+    @SentinelResource(
+            value = "GET:/users/roles/{roleId}",
+            blockHandlerClass = SentinelBlockHandler.class,
+            blockHandler = "handleBlock",
+            fallbackClass = SentinelFallbackHandler.class,
+            fallback = "handleFallback"
+    )
     public CommonResult<RoleRespVO> getRole(@PathVariable("roleId") Long roleId) {
         return CommonResult.success(roleService.getRole(roleId));
     }
 
     @SaCheckPermission(DELETE_ROLE)
     @DeleteMapping("/{roleId}")
+    @SentinelResource(
+            value = "DELETE:/users/roles/{roleId}",
+            blockHandlerClass = SentinelBlockHandler.class,
+            blockHandler = "handleDeleteBlock",
+            fallbackClass = SentinelFallbackHandler.class,
+            fallback = "handleFallback"
+    )
     public CommonResult<Boolean> deleteRole(@PathVariable("roleId") Long roleId) {
         roleService.deleteRole(roleId);
         return CommonResult.success(true);
@@ -54,6 +85,13 @@ public class RoleController {
 
     @SaCheckPermission(UPDATE_ROLE)
     @PatchMapping("/{roleId}")
+    @SentinelResource(
+            value = "PATCH:/users/roles/{roleId}",
+            blockHandlerClass = SentinelBlockHandler.class,
+            blockHandler = "handleUpdateBlock",
+            fallbackClass = SentinelFallbackHandler.class,
+            fallback = "handleUpdateFallback"
+    )
     public CommonResult<RoleRespVO> updateRole(
             @PathVariable("roleId") Long roleId, @RequestBody @Valid RoleReqVO roleReqVO) {
         return CommonResult.success(roleService.updateRole(roleId, roleReqVO));
@@ -61,6 +99,13 @@ public class RoleController {
 
     @SaCheckPermission(ASSIGN_ROLE)
     @PostMapping("/assign")
+    @SentinelResource(
+            value = "POST:/users/roles/assign",
+            blockHandlerClass = SentinelBlockHandler.class,
+            blockHandler = "handleCreateBlock",
+            fallbackClass = SentinelFallbackHandler.class,
+            fallback = "handleCreateFallback"
+    )
     public CommonResult<Boolean> assignRole(@RequestBody RoleAssignReqVO reqVO) {
         roleService.assignRoles(reqVO);
         return CommonResult.success(true);

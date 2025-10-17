@@ -6,6 +6,7 @@ import static nus.edu.u.common.constant.PermissionConstants.QUERY_TASK;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import nus.edu.u.task.domain.vo.task.TaskDashboardRespVO;
 import nus.edu.u.task.domain.vo.task.TaskRespVO;
 import nus.edu.u.task.domain.vo.task.TaskUpdateReqVO;
 import nus.edu.u.task.domain.vo.taskLog.TaskLogRespVO;
+import nus.edu.u.task.handler.TaskSentinelHandler;
 import nus.edu.u.task.service.TaskApplicationService;
 import nus.edu.u.task.service.TaskLogApplicationService;
 import org.springframework.validation.annotation.Validated;
@@ -31,6 +33,13 @@ public class TaskController {
 
     @SaCheckPermission(CREATE_TASK)
     @PostMapping("{eventId}")
+    @SentinelResource(
+            value = "createTask",
+            blockHandlerClass = TaskSentinelHandler.class,
+            blockHandler = "createTaskBlockHandler",
+            fallbackClass = TaskSentinelHandler.class,
+            fallback = "createTaskFallback"
+    )
     public CommonResult<TaskRespVO> create(
             @PathVariable("eventId") Long eventId, @Valid @ModelAttribute TaskCreateReqVO request) {
         TaskRespVO resp = taskApplicationService.createTask(eventId, request);
@@ -38,6 +47,13 @@ public class TaskController {
     }
 
     @GetMapping("{eventId}/{taskId}")
+    @SentinelResource(
+            value = "getTask",
+            blockHandlerClass = TaskSentinelHandler.class,
+            blockHandler = "getTaskBlockHandler",
+            fallbackClass = TaskSentinelHandler.class,
+            fallback = "getTaskFallback"
+    )
     public CommonResult<TaskRespVO> getTask(
             @PathVariable("eventId") Long eventId, @PathVariable("taskId") Long taskId) {
         TaskRespVO resp = taskApplicationService.getTask(eventId, taskId);
@@ -45,6 +61,13 @@ public class TaskController {
     }
 
     @GetMapping("/{eventId}")
+    @SentinelResource(
+            value = "listTasksByEvent",
+            blockHandlerClass = TaskSentinelHandler.class,
+            blockHandler = "listTasksBlockHandler",
+            fallbackClass = TaskSentinelHandler.class,
+            fallback = "listTasksFallback"
+    )
     public CommonResult<List<TaskRespVO>> listByEvent(@PathVariable("eventId") Long eventId) {
         List<TaskRespVO> resp = taskApplicationService.listTasksByEvent(eventId);
         return CommonResult.success(resp);
@@ -58,6 +81,13 @@ public class TaskController {
     }
 
     @PatchMapping("{eventId}/{taskId}")
+    @SentinelResource(
+            value = "updateTask",
+            blockHandlerClass = TaskSentinelHandler.class,
+            blockHandler = "updateTaskBlockHandler",
+            fallbackClass = TaskSentinelHandler.class,
+            fallback = "updateTaskFallback"
+    )
     public CommonResult<TaskRespVO> update(
             @PathVariable("eventId") Long eventId,
             @PathVariable("taskId") Long taskId,
@@ -69,6 +99,13 @@ public class TaskController {
 
     @SaCheckPermission(DELETE_TASK)
     @DeleteMapping("/{eventId}/{taskId}")
+    @SentinelResource(
+            value = "deleteTask",
+            blockHandlerClass = TaskSentinelHandler.class,
+            blockHandler = "deleteTaskBlockHandler",
+            fallbackClass = TaskSentinelHandler.class,
+            fallback = "deleteTaskFallback"
+    )
     public CommonResult<Boolean> delete(
             @PathVariable("eventId") Long eventId, @PathVariable("taskId") Long taskId) {
         taskApplicationService.deleteTask(eventId, taskId);

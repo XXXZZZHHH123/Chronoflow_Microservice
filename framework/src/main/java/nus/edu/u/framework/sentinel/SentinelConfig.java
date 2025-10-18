@@ -1,34 +1,24 @@
 package nus.edu.u.framework.sentinel;
 
 import com.alibaba.csp.sentinel.adapter.servlet.callback.UrlBlockHandler;
-import com.alibaba.csp.sentinel.adapter.servlet.callback.UrlCleaner;
 import com.alibaba.csp.sentinel.adapter.servlet.callback.WebCallbackManager;
+import com.alibaba.csp.sentinel.adapter.spring.webmvc_v6x.callback.BlockExceptionHandler;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.context.annotation.Bean;
 
+@Slf4j
 @AutoConfiguration
+@RequiredArgsConstructor
 public class SentinelConfig {
-
-    private final SentinelExceptionHandler sentinelExceptionHandler;
-
-    public SentinelConfig(SentinelExceptionHandler sentinelExceptionHandler) {
-        this.sentinelExceptionHandler = sentinelExceptionHandler;
-    }
+    private final BlockExceptionHandler sentinelExceptionHandler;
+    private final SentinelUrlCleaner sentinelUrlCleaner;
 
     @PostConstruct
     public void init() {
-        WebCallbackManager.setUrlBlockHandler((UrlBlockHandler) sentinelExceptionHandler);
-    }
+        WebCallbackManager.setUrlCleaner(sentinelUrlCleaner);
 
-    @Bean
-    public SentinelExceptionHandler sentinelExceptionHandler() {
-        return new SentinelExceptionHandler();
+        log.info("Sentinel framework configuration completed");
     }
-    @Bean
-    public UrlCleaner sentinelUrlCleaner() {
-        return new SentinelUrlCleaner();
-    }
-
-
 }

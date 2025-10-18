@@ -11,6 +11,7 @@ public class AttendeeNotificationPublisher implements AttendeeNotificationServic
 
     private final NotificationPublisher notificationPublisher;
 
+    @Override
     public String sendAttendeeInviteEmail(AttendeeInviteReqDTO reqDTO)
     {
         return notificationPublisher.publish(AttendeeNotificationMapper.attendeeInvitationToNotification(reqDTO));

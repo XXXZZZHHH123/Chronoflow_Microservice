@@ -4,6 +4,7 @@ import static nus.edu.u.common.enums.ErrorCodeConstants.*;
 import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 import static nus.edu.u.task.enums.TaskActionEnum.getUpdateTaskAction;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +24,7 @@ import nus.edu.u.shared.rpc.events.EventRpcService;
 import nus.edu.u.shared.rpc.group.GroupDTO;
 import nus.edu.u.shared.rpc.group.GroupMemberDTO;
 import nus.edu.u.shared.rpc.group.GroupRpcService;
+import nus.edu.u.shared.rpc.notification.dto.task.NewTaskAssignmentDTO;
 import nus.edu.u.shared.rpc.user.UserInfoDTO;
 import nus.edu.u.shared.rpc.user.UserRpcService;
 import nus.edu.u.task.action.TaskActionFactory;
@@ -40,6 +42,7 @@ import nus.edu.u.task.domain.vo.task.TaskUpdateReqVO;
 import nus.edu.u.task.domain.vo.task.TasksRespVO;
 import nus.edu.u.task.enums.TaskActionEnum;
 import nus.edu.u.task.mapper.TaskMapper;
+import nus.edu.u.task.publisher.TaskNotificationPublisher;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +65,8 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
     private GroupRpcService groupRpcService;
 
     private final TaskActionFactory taskActionFactory;
+
+    private final TaskNotificationPublisher taskNotificationPublisher;
 
     @Override
     @Transactional
@@ -98,6 +103,19 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                         .eventEndTime(event.getEndTime())
                         .build();
         taskActionFactory.getStrategy(TaskActionEnum.CREATE).execute(task, actionDTO);
+
+        NewTaskAssignmentDTO dto = NewTaskAssignmentDTO.builder()
+                .taskId(String.valueOf(task.getId()))
+                .eventId(String.valueOf(event.getId()))
+                .assigneeUserId(String.valueOf(assignee.getId()))
+                .assigneeEmail(assignee.getEmail())
+                .assignerName(assigner != null ? assigner.getUsername() : "System")
+                .taskName(task.getName())
+                .eventName(event.getName())
+                .description(task.getDescription())
+                .build();
+
+        taskNotificationPublisher.notifyNewTaskToAssigneeEmail(dto);
 
         return TaskRespVOBuilder.from(task)
                 .withEvent(event)
@@ -189,6 +207,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
     }
 
     @Override
+    @DS("slave")
     @Transactional(readOnly = true)
     public TaskRespVO getTask(Long eventId, Long taskId) {
         EventRespDTO event = eventRpcService.getEvent(eventId);

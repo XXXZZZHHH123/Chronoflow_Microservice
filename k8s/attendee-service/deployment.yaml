@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: attendee-service
+  namespace: microservices
+  labels:
+    app: attendee-service
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: attendee-service
+  template:
+    metadata:
+      labels:
+        app: attendee-service
+        version: v1
+    spec:
+      containers:
+        - name: attendee-service
+          image: e1241986/attendee-service:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8084
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: JAVA_OPTS
+              value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+            - name: SERVER_PORT
+              value: "8084"
+            - name: NACOS_HOST
+              value: "10.148.0.3"
+            - name: NACOS_PORT
+              value: "8848"
+            - name: NACOS_USERNAME
+              value: "nacos"
+            - name: NACOS_PASSWORD
+              value: "nacos"
+          resources:
+            requests:
+              memory: "400Mi"
+              cpu: "100m"
+            limits:
+              memory: "800Mi"
+              cpu: "400m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8084
+            initialDelaySeconds: 240
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8084
+            initialDelaySeconds: 240
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30

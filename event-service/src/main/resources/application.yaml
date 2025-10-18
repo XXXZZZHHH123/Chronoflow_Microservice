@@ -136,3 +136,13 @@ management:
   info:
     env:
       enabled: true
+  endpoint:
+    health:
+      show-details: always
+      group:
+        readiness.include: ping
+        liveness:
+          include:
+            - "*"
+          exclude:
+            - ${management.endpoint.health.group.readiness.include}

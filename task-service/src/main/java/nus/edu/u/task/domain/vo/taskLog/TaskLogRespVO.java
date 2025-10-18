@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
-import nus.edu.u.shared.rpc.file.FileResultVO;
+import nus.edu.u.shared.rpc.file.FileResultDTO;
 import nus.edu.u.task.domain.vo.user.UserVO;
 
 /**
@@ -25,7 +25,7 @@ public class TaskLogRespVO {
 
     private LocalDateTime createTime;
 
-    private List<FileResultVO> fileResults;
+    private List<FileResultDTO> fileResults;
 
     private String remark;
 }

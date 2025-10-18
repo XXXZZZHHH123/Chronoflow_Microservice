@@ -1,7 +1,5 @@
 package nus.edu.u.services.template.email;
 
-
-
 import nus.edu.u.domain.dto.common.RenderedTemplateDTO;
 
 import java.util.Locale;

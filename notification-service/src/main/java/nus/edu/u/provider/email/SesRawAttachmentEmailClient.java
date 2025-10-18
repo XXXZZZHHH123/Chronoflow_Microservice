@@ -1,6 +1,5 @@
 package nus.edu.u.provider.email;
 
-
 import jakarta.activation.DataHandler;
 import jakarta.mail.Message;
 import jakarta.mail.Session;
@@ -10,6 +9,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.util.ByteArrayDataSource;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.configuration.email.EmailProviderPropertiesConfig;
 import nus.edu.u.domain.dto.common.AttachmentDTO;
 import nus.edu.u.domain.dto.email.EmailSendResultDTO;
@@ -26,7 +26,9 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SesRawAttachmentEmailClient implements EmailClient {
@@ -37,63 +39,102 @@ public class SesRawAttachmentEmailClient implements EmailClient {
     @Override
     public EmailSendResultDTO sendEmail(String to, String subject, String html, List<AttachmentDTO> attachments) {
         try {
-            // 1) Mail session & message shell
+            // --------- DEBUG: log what we're going to inline/attach ----------
+            if (attachments != null) {
+                String summary = attachments.stream()
+                        .map(a -> String.format(
+                                "inline=%s, cid=%s, filename=%s, bytes=%s, ct=%s",
+                                a.isInline(),
+                                a.getContentId(),
+                                a.getFilename(),
+                                a.getBytes() == null ? 0 : a.getBytes().length,
+                                a.getContentType()))
+                        .collect(Collectors.joining(" | "));
+                log.info("Email attachments summary: {}", summary);
+            }
+            // ------------------------------------------------------------------
+
+            // 1) Basic message shell
             Session session = Session.getInstance(new Properties());
             MimeMessage mime = new MimeMessage(session);
             mime.setFrom(new InternetAddress(props.getFrom()));
             mime.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
             mime.setSubject(subject, StandardCharsets.UTF_8.name());
 
+            // TOP: mixed
             MimeMultipart mixed = new MimeMultipart("mixed");
+            mime.setContent(mixed);
 
-            // 2a) related (html + inlines)
+            // related (html + inline images)
             MimeBodyPart relatedContainer = new MimeBodyPart();
             MimeMultipart related = new MimeMultipart("related");
-
-            // HTML body
-            MimeBodyPart htmlPart = new MimeBodyPart();
-            htmlPart.setText(html, StandardCharsets.UTF_8.name(), "html");
-            related.addBodyPart(htmlPart);
-
-            // Inline parts (inline == true)
-            if (attachments != null) {
-                for (AttachmentDTO a : attachments) {
-                    if (Boolean.TRUE.equals(a.inline())) {
-                        MimeBodyPart inlinePart = new MimeBodyPart();
-                        // Data
-                        var contentType = safeContentType(a.contentType());
-                        inlinePart.setDataHandler(new DataHandler(new ByteArrayDataSource(a.bytes(), contentType)));
-                        String cid = a.contentId() != null ? a.contentId() : deriveCidFrom(a.filename());
-                        inlinePart.setHeader("Content-ID", "<" + cid + ">");
-                        inlinePart.setHeader("Content-Transfer-Encoding", "base64");
-                        inlinePart.setDisposition("inline");
-                        if (a.filename() != null) inlinePart.setFileName(a.filename());
-
-                        related.addBodyPart(inlinePart);
-                    }
-                }
-            }
-
             relatedContainer.setContent(related);
             mixed.addBodyPart(relatedContainer);
 
-            //regular attachments (inline == false)
+            // alternative (text/plain + text/html) INSIDE related
+            MimeBodyPart alternativeContainer = new MimeBodyPart();
+            MimeMultipart alternative = new MimeMultipart("alternative");
+            alternativeContainer.setContent(alternative);
+            related.addBodyPart(alternativeContainer);
+
+            // plain text (fallback)
+            MimeBodyPart textPart = new MimeBodyPart();
+            String plain = stripHtmlForFallback(html);
+            textPart.setText(plain, StandardCharsets.UTF_8.name());
+            alternative.addBodyPart(textPart);
+
+            // html
+            MimeBodyPart htmlPart = new MimeBodyPart();
+            htmlPart.setText(html, StandardCharsets.UTF_8.name(), "html");
+            alternative.addBodyPart(htmlPart);
+
+            // inline images (must be in the SAME "related" container as the html)
             if (attachments != null) {
                 for (AttachmentDTO a : attachments) {
-                    if (!Boolean.TRUE.equals(a.inline())) {
-                        MimeBodyPart attachPart = new MimeBodyPart();
-                        var contentType = safeContentType(a.contentType());
-                        attachPart.setDataHandler(new DataHandler(new ByteArrayDataSource(a.bytes(), contentType)));
-                        attachPart.setFileName(a.filename() != null ? a.filename() : "attachment");
-                        attachPart.setDisposition("attachment");
-                        attachPart.setHeader("Content-Transfer-Encoding", "base64");
-                        mixed.addBodyPart(attachPart);
+                    if (a == null || !a.isInline()) continue;
+                    byte[] bytes = a.getBytes();
+                    if (bytes == null || bytes.length == 0) {
+                        log.warn("Skipping inline part with empty bytes. cid={}", a.getContentId());
+                        continue;
                     }
+
+                    MimeBodyPart inlinePart = new MimeBodyPart();
+                    String contentType = safeContentType(a.getContentType());
+                    inlinePart.setDataHandler(new DataHandler(new ByteArrayDataSource(bytes, contentType)));
+
+                    String cid = (a.getContentId() != null && !a.getContentId().isBlank())
+                            ? a.getContentId()
+                            : deriveCidFrom(a.getFilename());
+                    // MUST be <cid> without "cid:" prefix
+                    inlinePart.setHeader("Content-ID", "<" + cid + ">");
+                    inlinePart.setDisposition("inline");
+                    if (a.getFilename() != null) inlinePart.setFileName(a.getFilename());
+
+                    related.addBodyPart(inlinePart);
                 }
             }
 
-            // 3) Set content and convert to RawMessage
-            mime.setContent(mixed);
+            // non-inline attachments (optional)
+            if (attachments != null) {
+                for (AttachmentDTO a : attachments) {
+                    if (a == null || a.isInline()) continue;
+                    byte[] bytes = a.getBytes();
+                    if (bytes == null || bytes.length == 0) {
+                        log.warn("Skipping attachment with empty bytes. filename={}", a.getFilename());
+                        continue;
+                    }
+
+                    MimeBodyPart attachPart = new MimeBodyPart();
+                    String contentType = safeContentType(a.getContentType());
+                    attachPart.setDataHandler(new DataHandler(new ByteArrayDataSource(bytes, contentType)));
+                    attachPart.setFileName(a.getFilename() != null ? a.getFilename() : "attachment");
+                    attachPart.setDisposition("attachment");
+
+                    mixed.addBodyPart(attachPart);
+                }
+            }
+
+            // finalize
             mime.saveChanges();
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -105,7 +146,7 @@ public class SesRawAttachmentEmailClient implements EmailClient {
 
             SendEmailRequest req = SendEmailRequest.builder()
                     .fromEmailAddress(props.getFrom())
-                    .destination(b -> b.toAddresses(to))
+                    .destination(d -> d.toAddresses(to)) // ok to keep for RAW
                     .content(EmailContent.builder().raw(raw).build())
                     .build();
 
@@ -113,7 +154,7 @@ public class SesRawAttachmentEmailClient implements EmailClient {
             return new EmailSendResultDTO(EmailProvider.AWS_SES, resp.messageId());
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send email with attachments", e);
+            throw new RuntimeException("Failed to send email with inline images", e);
         }
     }
 
@@ -125,5 +166,9 @@ public class SesRawAttachmentEmailClient implements EmailClient {
         if (filename == null || filename.isBlank()) return "inline-" + System.nanoTime();
         String just = filename.replaceAll("[^A-Za-z0-9]", "");
         return (just.isEmpty() ? "inline" : just) + "-" + System.nanoTime();
+    }
+
+    private static String stripHtmlForFallback(String html) {
+        return html == null ? "" : html.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
     }
 }

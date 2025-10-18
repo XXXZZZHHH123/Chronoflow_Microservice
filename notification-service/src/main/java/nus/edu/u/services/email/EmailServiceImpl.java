@@ -62,7 +62,7 @@ public class EmailServiceImpl implements EmailService {
                     .status(NotificationStatus.CREATED)
                     .build();
 
-            delivery = deliveryRepo.saveAndFlush(delivery); // <— important
+            delivery = deliveryRepo.saveAndFlush(delivery);
 
             // 2) Insert channel row; you can flush here as well if you want it guaranteed in DB
             EmailMessageDO emailRow = EmailMessageDO.builder()

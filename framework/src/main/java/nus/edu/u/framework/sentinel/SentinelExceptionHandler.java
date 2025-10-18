@@ -10,17 +10,14 @@ import com.alibaba.csp.sentinel.slots.system.SystemBlockException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.core.domain.CommonResult;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-
-/**
- * Sentinel统一限流异常处理器
- */
+/** Sentinel统一限流异常处理器 */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -29,14 +26,21 @@ public class SentinelExceptionHandler implements BlockExceptionHandler {
     private final ObjectMapper objectMapper;
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response,
-                       String resourceName, BlockException ex) throws Exception {
+    public void handle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            String resourceName,
+            BlockException ex)
+            throws Exception {
 
         CommonResult<?> result = buildResponse(ex);
 
-        log.warn("[Sentinel] {} blocked - Resource: {}, URI: {} {}",
-                ex.getClass().getSimpleName(), resourceName,
-                request.getMethod(), request.getRequestURI());
+        log.warn(
+                "[Sentinel] {} blocked - Resource: {}, URI: {} {}",
+                ex.getClass().getSimpleName(),
+                resourceName,
+                request.getMethod(),
+                request.getRequestURI());
 
         response.setStatus(result.getCode());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

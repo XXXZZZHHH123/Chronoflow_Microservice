@@ -1,6 +1,5 @@
 package nus.edu.u.framework.sentinel;
 
-import com.alibaba.csp.sentinel.adapter.servlet.callback.UrlBlockHandler;
 import com.alibaba.csp.sentinel.adapter.servlet.callback.WebCallbackManager;
 import com.alibaba.csp.sentinel.adapter.spring.webmvc_v6x.callback.BlockExceptionHandler;
 import jakarta.annotation.PostConstruct;

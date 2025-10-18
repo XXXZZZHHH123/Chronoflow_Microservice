@@ -1,7 +1,6 @@
 package nus.edu.u.common.enums;
 
 import nus.edu.u.common.exception.ErrorCode;
-import nus.edu.u.common.exception.ServerException;
 
 /**
  * Error code enum class

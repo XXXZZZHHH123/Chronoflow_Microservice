@@ -4,10 +4,7 @@ import com.alibaba.csp.sentinel.adapter.servlet.callback.UrlCleaner;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-/**
- * Sentinel URL清洗器
- * 用于将带路径参数的URL统一为资源名称
- */
+/** Sentinel URL清洗器 用于将带路径参数的URL统一为资源名称 */
 @Component
 public class SentinelUrlCleaner implements UrlCleaner {
 

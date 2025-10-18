@@ -25,7 +25,7 @@ jobs:
     name: Detect Changed Services
     runs-on: ubuntu-latest
     outputs:
-      services: ${{ steps.filter.outputs.changes }}
+      services: ${{ steps.resolve.outputs.services }}
       all-services: ${{ steps.set-services.outputs.all }}
     steps:
       - uses: actions/checkout@v4
@@ -50,12 +50,34 @@ jobs:
             event-service:
               - 'event-service/**'
             attendee-service:
-              - 'event-service/**'
+              - 'attendee-service/**'
+            shared-modules:
+              - 'framework/**'
+              - 'common/**'
+              - 'shared-api/**'
+              - 'pom.xml'
 
       - name: Set all services list
         id: set-services
         run: |
           echo "all=[\"user-service\",\"task-service\",\"notification-service\",\"gateway\", \"file-service\", \"event-service\", \"attendee-service\"]" >> $GITHUB_OUTPUT
+
+      - name: Determine affected services
+        id: resolve
+        run: |
+          CHANGED='${{ steps.filter.outputs.changes }}'
+          if [ "$CHANGED" = "[]" ]; then
+            echo "services=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if echo "$CHANGED" | jq -e 'index("shared-modules")' >/dev/null; then
+            echo "Shared module changed. Building all services."
+            echo "services=${{ steps.set-services.outputs.all }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "services=$CHANGED" >> "$GITHUB_OUTPUT"
 
   build-and-test:
     name: Build & JUnit & Lint- ${{ matrix.service }}

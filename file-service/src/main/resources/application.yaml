@@ -138,3 +138,11 @@ management:
             - "*"
           exclude:
             - ${management.endpoint.health.group.readiness.include}
+
+
+file:
+  provider: gcs
+
+gcs:
+  bucket: chronoflow-file-service-2025
+  signed-url-expiry-minutes: 15

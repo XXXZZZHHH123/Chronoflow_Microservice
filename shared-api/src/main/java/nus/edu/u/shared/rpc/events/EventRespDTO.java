@@ -35,7 +35,6 @@ public class EventRespDTO implements Serializable {
     private String remark;
     private LocalDateTime createTime;
     private List<GroupVO> groups;
-    private TaskStatusVO taskStatus;
 
     @Data
     public static class GroupVO implements Serializable {
@@ -44,15 +43,5 @@ public class EventRespDTO implements Serializable {
 
         private String id;
         private String name;
-    }
-
-    @Data
-    public static class TaskStatusVO implements Serializable {
-
-        @Serial private static final long serialVersionUID = 1L;
-
-        private Integer total;
-        private Integer remaining;
-        private Integer completed;
     }
 }

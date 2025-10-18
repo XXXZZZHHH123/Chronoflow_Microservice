@@ -47,11 +47,11 @@ spec:
               value: "nacos"
           resources:
             requests:
-              memory: "256Mi"
+              memory: "400Mi"
               cpu: "100m"
             limits:
-              memory: "512Mi"
-              cpu: "400m"
+              memory: "700Mi"
+              cpu: "500m"
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
@@ -64,7 +64,7 @@ spec:
             httpGet:
               path: /actuator/health/readiness
               port: 8083
-            initialDelaySeconds: 60
+            initialDelaySeconds: 240
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 3

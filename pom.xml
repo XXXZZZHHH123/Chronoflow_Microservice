@@ -58,6 +58,7 @@
         <easyexcel.version>3.3.2</easyexcel.version>
         <zxing-core.version>3.5.3</zxing-core.version>
         <zxing-javase.version>3.5.3</zxing-javase.version>
+        <gcs.version>2.22.2</gcs.version>
     </properties>
 
     <dependencyManagement>
@@ -132,18 +133,33 @@
                 <version>${guava.version}</version>
             </dependency>
 
-            <!-- Lock -->
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>lock4j-redisson-spring-boot-starter</artifactId>
-                <version>${lock4j.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>redisson-spring-boot-starter</artifactId>
-                        <groupId>org.redisson</groupId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
+			<!--Google cloud storage -->
+			<dependency>
+				<groupId>com.google.cloud</groupId>
+				<artifactId>google-cloud-storage</artifactId>
+				<version>${gcs.version}</version>
+			</dependency>
+
+			<dependency>
+  				<groupId>io.grpc</groupId>
+  				<artifactId>grpc-bom</artifactId>
+  				<version>1.63.0</version> <!-- 与你想用的版本一致 -->
+  				<type>pom</type>
+  				<scope>import</scope>
+				</dependency>
+
+			<!-- Lock -->
+			<dependency>
+				<groupId>com.baomidou</groupId>
+				<artifactId>lock4j-redisson-spring-boot-starter</artifactId>
+				<version>${lock4j.version}</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>redisson-spring-boot-starter</artifactId>
+						<groupId>org.redisson</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
 
             <!-- swagger 3 -->
             <dependency>

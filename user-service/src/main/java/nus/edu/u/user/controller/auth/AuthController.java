@@ -5,7 +5,6 @@ import static nus.edu.u.common.constant.SecurityConstants.REFRESH_TOKEN_REMEMBER
 import static nus.edu.u.common.core.domain.CommonResult.success;
 
 import cn.dev33.satoken.annotation.SaIgnore;
-import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -17,8 +16,6 @@ import nus.edu.u.framework.security.factory.ZeroLifeRefreshTokenCookie;
 import nus.edu.u.user.config.CookieConfig;
 import nus.edu.u.user.domain.vo.auth.LoginReqVO;
 import nus.edu.u.user.domain.vo.auth.LoginRespVO;
-import nus.edu.u.user.handler.SentinelBlockHandler;
-import nus.edu.u.user.handler.SentinelFallbackHandler;
 import nus.edu.u.user.service.auth.AuthService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -41,13 +38,6 @@ public class AuthController {
 
     @SaIgnore
     @PostMapping("/login")
-    @SentinelResource(
-            value = "/users/auth/login",
-            blockHandlerClass = SentinelBlockHandler.class,
-            blockHandler = "handleLoginBlock",
-            fallbackClass = SentinelFallbackHandler.class,
-            fallback = "handleLoginFallback"
-    )
     public CommonResult<LoginRespVO> login(
             @RequestBody @Valid LoginReqVO reqVO,
             @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
@@ -71,13 +61,6 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    @SentinelResource(
-            value = "/users/auth/logout",
-            blockHandlerClass = SentinelBlockHandler.class,
-            blockHandler = "handleBlock",
-            fallbackClass = SentinelFallbackHandler.class,
-            fallback = "handleFallback"
-    )
     public CommonResult<Boolean> logout(
             @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
             HttpServletResponse response) {
@@ -92,13 +75,6 @@ public class AuthController {
 
     @SaIgnore
     @PostMapping("/refresh")
-    @SentinelResource(
-            value = "/users/auth/refresh",
-            blockHandlerClass = SentinelBlockHandler.class,
-            blockHandler = "handleBlock",
-            fallbackClass = SentinelFallbackHandler.class,
-            fallback = "handleFallback"
-    )
     public CommonResult<LoginRespVO> refresh(
             @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken) {
         return success(authService.refresh(refreshToken));

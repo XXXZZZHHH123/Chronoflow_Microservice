@@ -7,7 +7,6 @@ import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaIgnore;
-import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -20,7 +19,6 @@ import nus.edu.u.attendee.domain.vo.checkin.CheckInReqVO;
 import nus.edu.u.attendee.domain.vo.checkin.CheckInRespVO;
 import nus.edu.u.attendee.domain.vo.checkin.GenerateQrCodesReqVO;
 import nus.edu.u.attendee.domain.vo.checkin.GenerateQrCodesRespVO;
-import nus.edu.u.attendee.handler.AttendeeSentinelHandler;
 import nus.edu.u.attendee.service.AttendeeService;
 import nus.edu.u.attendee.service.excel.ExcelService;
 import nus.edu.u.common.core.domain.CommonResult;
@@ -51,26 +49,12 @@ public class AttendeeController {
     }
 
     @DeleteMapping("/{attendeeId}")
-    @SentinelResource(
-            value = "deleteAttendee",
-            blockHandlerClass = AttendeeSentinelHandler.class,
-            blockHandler = "deleteAttendeeBlockHandler",
-            fallbackClass = AttendeeSentinelHandler.class,
-            fallback = "deleteAttendeeFallback"
-    )
     public CommonResult<Boolean> delete(@PathVariable("attendeeId") @NotNull Long attendeeId) {
         attendeeService.delete(attendeeId);
         return success(true);
     }
 
     @PatchMapping("/{attendeeId}")
-    @SentinelResource(
-            value = "updateAttendee",
-            blockHandlerClass = AttendeeSentinelHandler.class,
-            blockHandler = "updateAttendeeBlockHandler",
-            fallbackClass = AttendeeSentinelHandler.class,
-            fallback = "updateAttendeeFallback"
-    )
     public CommonResult<AttendeeQrCodeRespVO> update(
             @PathVariable("attendeeId") @NotNull Long attendeeId,
             @RequestBody @Valid AttendeeReqVO reqVO) {
@@ -80,13 +64,6 @@ public class AttendeeController {
     /** Generate batch QR codes */
     @SaCheckPermission(CREATE_MEMBER)
     @PostMapping
-    @SentinelResource(
-            value = "generateQrCodes",
-            blockHandlerClass = AttendeeSentinelHandler.class,
-            blockHandler = "generateQrCodesBlockHandler",
-            fallbackClass = AttendeeSentinelHandler.class,
-            fallback = "generateQrCodesFallback"
-    )
     public CommonResult<GenerateQrCodesRespVO> generateQrCodes(
             @RequestBody @Valid GenerateQrCodesReqVO reqVO) {
         log.info(
@@ -99,13 +76,6 @@ public class AttendeeController {
 
     @SaCheckPermission(CREATE_MEMBER)
     @PostMapping("/bulk/{eventId}")
-    @SentinelResource(
-            value = "generateQrCodeByExcel",
-            blockHandlerClass = AttendeeSentinelHandler.class,
-            blockHandler = "generateQrCodeByExcelBlockHandler",
-            fallbackClass = AttendeeSentinelHandler.class,
-            fallback = "generateQrCodeByExcelFallback"
-    )
     public CommonResult<GenerateQrCodesRespVO> generateQrCodeByExcel(
             @PathVariable("eventId") @NotNull Long eventId,
             @RequestParam("file") MultipartFile file) {
@@ -133,13 +103,6 @@ public class AttendeeController {
     }
 
     @PostMapping("/staff-scan")
-    @SentinelResource(
-            value = "checkIn",
-            blockHandlerClass = AttendeeSentinelHandler.class,
-            blockHandler = "checkInBlockHandler",
-            fallbackClass = AttendeeSentinelHandler.class,
-            fallback = "checkInFallback"
-    )
     public CommonResult<CheckInRespVO> checkIn(@RequestBody @Valid CheckInReqVO reqVO) {
         log.info(
                 "Check-in request with token: {}",

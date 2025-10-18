@@ -2,7 +2,6 @@ package nus.edu.u.event.controller;
 
 import static nus.edu.u.common.core.domain.CommonResult.success;
 
-import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,6 @@ import nus.edu.u.event.domain.dto.group.CreateGroupReqVO;
 import nus.edu.u.event.domain.dto.group.GroupRespVO;
 import nus.edu.u.event.domain.dto.group.UpdateGroupReqVO;
 import nus.edu.u.event.domain.dto.user.UserProfileRespVO;
-import nus.edu.u.event.handler.GroupSentinelHandler;
 import nus.edu.u.event.service.GroupApplicationService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,13 +34,6 @@ public class GroupController {
     private final GroupApplicationService groupApplicationService;
 
     @PostMapping("/groups/create")
-    @SentinelResource(
-            value = "createGroup",
-            blockHandlerClass = GroupSentinelHandler.class,
-            blockHandler = "createGroupBlockHandler",
-            fallbackClass = GroupSentinelHandler.class,
-            fallback = "createGroupFallback"
-    )
     public CommonResult<Long> createGroup(@RequestBody @Valid CreateGroupReqVO reqVO) {
         log.info("Creating new group: {}", reqVO.getName());
         Long groupId = groupApplicationService.createGroup(reqVO);
@@ -86,13 +77,6 @@ public class GroupController {
     }
 
     @PostMapping("/groups/{groupId}/members/batch")
-    @SentinelResource(
-            value = "addMembersBatch",
-            blockHandlerClass = GroupSentinelHandler.class,
-            blockHandler = "addMembersBlockHandler",
-            fallbackClass = GroupSentinelHandler.class,
-            fallback = "addMembersFallback"
-    )
     public CommonResult<Boolean> addMembers(
             @PathVariable("groupId") Long groupId, @RequestBody @Valid AddMembersReqVO reqVO) {
         log.info("Adding users {} to group {}", reqVO.getUserIds(), groupId);
@@ -101,13 +85,6 @@ public class GroupController {
     }
 
     @DeleteMapping("/groups/{groupId}/members/batch")
-    @SentinelResource(
-            value = "deleteMembersBatch",
-            blockHandlerClass = GroupSentinelHandler.class,
-            blockHandler = "deleteMembersBlockHandler",
-            fallbackClass = GroupSentinelHandler.class,
-            fallback = "deleteMembersFallback"
-    )
     public CommonResult<Boolean> deleteMembers(
             @PathVariable("groupId") Long groupId, @RequestBody List<Long> userIds) {
         log.info("Deleting users {} from group {}", userIds, groupId);

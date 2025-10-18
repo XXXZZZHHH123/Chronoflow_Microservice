@@ -130,6 +130,8 @@ jobs:
           path: ./${{ matrix.service }}
           format: cyclonedx-json
           output-file: ${{ env.SBOM_FILE }}
+          upload-artifact: false
+          upload-release-assets: false
 
       - name: SCA via Anchore (SARIF)
         uses: anchore/scan-action@v6

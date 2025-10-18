@@ -135,8 +135,7 @@ class AuthServiceImplTest {
         UserPermissionDTO permission = new UserPermissionDTO();
         permission.setPermissionKey("perm");
         when(userService.getUserPermissions(20L)).thenReturn(List.of(permission));
-        when(roleService.getRole(1L))
-                .thenReturn(RoleRespVO.builder().id(1L).name("Admin").build());
+        when(roleService.getRole(1L)).thenReturn(RoleRespVO.builder().id(1L).name("Admin").build());
 
         LoginRespVO resp = service.login(req);
 
@@ -182,8 +181,7 @@ class AuthServiceImplTest {
         assertThatThrownBy(() -> service.refresh("invalid"))
                 .isInstanceOf(ServiceException.class)
                 .extracting("code")
-                .isEqualTo(
-                        nus.edu.u.common.enums.ErrorCodeConstants.REFRESH_TOKEN_WRONG.getCode());
+                .isEqualTo(nus.edu.u.common.enums.ErrorCodeConstants.REFRESH_TOKEN_WRONG.getCode());
     }
 
     @Test
@@ -194,7 +192,6 @@ class AuthServiceImplTest {
         assertThatThrownBy(() -> service.refresh("refresh"))
                 .isInstanceOf(ServiceException.class)
                 .extracting("code")
-                .isEqualTo(
-                        nus.edu.u.common.enums.ErrorCodeConstants.ACCOUNT_ERROR.getCode());
+                .isEqualTo(nus.edu.u.common.enums.ErrorCodeConstants.ACCOUNT_ERROR.getCode());
     }
 }

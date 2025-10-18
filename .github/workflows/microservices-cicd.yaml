@@ -80,7 +80,7 @@ jobs:
           if echo "$CHANGED" | jq empty 2>/dev/null; then
             echo "services=$CHANGED" >> "$GITHUB_OUTPUT"
           elif [ "$CHANGED" != "" ]; then
-            json=$(printf '%s' "$CHANGED" | jq -Rc 'split(",")')
+            json=$(printf '%s' "$CHANGED" | jq -Rsc 'gsub("\n";",") | split(",") | map(select(length>0)) | map(gsub("^\\s+|\\s+$";""))')
             echo "services=$json" >> "$GITHUB_OUTPUT"
           else
             echo "services=[]" >> "$GITHUB_OUTPUT"

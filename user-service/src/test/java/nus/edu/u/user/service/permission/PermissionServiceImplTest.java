@@ -54,7 +54,9 @@ class PermissionServiceImplTest {
 
         List<PermissionRespVO> result = service.listPermissions();
 
-        assertThat(result).singleElement().satisfies(vo -> assertThat(vo.getKey()).isEqualTo("system:view"));
+        assertThat(result)
+                .singleElement()
+                .satisfies(vo -> assertThat(vo.getKey()).isEqualTo("system:view"));
     }
 
     @Test
@@ -77,7 +79,9 @@ class PermissionServiceImplTest {
         assertThatThrownBy(() -> service.createPermission(null))
                 .isInstanceOf(ServiceException.class)
                 .extracting("code")
-                .isEqualTo(nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.BAD_REQUEST.getCode());
+                .isEqualTo(
+                        nus.edu.u.common.exception.enums.GlobalErrorCodeConstants.BAD_REQUEST
+                                .getCode());
     }
 
     @Test
@@ -121,7 +125,9 @@ class PermissionServiceImplTest {
         assertThatThrownBy(() -> service.deletePermission(5L))
                 .isInstanceOf(ServiceException.class)
                 .extracting("code")
-                .isEqualTo(nus.edu.u.common.enums.ErrorCodeConstants.CANNOT_DELETE_PERMISSION.getCode());
+                .isEqualTo(
+                        nus.edu.u.common.enums.ErrorCodeConstants.CANNOT_DELETE_PERMISSION
+                                .getCode());
     }
 
     @Test

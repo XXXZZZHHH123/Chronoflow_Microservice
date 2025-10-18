@@ -7,12 +7,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import nus.edu.u.common.exception.ServiceException;
 import nus.edu.u.user.domain.dataobject.permission.PermissionDO;
 import nus.edu.u.user.domain.dataobject.role.RoleDO;
@@ -20,7 +19,6 @@ import nus.edu.u.user.domain.dataobject.role.RolePermissionDO;
 import nus.edu.u.user.domain.dataobject.user.UserRoleDO;
 import nus.edu.u.user.domain.dto.RoleDTO;
 import nus.edu.u.user.domain.dto.UserRoleDTO;
-import nus.edu.u.user.domain.vo.permission.PermissionRespVO;
 import nus.edu.u.user.domain.vo.role.RoleAssignReqVO;
 import nus.edu.u.user.domain.vo.role.RoleReqVO;
 import nus.edu.u.user.domain.vo.role.RoleRespVO;
@@ -31,8 +29,8 @@ import nus.edu.u.user.mapper.user.UserRoleMapper;
 import nus.edu.u.user.service.auth.AuthService;
 import nus.edu.u.user.service.user.UserService;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -75,13 +73,16 @@ class RoleServiceImplTest {
 
     @Test
     void listRoles_filtersReservedOnes() {
-        RoleDO organizer = RoleDO.builder().id(1L).roleKey(RoleServiceImpl.ORGANIZER_ROLE_KEY).build();
+        RoleDO organizer =
+                RoleDO.builder().id(1L).roleKey(RoleServiceImpl.ORGANIZER_ROLE_KEY).build();
         RoleDO custom = RoleDO.builder().id(2L).roleKey("CUSTOM").build();
         when(roleMapper.selectList(null)).thenReturn(List.of(organizer, custom));
 
         List<RoleRespVO> roles = service.listRoles();
 
-        assertThat(roles).singleElement().satisfies(vo -> assertThat(vo.getKey()).isEqualTo("CUSTOM"));
+        assertThat(roles)
+                .singleElement()
+                .satisfies(vo -> assertThat(vo.getKey()).isEqualTo("CUSTOM"));
     }
 
     @Test
@@ -114,12 +115,14 @@ class RoleServiceImplTest {
 
     @Test
     void createRole_whenRoleExists_throws() {
-        when(roleMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(new RoleDO()));
+        when(roleMapper.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(new RoleDO()));
 
         assertThatThrownBy(() -> service.createRole(reqVO))
                 .isInstanceOf(ServiceException.class)
                 .extracting("code")
-                .isEqualTo(nus.edu.u.common.enums.ErrorCodeConstants.EXISTING_ROLE_FAILED.getCode());
+                .isEqualTo(
+                        nus.edu.u.common.enums.ErrorCodeConstants.EXISTING_ROLE_FAILED.getCode());
     }
 
     @Test

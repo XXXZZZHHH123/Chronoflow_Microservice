@@ -266,17 +266,14 @@ class UserServiceImplTest {
         doThrow(ServiceExceptionUtil.exception(ErrorCodeConstants.EMAIL_EXIST))
                 .when(service)
                 .createUserWithRoleIds(any(CreateUserDTO.class));
-        doReturn(new UserDO())
-                .when(service)
-                .updateUserWithRoleIds(any(UpdateUserDTO.class));
+        doReturn(new UserDO()).when(service).updateUserWithRoleIds(any(UpdateUserDTO.class));
 
         when(userMapper.selectIdByEmail("existing@example.com")).thenReturn(3000L);
         when(userMapper.selectById(3000L)).thenReturn(new UserDO());
         when(roleMapper.countByIds(List.of(20L))).thenReturn(1);
 
         boolean created =
-                service.tryCreateOrFallbackToUpdate(
-                        "existing@example.com", "remark", List.of(20L));
+                service.tryCreateOrFallbackToUpdate("existing@example.com", "remark", List.of(20L));
 
         assertThat(created).isFalse();
     }

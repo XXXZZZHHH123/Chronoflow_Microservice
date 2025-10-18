@@ -13,7 +13,6 @@ import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -21,13 +20,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import nus.edu.u.common.enums.EventStatusEnum;
 import nus.edu.u.common.exception.ServiceException;
 import nus.edu.u.event.convert.EventConvert;
@@ -108,9 +104,7 @@ class EventApplicationServiceImplTest {
                         .remark("remark")
                         .build();
         EventDO persisted =
-                eventBeforeInsert.toBuilder()
-                        .status(EventStatusEnum.ACTIVE.getCode())
-                        .build();
+                eventBeforeInsert.toBuilder().status(EventStatusEnum.ACTIVE.getCode()).build();
         persisted.setCreateTime(LocalDateTime.of(2024, 12, 31, 10, 0));
 
         EventRespVO mappedResp = new EventRespVO();
@@ -325,7 +319,8 @@ class EventApplicationServiceImplTest {
         long id = 999L;
         when(eventMapper.selectById(id)).thenReturn(null);
 
-        ServiceException exception = assertThrows(ServiceException.class, () -> service.getEvent(id));
+        ServiceException exception =
+                assertThrows(ServiceException.class, () -> service.getEvent(id));
 
         assertThat(exception.getCode()).isEqualTo(EVENT_NOT_FOUND.getCode());
     }
@@ -435,16 +430,8 @@ class EventApplicationServiceImplTest {
         when(userGroupMapper.selectList(any()))
                 .thenReturn(
                         List.of(
-                                UserGroupDO.builder()
-                                        .id(1L)
-                                        .eventId(id)
-                                        .userId(9L)
-                                        .build(),
-                                UserGroupDO.builder()
-                                        .id(2L)
-                                        .eventId(id)
-                                        .userId(10L)
-                                        .build()));
+                                UserGroupDO.builder().id(1L).eventId(id).userId(9L).build(),
+                                UserGroupDO.builder().id(2L).eventId(id).userId(10L).build()));
 
         doAnswer(
                         invocation -> {
@@ -522,8 +509,7 @@ class EventApplicationServiceImplTest {
         when(eventMapper.selectById(id)).thenReturn(event);
         when(eventMapper.deleteById(id)).thenReturn(0);
 
-        ServiceException ex =
-                assertThrows(ServiceException.class, () -> service.deleteEvent(id));
+        ServiceException ex = assertThrows(ServiceException.class, () -> service.deleteEvent(id));
 
         assertThat(ex.getCode()).isEqualTo(EVENT_DELETE_FAILED.getCode());
     }
@@ -587,8 +573,7 @@ class EventApplicationServiceImplTest {
 
         ServiceException ex =
                 assertThrows(ServiceException.class, () -> service.restoreEvent(existing.getId()));
-        assertThat(ex.getCode())
-                .isEqualTo(EVENT_NOT_DELETED.getCode());
+        assertThat(ex.getCode()).isEqualTo(EVENT_NOT_DELETED.getCode());
     }
 
     @Test
@@ -628,12 +613,7 @@ class EventApplicationServiceImplTest {
     void findAssignableGroups_transformsMembersSuccessfully() {
         long eventId = 15L;
         GroupMemberDTO member = GroupMemberDTO.builder().userId(1L).username("Alice").build();
-        GroupDTO dto =
-                GroupDTO.builder()
-                        .id(23L)
-                        .name("Group A")
-                        .members(List.of(member))
-                        .build();
+        GroupDTO dto = GroupDTO.builder().id(23L).name("Group A").members(List.of(member)).build();
         when(groupApplicationService.getGroupDTOsByEventIds(List.of(eventId)))
                 .thenReturn(Map.of(eventId, List.of(dto)));
 
@@ -642,6 +622,8 @@ class EventApplicationServiceImplTest {
         assertThat(groups).hasSize(1);
         EventGroupRespVO result = groups.get(0);
         assertThat(result.getId()).isEqualTo(dto.getId());
-        assertThat(result.getMembers()).singleElement().satisfies(m -> assertThat(m.getUsername()).isEqualTo("Alice"));
+        assertThat(result.getMembers())
+                .singleElement()
+                .satisfies(m -> assertThat(m.getUsername()).isEqualTo("Alice"));
     }
 }

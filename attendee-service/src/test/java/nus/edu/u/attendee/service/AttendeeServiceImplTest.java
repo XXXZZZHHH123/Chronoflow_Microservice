@@ -13,9 +13,7 @@ import static nus.edu.u.common.enums.ErrorCodeConstants.UPDATE_ATTENDEE_FAILED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -45,7 +43,6 @@ import nus.edu.u.shared.rpc.user.UserRpcService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -141,7 +138,8 @@ class AttendeeServiceImplTest {
     void update_missingAttendeeThrows() {
         when(attendeeMapper.selectById(11L)).thenReturn(null);
 
-        ServiceException ex = assertThrows(ServiceException.class, () -> service.update(11L, req()));
+        ServiceException ex =
+                assertThrows(ServiceException.class, () -> service.update(11L, req()));
         assertThat(ex.getCode()).isEqualTo(ATTENDEE_NOT_EXIST.getCode());
     }
 
@@ -151,7 +149,8 @@ class AttendeeServiceImplTest {
         attendee.setCheckInStatus(1);
         when(attendeeMapper.selectById(11L)).thenReturn(attendee);
 
-        ServiceException ex = assertThrows(ServiceException.class, () -> service.update(11L, req()));
+        ServiceException ex =
+                assertThrows(ServiceException.class, () -> service.update(11L, req()));
         assertThat(ex.getCode()).isEqualTo(UPDATE_ATTENDEE_FAILED.getCode());
         verify(eventRpcService, never()).getEvent(any());
     }
@@ -162,7 +161,8 @@ class AttendeeServiceImplTest {
         when(attendeeMapper.selectById(11L)).thenReturn(attendee);
         when(eventRpcService.getEvent(attendee.getEventId())).thenReturn(null);
 
-        ServiceException ex = assertThrows(ServiceException.class, () -> service.update(11L, req()));
+        ServiceException ex =
+                assertThrows(ServiceException.class, () -> service.update(11L, req()));
         assertThat(ex.getCode()).isEqualTo(EVENT_NOT_FOUND.getCode());
     }
 
@@ -173,7 +173,8 @@ class AttendeeServiceImplTest {
         when(eventRpcService.getEvent(attendee.getEventId())).thenReturn(event(3L));
         when(attendeeMapper.updateById(attendee)).thenReturn(0);
 
-        ServiceException ex = assertThrows(ServiceException.class, () -> service.update(11L, req()));
+        ServiceException ex =
+                assertThrows(ServiceException.class, () -> service.update(11L, req()));
         assertThat(ex.getCode()).isEqualTo(UPDATE_ATTENDEE_FAILED.getCode());
     }
 
@@ -185,8 +186,7 @@ class AttendeeServiceImplTest {
         EventRespDTO event = event(3L);
         when(eventRpcService.getEvent(attendee.getEventId())).thenReturn(event);
         when(attendeeMapper.updateById(attendee)).thenReturn(1);
-        when(qrCodeService.generateEventCheckInQrWithToken(any()))
-                .thenReturn(qrCodeResponse());
+        when(qrCodeService.generateEventCheckInQrWithToken(any())).thenReturn(qrCodeResponse());
         when(userRpcService.getTenantById(1L)).thenReturn(tenant());
 
         SaTokenContextMockUtil.setMockContext();
@@ -210,7 +210,8 @@ class AttendeeServiceImplTest {
     void checkIn_invalidTokenThrows() {
         when(attendeeMapper.selectByToken("missing")).thenReturn(null);
 
-        ServiceException ex = assertThrows(ServiceException.class, () -> service.checkIn("missing"));
+        ServiceException ex =
+                assertThrows(ServiceException.class, () -> service.checkIn("missing"));
         assertThat(ex.getCode()).isEqualTo(INVALID_CHECKIN_TOKEN.getCode());
     }
 
@@ -299,7 +300,8 @@ class AttendeeServiceImplTest {
         when(eventRpcService.getEvent(8L)).thenReturn(null);
 
         ServiceException ex =
-                assertThrows(ServiceException.class, () -> service.generateQrCodesForAttendees(req));
+                assertThrows(
+                        ServiceException.class, () -> service.generateQrCodesForAttendees(req));
         assertThat(ex.getCode()).isEqualTo(EVENT_NOT_FOUND.getCode());
     }
 
@@ -315,7 +317,8 @@ class AttendeeServiceImplTest {
         when(eventRpcService.getEvent(8L)).thenReturn(event(8L));
 
         ServiceException ex =
-                assertThrows(ServiceException.class, () -> service.generateQrCodesForAttendees(req));
+                assertThrows(
+                        ServiceException.class, () -> service.generateQrCodesForAttendees(req));
         assertThat(ex.getCode()).isEqualTo(ATTENDEE_CREATION_FAILED.getCode());
     }
 
@@ -332,8 +335,7 @@ class AttendeeServiceImplTest {
         when(attendeeMapper.selectByEventAndEmail(8L, "dup@test.com"))
                 .thenReturn(attendee(100L, 8L));
         when(attendeeMapper.selectByEventAndEmail(8L, "fresh@test.com")).thenReturn(null);
-        when(qrCodeService.generateEventCheckInQrWithToken(any()))
-                .thenReturn(qrCodeResponse());
+        when(qrCodeService.generateEventCheckInQrWithToken(any())).thenReturn(qrCodeResponse());
         doAnswer(
                         invocation -> {
                             EventAttendeeDO attendee = invocation.getArgument(0);
@@ -346,7 +348,9 @@ class AttendeeServiceImplTest {
         GenerateQrCodesRespVO resp = service.generateQrCodesForAttendees(req);
 
         assertThat(resp.getTotalCount()).isEqualTo(1);
-        assertThat(resp.getAttendees()).extracting("attendeeEmail").containsExactly("fresh@test.com");
+        assertThat(resp.getAttendees())
+                .extracting("attendeeEmail")
+                .containsExactly("fresh@test.com");
     }
 
     @Test
@@ -359,7 +363,8 @@ class AttendeeServiceImplTest {
         when(eventRpcService.getEvent(1L)).thenReturn(null);
 
         ServiceException ex =
-                assertThrows(ServiceException.class, () -> service.getCheckInToken(1L, "a@test.com"));
+                assertThrows(
+                        ServiceException.class, () -> service.getCheckInToken(1L, "a@test.com"));
         assertThat(ex.getCode()).isEqualTo(EVENT_NOT_FOUND.getCode());
     }
 
@@ -369,7 +374,8 @@ class AttendeeServiceImplTest {
         when(attendeeMapper.selectByEventAndEmail(1L, "a@test.com")).thenReturn(null);
 
         ServiceException ex =
-                assertThrows(ServiceException.class, () -> service.getCheckInToken(1L, "a@test.com"));
+                assertThrows(
+                        ServiceException.class, () -> service.getCheckInToken(1L, "a@test.com"));
         assertThat(ex.getCode()).isEqualTo(EVENT_ATTENDEE_NOT_FOUND.getCode());
     }
 
@@ -402,7 +408,8 @@ class AttendeeServiceImplTest {
 
     @Test
     void getAttendeeInfo_blankTokenThrows() {
-        ServiceException ex = assertThrows(ServiceException.class, () -> service.getAttendeeInfo(""));
+        ServiceException ex =
+                assertThrows(ServiceException.class, () -> service.getAttendeeInfo(""));
         assertThat(ex.getCode()).isEqualTo(INVALID_CHECKIN_TOKEN.getCode());
     }
 

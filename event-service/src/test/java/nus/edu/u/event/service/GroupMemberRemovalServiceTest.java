@@ -90,7 +90,8 @@ class GroupMemberRemovalServiceTest {
 
         assertThatThrownBy(() -> service.removeMemberFromGroup(1L, 2L))
                 .isInstanceOf(ServiceException.class)
-                .hasFieldOrPropertyWithValue("code", CANNOT_REMOVE_MEMBER_WITH_PENDING_TASKS.getCode());
+                .hasFieldOrPropertyWithValue(
+                        "code", CANNOT_REMOVE_MEMBER_WITH_PENDING_TASKS.getCode());
 
         verify(userGroupMapper, never()).deleteById(any());
     }

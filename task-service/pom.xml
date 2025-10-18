@@ -72,6 +72,10 @@
                 <configuration>
                     <includes>
                         <include>nus/edu/u/task/service/TaskLogServiceApplicationImpl*</include>
+                        <include>nus/edu/u/task/service/TaskApplicationServiceImpl*</include>
+                        <include>nus/edu/u/task/controller/TaskController*</include>
+                        <include>nus/edu/u/task/builder/TaskRespVOBuilder*</include>
+                        <include>nus/edu/u/task/builder/TasksRespVOBuilder*</include>
                         <include>nus/edu/u/task/action/TaskActionFactory*</include>
                     </includes>
                     <excludes>

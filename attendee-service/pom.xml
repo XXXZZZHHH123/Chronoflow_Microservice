@@ -66,6 +66,12 @@
             <artifactId>javase</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -82,6 +88,29 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <argLine>${argLine}</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>nus/edu/u/attendee/service/AttendeeServiceImpl*</include>
+                        <include>nus/edu/u/attendee/service/qrcode/QrCodeServiceImpl*</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/generated/**</exclude>
+                        <exclude>**/*Generated*</exclude>
+                        <exclude>**/*MapperImpl.class</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>

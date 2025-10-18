@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nus.edu.u.shared.rpc.file.FileResultVO;
+import nus.edu.u.shared.rpc.file.FileResultDTO;
 import nus.edu.u.shared.rpc.file.FileStorageRpcService;
 import nus.edu.u.shared.rpc.user.UserInfoDTO;
 import nus.edu.u.shared.rpc.user.UserRpcService;
@@ -106,7 +106,7 @@ public class TaskLogServiceApplicationImpl implements TaskLogApplicationService 
                                 sourceUserVO = new UserVO();
                             }
 
-                            List<FileResultVO> fileResults =
+                            List<FileResultDTO> fileResults =
                                     fileStorageRpcService.downloadFilesByTaskLogId(taskLog.getId());
                             return TaskLogRespVO.builder()
                                     .id(taskLog.getId())

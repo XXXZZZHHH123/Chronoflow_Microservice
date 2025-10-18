@@ -58,7 +58,7 @@ jobs:
           echo "all=[\"user-service\",\"task-service\",\"notification-service\",\"gateway\", \"file-service\", \"event-service\", \"attendee-service\"]" >> $GITHUB_OUTPUT
 
   build-and-test:
-    name: Build & Test - ${{ matrix.service }}
+    name: Build & JUnit & Lint- ${{ matrix.service }}
     runs-on: ubuntu-latest
     needs: detect-changes
     if: needs.detect-changes.outputs.services != '[]'
@@ -130,6 +130,8 @@ jobs:
           path: ./${{ matrix.service }}
           format: cyclonedx-json
           output-file: ${{ env.SBOM_FILE }}
+          upload-artifact: false
+          upload-release-assets: false
 
       - name: SCA via Anchore (SARIF)
         uses: anchore/scan-action@v6
@@ -163,14 +165,10 @@ jobs:
           retention-days: 5
 
   sonar-scan:
-    name: Sonar Scan - ${{ matrix.service }}
+    name: Sonar Scan
     runs-on: ubuntu-latest
     needs: detect-changes
     if: github.ref == 'refs/heads/cicd'
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.all-services) }}
-      fail-fast: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -202,10 +200,12 @@ jobs:
           SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
         run: |
-          mvn -B -pl ${{ matrix.service }} -am clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization="${SONAR_ORGANIZATION}" \
-            -Dsonar.projectKey="${SONAR_PROJECT_KEY}"
+            -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
+            -Dsonar.exclusions="common/**/*,framework/**/*" \
+            -Dsonar.coverage.exclusions="common/**/*,framework/**/*"
 
   build-and-push-docker:
     name: Docker Build & Push - ${{ matrix.service }}
@@ -303,11 +303,11 @@ jobs:
           IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}:$IMAGE_TAG"
 
           if [ ! -f "k8s/${{ matrix.service }}/deployment.yaml" ]; then
-          echo "⚠️ Kubernetes manifest 不存在: k8s/${{ matrix.service }}/deployment.yaml"
-          echo "使用 kubectl set image 方式更新..."
+          echo "Kubernetes manifest not found: k8s/${{ matrix.service }}/deployment.yaml"
+          echo "Falling back to kubectl set image..."
           echo "USE_MANIFEST=false" >> $GITHUB_ENV
           else
-          echo "✅ 找到 Kubernetes manifest"
+          echo "Kubernetes manifest found"
           echo "USE_MANIFEST=true" >> $GITHUB_ENV
           
           mkdir -p /tmp/k8s/${{ matrix.service }}
@@ -324,41 +324,101 @@ jobs:
       - name: Deploy to GKE (using set image)
         if: env.USE_MANIFEST == 'false'
         run: |
-          echo "🚀 使用 kubectl set image 部署 ${{ matrix.service }}..."
+          echo "Deploying ${{ matrix.service }} with kubectl set image..."
           IMAGE_TAG="${{ github.ref_name }}-${{ github.sha }}"
           IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}:$IMAGE_TAG"
           
-          # 检查 deployment 是否存在
+          # Check whether the deployment exists
           if kubectl get deployment ${{ matrix.service }} -n microservices &> /dev/null; then
-          echo "更新现有 Deployment..."
+          echo "Updating existing deployment..."
           kubectl set image deployment/${{ matrix.service }} \
            ${{ matrix.service }}=$IMAGE \
            -n microservices
           else
-          echo "⚠️ Deployment 不存在，请先创建 Kubernetes manifests 或手动创建 Deployment"
+          echo "Deployment not found. Please create manifests or manually create the deployment first."
           exit 1
           fi
 
       - name: Wait for rollout to complete
         run: |
-          echo "⏳ 等待部署完成..."
+          echo "Waiting for rollout to complete..."
           kubectl rollout status deployment/${{ matrix.service }} \
           -n microservices \
           --timeout=5m
 
       - name: Verify deployment
         run: |
-          echo "✅ 部署状态:"
+          echo "Deployment status:"
           kubectl get deployment ${{ matrix.service }} -n microservices
           echo ""
-          echo "📊 Pod 状态:"
+          echo "Pod status:"
           kubectl get pods -n microservices -l app=${{ matrix.service }}
           echo ""
-          echo "🔗 Service 信息:"
-          kubectl get service ${{ matrix.service }} -n microservices 2>/dev/null || echo "Service 未配置"
+          echo "Service info:"
+          kubectl get service ${{ matrix.service }} -n microservices 2>/dev/null || echo "Service not configured"
           echo ""
-          echo "📝 最近事件:"
+          echo "Recent events:"
           kubectl get events -n microservices \
             --field-selector involvedObject.name=${{ matrix.service }} \
             --sort-by='.lastTimestamp' \
             | tail -10
+
+  dast-zap:
+    name: DAST (ZAP full scan)
+    runs-on: ubuntu-latest
+    needs: deploy-to-gke
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Prepare target URL
+        run: |
+          TARGET_URL="${{ vars.BASE_URL }}"
+          if [ -z "$TARGET_URL" ]; then
+            echo "BASE_URL secret is not configured. Configure secrets.BASE_URL before running DAST." >&2
+            exit 1
+          fi
+          CLEAN_URL="${TARGET_URL%/}"
+          echo "NORMALIZED_URL=$CLEAN_URL" >> $GITHUB_ENV
+
+      - name: ZAP full scan
+        run: |
+          set -euo pipefail
+          echo "Running ZAP full scan..."
+          docker pull ghcr.io/zaproxy/zaproxy:stable -q
+          set +e
+          docker run --rm \
+            -v "$PWD":/zap/wrk/:rw \
+            --network host \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-full-scan.py \
+              -t "$NORMALIZED_URL" \
+              -j zap-report.json \
+              -x zap-report.xml \
+              -r zap-report.html \
+              -P 1001 \
+              -m 5
+          ZAP_EXIT=$?
+          set -e
+          if [ "$ZAP_EXIT" -eq 2 ]; then
+            echo "ZAP reported warnings only (exit code 2). Continuing pipeline."
+          elif [ "$ZAP_EXIT" -ne 0 ]; then
+            echo "ZAP scan failed with exit code $ZAP_EXIT" >&2
+            exit "$ZAP_EXIT"
+          fi
+
+      - name: Collect ZAP artifacts
+        if: always()
+        run: |
+          mkdir -p zap-reports
+          for f in zap-report.json zap-report.xml zap-report.html; do
+            if [ -f "$f" ]; then
+              mv "$f" zap-reports/
+            fi
+          done
+
+      - name: Upload ZAP reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-dast-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: zap-reports
+          retention-days: 5

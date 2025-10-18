@@ -146,7 +146,4 @@ management:
             - ${management.endpoint.health.group.readiness.include}
     prometheus:
       enabled: true
-  metrics:
-    export:
-      prometheus:
-        enabled: true
+

@@ -170,7 +170,7 @@
                     <h3>🎫 Your Check-In QR Code</h3>
                     <p>Present this QR code at the event check-in counter</p>
                     <div class="qr-container">
-                        <img th:src="'cid:' + ${qrCodeCid}" alt="Check-in QR Code" />
+                        <img src="cid:qr-code" alt="Check-in QR Code"/>
                     </div>
                 </div>
 
@@ -203,7 +203,6 @@
                         If you weren't expecting this email, you can safely ignore it.<br/>
                         Need help? Contact <a href="mailto:support@chronoflowse.xyz" style="color: #1a73e8;">support@chronoflowse.xyz</a>
                     </p>
-                    <img th:src="'cid:' + ${logoCid}" alt="ChronoFlow Logo" />
                 </div>
 
             </div>

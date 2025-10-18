@@ -21,16 +21,15 @@ import software.amazon.awssdk.services.sesv2.model.EmailContent;
 import software.amazon.awssdk.services.sesv2.model.RawMessage;
 import software.amazon.awssdk.services.sesv2.model.SendEmailRequest;
 import software.amazon.awssdk.services.sesv2.model.SendEmailResponse;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
-@Slf4j
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SesRawAttachmentEmailClient implements EmailClient {
 
     private final SesV2Client ses;
@@ -39,102 +38,84 @@ public class SesRawAttachmentEmailClient implements EmailClient {
     @Override
     public EmailSendResultDTO sendEmail(String to, String subject, String html, List<AttachmentDTO> attachments) {
         try {
-            // --------- DEBUG: log what we're going to inline/attach ----------
+            // Log summary to verify bytes + cids
             if (attachments != null) {
-                String summary = attachments.stream()
-                        .map(a -> String.format(
-                                "inline=%s, cid=%s, filename=%s, bytes=%s, ct=%s",
-                                a.isInline(),
-                                a.getContentId(),
-                                a.getFilename(),
-                                a.getBytes() == null ? 0 : a.getBytes().length,
-                                a.getContentType()))
-                        .collect(Collectors.joining(" | "));
-                log.info("Email attachments summary: {}", summary);
+                for (AttachmentDTO a : attachments) {
+                    log.info("ATT part -> inline={}, cid={}, filename={}, bytes={}, ct={}",
+                            a.isInline(),
+                            a.getContentId(),
+                            a.getFilename(),
+                            a.getBytes() == null ? 0 : a.getBytes().length,
+                            a.getContentType());
+                }
             }
-            // ------------------------------------------------------------------
 
-            // 1) Basic message shell
             Session session = Session.getInstance(new Properties());
             MimeMessage mime = new MimeMessage(session);
             mime.setFrom(new InternetAddress(props.getFrom()));
-            mime.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
+            mime.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
             mime.setSubject(subject, StandardCharsets.UTF_8.name());
 
             // TOP: mixed
             MimeMultipart mixed = new MimeMultipart("mixed");
             mime.setContent(mixed);
 
-            // related (html + inline images)
+            // RELATED: html + inline images (same container)
             MimeBodyPart relatedContainer = new MimeBodyPart();
             MimeMultipart related = new MimeMultipart("related");
             relatedContainer.setContent(related);
             mixed.addBodyPart(relatedContainer);
 
-            // alternative (text/plain + text/html) INSIDE related
-            MimeBodyPart alternativeContainer = new MimeBodyPart();
-            MimeMultipart alternative = new MimeMultipart("alternative");
-            alternativeContainer.setContent(alternative);
-            related.addBodyPart(alternativeContainer);
-
-            // plain text (fallback)
-            MimeBodyPart textPart = new MimeBodyPart();
-            String plain = stripHtmlForFallback(html);
-            textPart.setText(plain, StandardCharsets.UTF_8.name());
-            alternative.addBodyPart(textPart);
-
-            // html
+            // HTML first
             MimeBodyPart htmlPart = new MimeBodyPart();
             htmlPart.setText(html, StandardCharsets.UTF_8.name(), "html");
-            alternative.addBodyPart(htmlPart);
+            related.addBodyPart(htmlPart);
 
-            // inline images (must be in the SAME "related" container as the html)
+            // Inline images (no filename, no manual transfer-encoding)
             if (attachments != null) {
                 for (AttachmentDTO a : attachments) {
                     if (a == null || !a.isInline()) continue;
                     byte[] bytes = a.getBytes();
                     if (bytes == null || bytes.length == 0) {
-                        log.warn("Skipping inline part with empty bytes. cid={}", a.getContentId());
+                        log.warn("Skipping inline with empty bytes; cid={}", a.getContentId());
                         continue;
                     }
-
-                    MimeBodyPart inlinePart = new MimeBodyPart();
-                    String contentType = safeContentType(a.getContentType());
-                    inlinePart.setDataHandler(new DataHandler(new ByteArrayDataSource(bytes, contentType)));
 
                     String cid = (a.getContentId() != null && !a.getContentId().isBlank())
                             ? a.getContentId()
                             : deriveCidFrom(a.getFilename());
-                    // MUST be <cid> without "cid:" prefix
+
+                    MimeBodyPart inlinePart = new MimeBodyPart();
+                    inlinePart.setDataHandler(new DataHandler(
+                            new ByteArrayDataSource(bytes, safeContentType(a.getContentType()))
+                    ));
                     inlinePart.setHeader("Content-ID", "<" + cid + ">");
                     inlinePart.setDisposition("inline");
-                    if (a.getFilename() != null) inlinePart.setFileName(a.getFilename());
-
+                    // IMPORTANT: don't set filename for inline parts
                     related.addBodyPart(inlinePart);
                 }
             }
 
-            // non-inline attachments (optional)
+            // Regular attachments (if any)
             if (attachments != null) {
                 for (AttachmentDTO a : attachments) {
                     if (a == null || a.isInline()) continue;
                     byte[] bytes = a.getBytes();
                     if (bytes == null || bytes.length == 0) {
-                        log.warn("Skipping attachment with empty bytes. filename={}", a.getFilename());
+                        log.warn("Skipping attachment with empty bytes; filename={}", a.getFilename());
                         continue;
                     }
 
                     MimeBodyPart attachPart = new MimeBodyPart();
-                    String contentType = safeContentType(a.getContentType());
-                    attachPart.setDataHandler(new DataHandler(new ByteArrayDataSource(bytes, contentType)));
+                    attachPart.setDataHandler(new DataHandler(
+                            new ByteArrayDataSource(bytes, safeContentType(a.getContentType()))
+                    ));
                     attachPart.setFileName(a.getFilename() != null ? a.getFilename() : "attachment");
                     attachPart.setDisposition("attachment");
-
                     mixed.addBodyPart(attachPart);
                 }
             }
 
-            // finalize
             mime.saveChanges();
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -146,7 +127,7 @@ public class SesRawAttachmentEmailClient implements EmailClient {
 
             SendEmailRequest req = SendEmailRequest.builder()
                     .fromEmailAddress(props.getFrom())
-                    .destination(d -> d.toAddresses(to)) // ok to keep for RAW
+                    .destination(d -> d.toAddresses(to)) // fine to keep
                     .content(EmailContent.builder().raw(raw).build())
                     .build();
 
@@ -159,16 +140,12 @@ public class SesRawAttachmentEmailClient implements EmailClient {
     }
 
     private static String safeContentType(String ct) {
-        return (ct == null || ct.isBlank()) ? "application/octet-stream" : ct;
+        return (ct == null || ct.isBlank()) ? "image/png" : ct;
     }
 
     private static String deriveCidFrom(String filename) {
         if (filename == null || filename.isBlank()) return "inline-" + System.nanoTime();
         String just = filename.replaceAll("[^A-Za-z0-9]", "");
         return (just.isEmpty() ? "inline" : just) + "-" + System.nanoTime();
-    }
-
-    private static String stripHtmlForFallback(String html) {
-        return html == null ? "" : html.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
     }
 }

@@ -19,10 +19,15 @@
 
             <!-- Call-to-Action -->
             <p style="margin: 24px 0;">
-                <a th:href="@{|https://chronoflow-frontend-production.up.railway.app/event/${eventId}/tasks|}"
-                   style="background-color:#4f46e5;color:#ffffff;padding:12px 24px;border-radius:6px;
-                    text-decoration:none;font-weight:500;display:inline-block;">
-                    🔍 View Task in ChronoFlow
+                <a th:href="'http://localhost:5174/event/' + ${eventId} + '/tasks'"
+                   style="background-color:#4f46e5;
+            color:#ffffff;
+            padding:12px 24px;
+            border-radius:6px;
+            text-decoration:none;
+            font-weight:500;
+            display:inline-block;">
+                    🔍 View Tasks in ChronoFlow
                 </a>
             </p>
 

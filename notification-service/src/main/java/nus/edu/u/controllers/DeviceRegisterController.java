@@ -11,18 +11,17 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(
-        origins = {"http://localhost:5173","http://127.0.0.1:5173"},
+        origins = {"http://localhost:5173","http://127.0.0.1:5173","http://localhost:5174"},
         allowedHeaders = {"Content-Type","Accept","Authorization","X-Requested-With"},
         methods = {RequestMethod.POST, RequestMethod.OPTIONS},
         allowCredentials = "true",
         maxAge = 3600
 )
-@RequestMapping("/api/v1/devices")
+@RequestMapping("/push/devices")
 public class DeviceRegisterController {
 
     private final DeviceRegistryService deviceRegistryService;
 
-    // If you can resolve user from auth/session, do it here instead of @RequestParam
     @PostMapping("/register")
     public ResponseEntity<?> registerDevice(
             @RequestParam("userId") String userId, // or resolve from security

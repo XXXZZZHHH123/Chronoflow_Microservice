@@ -163,14 +163,10 @@ jobs:
           retention-days: 5
 
   sonar-scan:
-    name: Sonar Scan - ${{ matrix.service }}
+    name: Sonar Scan
     runs-on: ubuntu-latest
     needs: detect-changes
     if: github.ref == 'refs/heads/cicd'
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.all-services) }}
-      fail-fast: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -202,10 +198,12 @@ jobs:
           SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
         run: |
-          mvn -B -pl ${{ matrix.service }} -am clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization="${SONAR_ORGANIZATION}" \
-            -Dsonar.projectKey="${SONAR_PROJECT_KEY}"
+            -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
+            -Dsonar.exclusions="common/**/*,framework/**/*" \
+            -Dsonar.coverage.exclusions="common/**/*,framework/**/*"
 
   build-and-push-docker:
     name: Docker Build & Push - ${{ matrix.service }}

@@ -69,11 +69,7 @@ class TokenServiceImplTest {
 
         assertThat(token).isNotBlank();
         verify(valueOperations)
-                .set(
-                        eq(LOGIN_REFRESH_TOKEN_KEY + token),
-                        eq("1"),
-                        eq(3600L),
-                        eq(TimeUnit.SECONDS));
+                .set(eq(LOGIN_REFRESH_TOKEN_KEY + token), eq("1"), eq(3600L), eq(TimeUnit.SECONDS));
     }
 
     @Test
@@ -83,8 +79,7 @@ class TokenServiceImplTest {
         String token = service.createRefreshToken(dto);
 
         assertThat(token).isNotBlank();
-        verify(valueOperations, never())
-                .set(any(), any(), anyLong(), any(TimeUnit.class));
+        verify(valueOperations, never()).set(any(), any(), anyLong(), any(TimeUnit.class));
     }
 
     @Test

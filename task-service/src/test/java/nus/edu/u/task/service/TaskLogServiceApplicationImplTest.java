@@ -92,19 +92,10 @@ class TaskLogServiceApplicationImplTest {
                 .thenReturn(List.of(sampleLog));
 
         UserInfoDTO target =
-                UserInfoDTO.builder()
-                        .id(200L)
-                        .username("Alice")
-                        .email("alice@example.com")
-                        .build();
+                UserInfoDTO.builder().id(200L).username("Alice").email("alice@example.com").build();
         UserInfoDTO source =
-                UserInfoDTO.builder()
-                        .id(300L)
-                        .username("Bob")
-                        .email("bob@example.com")
-                        .build();
-        when(userRpcService.getUsers(any()))
-                .thenReturn(Map.of(200L, target, 300L, source));
+                UserInfoDTO.builder().id(300L).username("Bob").email("bob@example.com").build();
+        when(userRpcService.getUsers(any())).thenReturn(Map.of(200L, target, 300L, source));
         when(fileStorageRpcService.downloadFilesByTaskLogId(100L))
                 .thenReturn(
                         List.of(

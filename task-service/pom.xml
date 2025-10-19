@@ -91,7 +91,7 @@
             <plugin>
                 <groupId>io.gatling</groupId>
                 <artifactId>gatling-maven-plugin</artifactId>
-                <version>4.3.8</version>
+                <version>4.20.6</version>
                 <configuration>
                     <simulationsFolder>src/test/scala</simulationsFolder>
                     <simulationClass>nus.edu.u.task.perf.TaskServiceSimulation</simulationClass>

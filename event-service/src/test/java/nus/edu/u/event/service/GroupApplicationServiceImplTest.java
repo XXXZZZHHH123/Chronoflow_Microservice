@@ -1,7 +1,14 @@
 package nus.edu.u.event.service;
 
 import static nus.edu.u.common.enums.ErrorCodeConstants.ADD_MEMBERS_FAILED;
+import static nus.edu.u.common.enums.ErrorCodeConstants.EVENT_NOT_FOUND;
+import static nus.edu.u.common.enums.ErrorCodeConstants.GET_GROUP_ID_FAILED;
+import static nus.edu.u.common.enums.ErrorCodeConstants.GROUP_MEMBER_ALREADY_EXISTS;
+import static nus.edu.u.common.enums.ErrorCodeConstants.GROUP_NAME_EXISTS;
+import static nus.edu.u.common.enums.ErrorCodeConstants.GROUP_NOT_FOUND;
 import static nus.edu.u.common.enums.ErrorCodeConstants.USER_ALREADY_IN_OTHER_GROUP_OF_EVENT;
+import static nus.edu.u.common.enums.ErrorCodeConstants.USER_NOT_FOUND;
+import static nus.edu.u.common.enums.ErrorCodeConstants.USER_STATUS_INVALID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -28,7 +35,7 @@ import nus.edu.u.event.convert.UserConvert;
 import nus.edu.u.event.domain.dataobject.event.EventDO;
 import nus.edu.u.event.domain.dataobject.group.DeptDO;
 import nus.edu.u.event.domain.dataobject.user.UserGroupDO;
-import nus.edu.u.event.domain.dto.group.CreateGroupReqVO;
+import nus.edu.u.event.domain.dto.group.*;
 import nus.edu.u.event.domain.dto.user.UserProfileRespVO;
 import nus.edu.u.event.mapper.DeptMapper;
 import nus.edu.u.event.mapper.EventMapper;
@@ -141,6 +148,270 @@ class GroupApplicationServiceImplTest {
 
         assertThat(ex.getCode()).isEqualTo(USER_ALREADY_IN_OTHER_GROUP_OF_EVENT.getCode());
         verify(userGroupMapper, never()).insert(any());
+    }
+
+    @Test
+    void createGroup_whenEventMissing_throwsEventNotFound() {
+        CreateGroupReqVO req = new CreateGroupReqVO();
+        req.setEventId(99L);
+        when(eventMapper.selectById(99L)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.createGroup(req))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(EVENT_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void createGroup_whenNameExists_throwsGroupNameExists() {
+        CreateGroupReqVO req = baseCreateRequest();
+        when(eventMapper.selectById(req.getEventId()))
+                .thenReturn(EventDO.builder().id(req.getEventId()).build());
+        when(deptMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(1L);
+
+        assertThatThrownBy(() -> service.createGroup(req))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(GROUP_NAME_EXISTS.getCode());
+    }
+
+    @Test
+    void createGroup_whenLeadUserMissing_throwsUserNotFound() {
+        CreateGroupReqVO req = baseCreateRequest();
+        req.setLeadUserId(88L);
+
+        when(eventMapper.selectById(req.getEventId()))
+                .thenReturn(EventDO.builder().id(req.getEventId()).build());
+        when(deptMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(0L);
+        when(userRpcService.getUsers(anyCollection())).thenReturn(Map.of());
+
+        assertThatThrownBy(() -> service.createGroup(req))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(USER_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void createGroup_whenIdNotGenerated_throwsGetIdFailed() {
+        CreateGroupReqVO req = baseCreateRequest();
+
+        when(eventMapper.selectById(req.getEventId()))
+                .thenReturn(EventDO.builder().id(req.getEventId()).build());
+        when(deptMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(0L);
+        when(userRpcService.getUsers(anyCollection()))
+                .thenReturn(
+                        Map.of(
+                                req.getLeadUserId(),
+                                UserInfoDTO.builder()
+                                        .id(req.getLeadUserId())
+                                        .status(CommonStatusEnum.ENABLE.getStatus())
+                                        .build()));
+        when(deptMapper.insert(any(DeptDO.class)))
+                .thenAnswer(
+                        invocation -> {
+                            DeptDO dept = invocation.getArgument(0);
+                            dept.setId(null);
+                            return 1;
+                        });
+
+        assertThatThrownBy(() -> service.createGroup(req))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(GET_GROUP_ID_FAILED.getCode());
+    }
+
+    @Test
+    void updateGroup_whenGroupMissing_throwsGroupNotFound() {
+        UpdateGroupReqVO req = new UpdateGroupReqVO();
+        req.setId(44L);
+        when(deptMapper.selectById(44L)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.updateGroup(req))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(GROUP_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void updateGroup_validatesLeadUserWhenPresent() {
+        UpdateGroupReqVO req = new UpdateGroupReqVO();
+        req.setId(1L);
+        req.setLeadUserId(88L);
+        when(deptMapper.selectById(1L)).thenReturn(DeptDO.builder().id(1L).build());
+        when(userRpcService.getUsers(anyCollection()))
+                .thenReturn(Map.of(88L, UserInfoDTO.builder().id(88L).status(1).build()));
+
+        service.updateGroup(req);
+        verify(deptMapper).updateById(any(DeptDO.class));
+    }
+
+    @Test
+    void deleteGroup_whenGroupMissing_throwsGroupNotFound() {
+        when(deptMapper.selectById(9L)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.deleteGroup(9L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(GROUP_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void addMemberToGroup_whenUserStatusInvalid_throwsException() {
+        long groupId = 12L;
+        long userId = 33L;
+        when(deptMapper.selectById(groupId))
+                .thenReturn(DeptDO.builder().id(groupId).eventId(1L).build());
+        when(userRpcService.getUsers(anyCollection()))
+                .thenReturn(
+                        Map.of(
+                                userId,
+                                UserInfoDTO.builder()
+                                        .id(userId)
+                                        .status(CommonStatusEnum.DISABLE.getStatus())
+                                        .build()));
+
+        assertThatThrownBy(() -> service.addMemberToGroup(groupId, userId))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(USER_STATUS_INVALID.getCode());
+    }
+
+    @Test
+    void addMemberToGroup_whenAlreadyInTargetGroup_throwsMemberExists() {
+        long groupId = 12L;
+        long userId = 33L;
+        when(deptMapper.selectById(groupId))
+                .thenReturn(DeptDO.builder().id(groupId).eventId(1L).build());
+        when(userRpcService.getUsers(anyCollection()))
+                .thenReturn(
+                        Map.of(
+                                userId,
+                                UserInfoDTO.builder()
+                                        .id(userId)
+                                        .status(CommonStatusEnum.ENABLE.getStatus())
+                                        .build()));
+        when(userGroupMapper.selectOne(any(LambdaQueryWrapper.class)))
+                .thenReturn(
+                        UserGroupDO.builder().deptId(groupId).eventId(1L).userId(userId).build());
+
+        assertThatThrownBy(() -> service.addMemberToGroup(groupId, userId))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(GROUP_MEMBER_ALREADY_EXISTS.getCode());
+    }
+
+    @Test
+    void addMemberToGroup_insertSuccess() {
+        long groupId = 20L;
+        long userId = 30L;
+        when(deptMapper.selectById(groupId))
+                .thenReturn(DeptDO.builder().id(groupId).eventId(5L).build());
+        when(userRpcService.getUsers(anyCollection()))
+                .thenReturn(
+                        Map.of(
+                                userId,
+                                UserInfoDTO.builder()
+                                        .id(userId)
+                                        .status(CommonStatusEnum.ENABLE.getStatus())
+                                        .build()));
+        when(userGroupMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(null);
+        when(userGroupMapper.insert(any(UserGroupDO.class))).thenReturn(1);
+
+        service.addMemberToGroup(groupId, userId);
+
+        verify(userGroupMapper).insert(any(UserGroupDO.class));
+    }
+
+    @Test
+    void removeMemberFromGroup_delegatesToRemovalService() {
+        service.removeMemberFromGroup(1L, 2L);
+        verify(groupMemberRemovalService).removeMemberFromGroup(1L, 2L);
+    }
+
+    @Test
+    void addMembersToGroup_recordsFailures() {
+        GroupApplicationServiceImpl spyService = spy(service);
+        ReflectionTestUtils.setField(spyService, "userRpcService", userRpcService);
+        doThrow(new RuntimeException("fail")).when(spyService).addMemberToGroup(1L, 2L);
+
+        assertThatThrownBy(() -> spyService.addMembersToGroup(1L, List.of(2L)))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ADD_MEMBERS_FAILED.getCode());
+    }
+
+    @Test
+    void removeMembersFromGroup_propagatesFirstException() {
+        ServiceException failure = new ServiceException(USER_ALREADY_IN_OTHER_GROUP_OF_EVENT);
+        doThrow(failure).when(groupMemberRemovalService).removeMemberFromGroup(1L, 2L);
+
+        assertThatThrownBy(() -> service.removeMembersFromGroup(1L, List.of(2L, 3L)))
+                .isSameAs(failure);
+    }
+
+    @Test
+    void getGroupsByEvent_whenEventMissing_throwsEventNotFound() {
+        when(eventMapper.selectById(1L)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.getGroupsByEvent(1L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(EVENT_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void getGroupMembers_filtersDisabledUsers() {
+        when(userGroupMapper.selectList(any()))
+                .thenReturn(
+                        List.of(
+                                UserGroupDO.builder().deptId(1L).userId(10L).build(),
+                                UserGroupDO.builder().deptId(1L).userId(11L).build()));
+        when(userRpcService.getUsers(anyCollection()))
+                .thenReturn(
+                        Map.of(
+                                10L,
+                                UserInfoDTO.builder()
+                                        .id(10L)
+                                        .status(CommonStatusEnum.ENABLE.getStatus())
+                                        .username("Alice")
+                                        .email("a@example.com")
+                                        .build(),
+                                11L,
+                                UserInfoDTO.builder()
+                                        .id(11L)
+                                        .status(CommonStatusEnum.DISABLE.getStatus())
+                                        .build()));
+
+        List<GroupRespVO.MemberInfo> members = service.getGroupMembers(1L);
+
+        assertThat(members).hasSize(1);
+        assertThat(members.get(0).getUsername()).isEqualTo("Alice");
+    }
+
+    @Test
+    void getAllUserProfiles_convertsViaUserConvert() {
+        UserProfileDTO dto = new UserProfileDTO();
+        dto.setId(1L);
+        dto.setName("Alice");
+        UserProfileRespVO vo = new UserProfileRespVO();
+        vo.setId(1L);
+        when(userRpcService.getEnabledUserProfiles()).thenReturn(List.of(dto));
+        when(userConvert.toProfile(dto)).thenReturn(vo);
+
+        List<UserProfileRespVO> profiles = service.getAllUserProfiles();
+
+        assertThat(profiles).hasSize(1);
+        assertThat(profiles.get(0).getId()).isEqualTo(1L);
+    }
+
+    private CreateGroupReqVO baseCreateRequest() {
+        CreateGroupReqVO req = new CreateGroupReqVO();
+        req.setEventId(1L);
+        req.setName("Team");
+        req.setLeadUserId(55L);
+        req.setSort(1);
+        req.setRemark("remark");
+        return req;
     }
 
     @Test

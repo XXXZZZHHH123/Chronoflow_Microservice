@@ -91,10 +91,6 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <configuration>
-                    <includes>
-                        <include>nus/edu/u/event/service/EventApplicationServiceImpl*</include>
-                        <include>nus/edu/u/event/service/GroupMemberRemovalService*</include>
-                    </includes>
                     <excludes>
                         <exclude>**/generated/**</exclude>
                         <exclude>**/*Generated*</exclude>

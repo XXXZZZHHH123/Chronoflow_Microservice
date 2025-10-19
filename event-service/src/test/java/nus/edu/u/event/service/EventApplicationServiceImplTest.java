@@ -273,6 +273,82 @@ class EventApplicationServiceImplTest {
     }
 
     @Test
+    void getEventsByOrganizer_whenNoEventsOrParticipants_returnsEmptyList() {
+        long organizerId = 999L;
+        when(userRpcService.exists(organizerId)).thenReturn(true);
+        when(eventMapper.selectList(any())).thenReturn(null);
+        when(userGroupMapper.selectList(any())).thenReturn(Collections.emptyList());
+
+        List<EventRespVO> events = service.getEventsByOrganizer(organizerId);
+
+        assertThat(events).isEmpty();
+        verify(eventMapper, never()).selectBatchIds(anyCollection());
+    }
+
+    @Test
+    void getEventsByOrganizer_handlesNullParticipantFetchResults() {
+        long organizerId = 321L;
+        LocalDateTime now = LocalDateTime.now();
+        EventDO organizerEvent =
+                EventDO.builder()
+                        .id(11L)
+                        .userId(organizerId)
+                        .name("Solo")
+                        .startTime(now.plusDays(1))
+                        .endTime(now.plusDays(2))
+                        .status(EventStatusEnum.ACTIVE.getCode())
+                        .build();
+        organizerEvent.setCreateTime(now.minusDays(1));
+
+        UserGroupDO participantRecord =
+                UserGroupDO.builder().id(99L).userId(organizerId).eventId(500L).build();
+
+        when(userRpcService.exists(organizerId)).thenReturn(true);
+        when(eventMapper.selectList(any())).thenReturn(List.of(organizerEvent));
+        when(userGroupMapper.selectList(any())).thenReturn(List.of(participantRecord));
+        when(eventMapper.selectBatchIds(anyCollection())).thenReturn(null);
+        when(groupApplicationService.getGroupsByEventIds(anyCollection()))
+                .thenReturn(Collections.emptyMap());
+        when(taskRpcService.getTasksByEventIds(anyList())).thenReturn(Collections.emptyMap());
+        when(eventMapper.updateById(any(EventDO.class))).thenReturn(1);
+
+        List<EventRespVO> events = service.getEventsByOrganizer(organizerId);
+
+        assertThat(events).hasSize(1);
+        assertThat(events.get(0).getId()).isEqualTo(organizerEvent.getId());
+    }
+
+    @Test
+    void getEventsByOrganizer_setsActiveStatusWhenEventOngoing() {
+        long organizerId = 777L;
+        LocalDateTime now = LocalDateTime.now();
+        EventDO ongoing =
+                EventDO.builder()
+                        .id(55L)
+                        .userId(organizerId)
+                        .name("Ongoing")
+                        .startTime(now.minusHours(1))
+                        .endTime(now.plusHours(1))
+                        .status(EventStatusEnum.NOT_STARTED.getCode())
+                        .build();
+        ongoing.setCreateTime(now.minusDays(1));
+
+        when(userRpcService.exists(organizerId)).thenReturn(true);
+        when(eventMapper.selectList(any())).thenReturn(List.of(ongoing));
+        when(userGroupMapper.selectList(any())).thenReturn(Collections.emptyList());
+        when(groupApplicationService.getGroupsByEventIds(anyCollection()))
+                .thenReturn(Collections.emptyMap());
+        when(taskRpcService.getTasksByEventIds(anyList())).thenReturn(Collections.emptyMap());
+        when(eventMapper.updateById(ongoing)).thenReturn(1);
+
+        List<EventRespVO> events = service.getEventsByOrganizer(organizerId);
+
+        assertThat(events).hasSize(1);
+        assertThat(ongoing.getStatus()).isEqualTo(EventStatusEnum.ACTIVE.getCode());
+        verify(eventMapper).updateById(ongoing);
+    }
+
+    @Test
     void getEventsByOrganizer_returnsEmptyWhenNoRecords() {
         long organizerId = 555L;
         when(userRpcService.exists(organizerId)).thenReturn(true);
@@ -492,6 +568,30 @@ class EventApplicationServiceImplTest {
     }
 
     @Test
+    void deleteEvent_whenTaskCleanupSucceeds_returnsTrue() {
+        long id = 91L;
+        EventDO event =
+                EventDO.builder()
+                        .id(id)
+                        .userId(1L)
+                        .name("Cleanup")
+                        .description("desc")
+                        .startTime(LocalDateTime.now())
+                        .endTime(LocalDateTime.now().plusHours(2))
+                        .status(EventStatusEnum.ACTIVE.getCode())
+                        .build();
+
+        when(eventMapper.selectById(id)).thenReturn(event);
+        when(eventMapper.deleteById(id)).thenReturn(1);
+        when(userGroupMapper.delete(any())).thenReturn(1);
+
+        assertThat(service.deleteEvent(id)).isTrue();
+
+        verify(taskRpcService).deleteTasksByEventId(id);
+        verify(userGroupMapper).delete(any());
+    }
+
+    @Test
     void deleteEvent_failWhenDeleteReturnsZero() {
         long id = 90L;
         EventDO event =
@@ -625,5 +725,95 @@ class EventApplicationServiceImplTest {
         assertThat(result.getMembers())
                 .singleElement()
                 .satisfies(m -> assertThat(m.getUsername()).isEqualTo("Alice"));
+    }
+
+    @Test
+    void findAssignableGroups_whenMembersNull_returnsEmptyMemberList() {
+        long eventId = 99L;
+        GroupDTO dto = GroupDTO.builder().id(77L).name("Null Members").members(null).build();
+        when(groupApplicationService.getGroupDTOsByEventIds(List.of(eventId)))
+                .thenReturn(Map.of(eventId, List.of(dto)));
+
+        List<EventGroupRespVO> groups = service.findAssignableGroups(eventId);
+
+        assertThat(groups).hasSize(1);
+        assertThat(groups.get(0).getMembers()).isEmpty();
+    }
+
+    @Test
+    void fetchParticipantCountsByEventIds_returnsEmptyForNullOrEmptyInput() {
+        @SuppressWarnings("unchecked")
+        Map<Long, Integer> nullResult =
+                ReflectionTestUtils.invokeMethod(
+                        service, "fetchParticipantCountsByEventIds", (Object) null);
+        assertThat(nullResult).isEmpty();
+
+        @SuppressWarnings("unchecked")
+        Map<Long, Integer> emptyResult =
+                ReflectionTestUtils.invokeMethod(
+                        service, "fetchParticipantCountsByEventIds", List.<Long>of());
+        assertThat(emptyResult).isEmpty();
+    }
+
+    @Test
+    void fetchParticipantCountsByEventIds_filtersInvalidEntries() {
+        UserGroupDO valid = UserGroupDO.builder().eventId(1L).userId(10L).build();
+        UserGroupDO duplicate = UserGroupDO.builder().eventId(1L).userId(11L).build();
+        UserGroupDO nullUser = UserGroupDO.builder().eventId(1L).userId(null).build();
+        UserGroupDO nullEvent = UserGroupDO.builder().eventId(null).userId(12L).build();
+
+        when(userGroupMapper.selectList(any()))
+                .thenReturn(List.of(valid, duplicate, nullUser, nullEvent));
+
+        @SuppressWarnings("unchecked")
+        Map<Long, Integer> counts =
+                ReflectionTestUtils.invokeMethod(
+                        service, "fetchParticipantCountsByEventIds", List.of(1L));
+
+        assertThat(counts.get(1L)).isEqualTo(2);
+    }
+
+    @Test
+    void fetchParticipantIdsByEventId_returnsEmptyWhenNull() {
+        @SuppressWarnings("unchecked")
+        List<Long> result =
+                ReflectionTestUtils.invokeMethod(
+                        service, "fetchParticipantIdsByEventId", new Object[] {null});
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void fetchGroupsByEventIds_convertsNullGroupIdsToNullStrings() {
+        GroupRespVO groupWithoutId = GroupRespVO.builder().id(null).name("Nameless").build();
+        when(groupApplicationService.getGroupsByEventIds(List.of(1L)))
+                .thenReturn(Map.of(1L, List.of(groupWithoutId)));
+
+        @SuppressWarnings("unchecked")
+        Map<Long, List<EventRespVO.GroupVO>> result =
+                ReflectionTestUtils.invokeMethod(service, "fetchGroupsByEventIds", List.of(1L));
+
+        assertThat(result.get(1L)).singleElement().hasFieldOrPropertyWithValue("id", null);
+    }
+
+    @Test
+    void fetchTaskStatusesByEventIds_handlesEmptyAndCompletedTasks() {
+        TaskDTO completed = TaskDTO.builder().status(TaskStatusEnum.COMPLETED.getStatus()).build();
+        TaskDTO pending = TaskDTO.builder().status(TaskStatusEnum.PENDING.getStatus()).build();
+        when(taskRpcService.getTasksByEventIds(List.of(1L, 2L)))
+                .thenReturn(
+                        Map.of(
+                                1L, List.of(),
+                                2L, List.of(completed, pending)));
+
+        @SuppressWarnings("unchecked")
+        Map<Long, EventRespVO.TaskStatusVO> result =
+                ReflectionTestUtils.invokeMethod(
+                        service, "fetchTaskStatusesByEventIds", List.of(1L, 2L));
+
+        assertThat(result.get(1L).getTotal()).isZero();
+        EventRespVO.TaskStatusVO status = result.get(2L);
+        assertThat(status.getTotal()).isEqualTo(2);
+        assertThat(status.getCompleted()).isEqualTo(1);
+        assertThat(status.getRemaining()).isEqualTo(1);
     }
 }

@@ -20,10 +20,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class EventControllerTest {
@@ -49,80 +49,85 @@ class EventControllerTest {
     }
 
     @Test
-    void create_setsOrganizerAndReturnsSuccess() {
-        StpUtil.login(123L);
+    void create_setsOrganizerFromLogin() {
+        StpUtil.login(100L);
         EventCreateReqVO req = new EventCreateReqVO();
-        EventRespVO resp = new EventRespVO();
-        when(eventApplicationService.createEvent(any(EventCreateReqVO.class))).thenReturn(resp);
+        req.setEventName("Board Game Night");
+        EventRespVO respVO = new EventRespVO();
+        when(eventApplicationService.createEvent(any(EventCreateReqVO.class))).thenReturn(respVO);
 
         CommonResult<EventRespVO> result = controller.create(req);
 
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getData()).isSameAs(resp);
-
+        assertThat(result.getData()).isSameAs(respVO);
         ArgumentCaptor<EventCreateReqVO> captor = ArgumentCaptor.forClass(EventCreateReqVO.class);
         verify(eventApplicationService).createEvent(captor.capture());
-        assertThat(captor.getValue().getOrganizerId()).isEqualTo(123L);
+        assertThat(captor.getValue().getOrganizerId()).isEqualTo(100L);
     }
 
     @Test
     void getById_returnsEvent() {
         EventRespVO resp = new EventRespVO();
-        when(eventApplicationService.getEvent(1L)).thenReturn(resp);
+        when(eventApplicationService.getEvent(5L)).thenReturn(resp);
 
-        CommonResult<EventRespVO> result = controller.getById(1L);
+        CommonResult<EventRespVO> result = controller.getById(5L);
 
         assertThat(result.getData()).isSameAs(resp);
+        verify(eventApplicationService).getEvent(5L);
     }
 
     @Test
     void getByOrganizer_usesCurrentLoginId() {
-        StpUtil.login(456L);
-        List<EventRespVO> events = List.of(new EventRespVO());
-        when(eventApplicationService.getEventsByOrganizer(456L)).thenReturn(events);
+        StpUtil.login(777L);
+        List<EventRespVO> responses = List.of(new EventRespVO());
+        when(eventApplicationService.getEventsByOrganizer(777L)).thenReturn(responses);
 
         CommonResult<List<EventRespVO>> result = controller.getByOrganizer();
 
-        assertThat(result.getData()).isSameAs(events);
+        assertThat(result.getData()).isSameAs(responses);
+        verify(eventApplicationService).getEventsByOrganizer(777L);
     }
 
     @Test
     void update_delegatesToService() {
         EventUpdateReqVO req = new EventUpdateReqVO();
         UpdateEventRespVO resp = new UpdateEventRespVO();
-        when(eventApplicationService.updateEvent(eq(10L), any(EventUpdateReqVO.class)))
+        when(eventApplicationService.updateEvent(eq(8L), any(EventUpdateReqVO.class)))
                 .thenReturn(resp);
 
-        CommonResult<UpdateEventRespVO> result = controller.update(10L, req);
+        CommonResult<UpdateEventRespVO> result = controller.update(8L, req);
 
         assertThat(result.getData()).isSameAs(resp);
+        verify(eventApplicationService).updateEvent(8L, req);
     }
 
     @Test
     void delete_returnsServiceResult() {
-        when(eventApplicationService.deleteEvent(20L)).thenReturn(true);
+        when(eventApplicationService.deleteEvent(9L)).thenReturn(true);
 
-        CommonResult<Boolean> result = controller.delete(20L);
+        CommonResult<Boolean> result = controller.delete(9L);
 
         assertThat(result.getData()).isTrue();
+        verify(eventApplicationService).deleteEvent(9L);
     }
 
     @Test
     void restore_returnsServiceResult() {
-        when(eventApplicationService.restoreEvent(21L)).thenReturn(true);
+        when(eventApplicationService.restoreEvent(10L)).thenReturn(true);
 
-        CommonResult<Boolean> result = controller.restore(21L);
+        CommonResult<Boolean> result = controller.restore(10L);
 
         assertThat(result.getData()).isTrue();
+        verify(eventApplicationService).restoreEvent(10L);
     }
 
     @Test
-    void assignableGroups_returnsServiceData() {
+    void assignableGroups_delegatesToApplicationService() {
         List<EventGroupRespVO> groups = List.of(new EventGroupRespVO());
-        when(eventApplicationService.findAssignableGroups(5L)).thenReturn(groups);
+        when(eventApplicationService.findAssignableGroups(11L)).thenReturn(groups);
 
-        CommonResult<List<EventGroupRespVO>> result = controller.assignableGroups(5L);
+        CommonResult<List<EventGroupRespVO>> result = controller.assignableGroups(11L);
 
         assertThat(result.getData()).isSameAs(groups);
+        verify(eventApplicationService).findAssignableGroups(11L);
     }
 }

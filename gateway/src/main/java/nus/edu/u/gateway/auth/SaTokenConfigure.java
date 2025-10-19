@@ -37,10 +37,15 @@ public class SaTokenConfigure {
                             // TODO 拆分stater SaRouter.match("/actuator/**", r ->
                             // StpUtil.checkRole("ADMIN"));
                         })
-                .setError(e -> {
-                    SaRequest request = SaHolder.getRequest();
-                    log.info("拦截请求: {} {} {}", request.getMethod(), request.getUrl(), e.getMessage());
-                    return SaResult.error(e.getMessage());
-                });
+                .setError(
+                        e -> {
+                            SaRequest request = SaHolder.getRequest();
+                            log.info(
+                                    "拦截请求: {} {} {}",
+                                    request.getMethod(),
+                                    request.getUrl(),
+                                    e.getMessage());
+                            return SaResult.error(e.getMessage());
+                        });
     }
 }

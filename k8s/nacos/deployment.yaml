@@ -63,7 +63,7 @@ metadata:
   namespace: chronoflow
 spec:
   serviceName: nacos-headless
-  replicas: 3  # 集群建议 3 个节点
+  replicas: 2  # 集群建议 3 个节点
   selector:
     matchLabels:
       app: nacos

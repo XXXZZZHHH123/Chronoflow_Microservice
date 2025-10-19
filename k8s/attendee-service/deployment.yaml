@@ -42,7 +42,7 @@ spec:
             - name: SERVER_PORT
               value: "8084"
             - name: NACOS_HOST
-              value: "nacos.default.svc.cluster.local"
+              value: "nacos.chronoflow.svc.cluster.local"
             - name: NACOS_PORT
               value: "8848"
             - name: NACOS_USERNAME

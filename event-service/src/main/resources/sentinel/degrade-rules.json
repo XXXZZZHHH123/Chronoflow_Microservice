@@ -1,0 +1,55 @@
+[
+  {
+    "resource": "/events",
+    "grade": 0,
+    "count": 800,
+    "timeWindow": 10,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.5
+  },
+  {
+    "resource": "/events/*",
+    "grade": 0,
+    "count": 1000,
+    "timeWindow": 10,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.5
+  },
+  {
+    "resource": "/events/groups/create",
+    "grade": 1,
+    "count": 0.1,
+    "timeWindow": 15,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "/events/groups/*/members/batch",
+    "grade": 0,
+    "count": 2000,
+    "timeWindow": 20,
+    "minRequestAmount": 3,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.7
+  },
+  {
+    "resource": "/events/groups/list",
+    "grade": 0,
+    "count": 800,
+    "timeWindow": 10,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.6
+  },
+  {
+    "resource": "/events/groups/users",
+    "grade": 0,
+    "count": 1500,
+    "timeWindow": 15,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.6
+  }
+]

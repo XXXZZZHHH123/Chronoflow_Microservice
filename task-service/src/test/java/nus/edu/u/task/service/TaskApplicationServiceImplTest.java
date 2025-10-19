@@ -121,8 +121,7 @@ class TaskApplicationServiceImplTest {
 
         assertThat(response.getId()).isEqualTo(501L);
         assertThat(response.getName()).isEqualTo(request.getName());
-        assertThat(response.getEvent().getId()).isEqualTo(eventId);
-        assertThat(response.getEvent().getOrganizerId()).isEqualTo(organizerId);
+        assertThat(response.getEventId()).isEqualTo(eventId);
 
         TaskRespVO.AssignerUserVO assigner = response.getAssignerUser();
         assertThat(assigner.getId()).isEqualTo(organizerId);
@@ -574,7 +573,7 @@ class TaskApplicationServiceImplTest {
         TaskRespVO response = service.getTask(eventId, taskId);
 
         assertThat(response.getId()).isEqualTo(taskId);
-        assertThat(response.getEvent().getId()).isEqualTo(eventId);
+        assertThat(response.getEventId()).isEqualTo(eventId);
         assertThat(response.getAssignerUser().getGroups()).isNotEmpty();
         assertThat(response.getAssignedUser().getGroups()).isNotEmpty();
     }
@@ -619,7 +618,7 @@ class TaskApplicationServiceImplTest {
 
         TaskRespVO response = service.getTask(null, taskId);
 
-        assertThat(response.getEvent().getName()).isEqualTo("Detached");
+        assertThat(response.getEventId()).isNull();
         assertThat(response.getAssignerUser()).isNull();
         assertThat(response.getAssignedUser()).isNull();
     }
@@ -776,9 +775,8 @@ class TaskApplicationServiceImplTest {
 
         assertThat(responses).hasSize(2);
         assertThat(responses)
-                .extracting(TaskRespVO::getEvent)
-                .extracting(TaskRespVO.EventVO::getName)
-                .containsExactlyInAnyOrder("Event A", "Event B");
+                .extracting(TaskRespVO::getEventId)
+                .containsExactlyInAnyOrder(eventA, eventB);
         assertThat(responses.get(0).getAssignedUser().getGroups()).isNotEmpty();
     }
 
@@ -927,25 +925,5 @@ class TaskApplicationServiceImplTest {
                 .email(name.toLowerCase() + "@chronoflow.sg")
                 .phone("1234567")
                 .build();
-    }
-
-    @Test
-    void fetchEvent_privateMethodHandlesNull() {
-        long eventId = 321L;
-        EventRespDTO event =
-                event(
-                        eventId,
-                        1L,
-                        "Standalone",
-                        LocalDateTime.now(),
-                        LocalDateTime.now().plusHours(1));
-        stubEvents(Map.of(eventId, event));
-
-        EventRespDTO found =
-                ReflectionTestUtils.invokeMethod(service, "fetchEvent", Long.valueOf(eventId));
-        assertThat(found).isSameAs(event);
-
-        EventRespDTO missing = ReflectionTestUtils.invokeMethod(service, "fetchEvent", (Long) null);
-        assertThat(missing).isNull();
     }
 }

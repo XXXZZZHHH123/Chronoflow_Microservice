@@ -174,10 +174,6 @@ class GroupApplicationServiceImplTest {
         when(deptMapper.selectList(any(LambdaQueryWrapper.class)))
                 .thenReturn(List.of(group1, group2));
 
-        EventDO event1 = EventDO.builder().id(1L).name("Kickoff").build();
-        EventDO event2 = EventDO.builder().id(2L).name("Wrap-up").build();
-        when(eventMapper.selectBatchIds(eventIds)).thenReturn(List.of(event1, event2));
-
         List<UserGroupDO> relations =
                 List.of(
                         UserGroupDO.builder()
@@ -198,9 +194,7 @@ class GroupApplicationServiceImplTest {
                                 .userId(202L)
                                 .joinTime(now.minusDays(4))
                                 .build());
-        when(userGroupMapper.selectList(any(LambdaQueryWrapper.class)))
-                .thenReturn(relations)
-                .thenReturn(relations);
+        when(userGroupMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(relations);
 
         when(userRpcService.getUsers(anyCollection()))
                 .thenAnswer(

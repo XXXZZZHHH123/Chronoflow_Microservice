@@ -77,7 +77,8 @@ public class TaskController {
 
     @SaCheckPermission(QUERY_TASK)
     @GetMapping("/{eventId}/log/{taskId}")
-    public CommonResult<List<TaskLogRespVO>> logs(@PathVariable("taskId") Long taskId) {
+    public CommonResult<List<TaskLogRespVO>> logs(
+            @PathVariable("eventId") Long eventId, @PathVariable("taskId") Long taskId) {
         List<TaskLogRespVO> resp = taskLogApplicationService.getTaskLog(taskId);
         return CommonResult.success(resp);
     }

@@ -25,7 +25,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -76,16 +75,17 @@ class TaskStrategiesTest {
     }
 
     private TaskDO baseTask() {
-        TaskDO task = TaskDO.builder()
-                .id(100L)
-                .eventId(200L)
-                .userId(300L)
-                .status(TaskStatusEnum.PENDING.getStatus())
-                .startTime(LocalDateTime.of(2025, 1, 1, 9, 0))
-                .endTime(LocalDateTime.of(2025, 1, 1, 11, 0))
-                .name("Initial")
-                .description("desc")
-                .build();
+        TaskDO task =
+                TaskDO.builder()
+                        .id(100L)
+                        .eventId(200L)
+                        .userId(300L)
+                        .status(TaskStatusEnum.PENDING.getStatus())
+                        .startTime(LocalDateTime.of(2025, 1, 1, 9, 0))
+                        .endTime(LocalDateTime.of(2025, 1, 1, 11, 0))
+                        .name("Initial")
+                        .description("desc")
+                        .build();
         task.setCreator("creator");
         return task;
     }
@@ -109,7 +109,8 @@ class TaskStrategiesTest {
         dto.setTargetUserId(500L);
 
         when(taskMapper.insert(task)).thenReturn(1);
-        when(taskLogService.insertTaskLog(task.getId(), 500L, TaskActionEnum.CREATE.getCode(), "remark"))
+        when(taskLogService.insertTaskLog(
+                        task.getId(), 500L, TaskActionEnum.CREATE.getCode(), "remark"))
                 .thenReturn(88L);
 
         createTask.execute(task, dto);
@@ -165,7 +166,8 @@ class TaskStrategiesTest {
         TaskActionDTO dto = baseActionDto();
 
         when(taskMapper.updateById(task)).thenReturn(1);
-        when(taskLogService.insertTaskLog(task.getId(), 400L, TaskActionEnum.ASSIGN.getCode(), "remark"))
+        when(taskLogService.insertTaskLog(
+                        task.getId(), 400L, TaskActionEnum.ASSIGN.getCode(), "remark"))
                 .thenReturn(66L);
 
         try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
@@ -277,7 +279,8 @@ class TaskStrategiesTest {
         TaskActionDTO dto = baseActionDto();
         dto.setFiles(List.of(file));
         when(taskMapper.updateById(task)).thenReturn(1);
-        when(taskLogService.insertTaskLog(task.getId(), null, TaskActionEnum.BLOCK.getCode(), "remark"))
+        when(taskLogService.insertTaskLog(
+                        task.getId(), null, TaskActionEnum.BLOCK.getCode(), "remark"))
                 .thenReturn(70L);
 
         blockTask.execute(task, dto);
@@ -303,7 +306,8 @@ class TaskStrategiesTest {
         task.setStatus(TaskStatusEnum.PROGRESS.getStatus());
         TaskActionDTO dto = baseActionDto();
         when(taskMapper.updateById(task)).thenReturn(1);
-        when(taskLogService.insertTaskLog(task.getId(), null, TaskActionEnum.SUBMIT.getCode(), "remark"))
+        when(taskLogService.insertTaskLog(
+                        task.getId(), null, TaskActionEnum.SUBMIT.getCode(), "remark"))
                 .thenReturn(44L);
 
         try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
@@ -391,8 +395,7 @@ class TaskStrategiesTest {
     void updateTask_updatesEditableFields() {
         TaskDO task = baseTask();
         task.setStatus(TaskStatusEnum.PROGRESS.getStatus());
-        MockMultipartFile file =
-                new MockMultipartFile("c", "c.txt", "text/plain", "x".getBytes());
+        MockMultipartFile file = new MockMultipartFile("c", "c.txt", "text/plain", "x".getBytes());
         TaskActionDTO dto = baseActionDto();
         dto.setName("updated");
         dto.setDescription("desc2");
@@ -400,7 +403,8 @@ class TaskStrategiesTest {
         dto.setEndTime(task.getEndTime());
         dto.setFiles(List.of(file));
         when(taskMapper.updateById(task)).thenReturn(1);
-        when(taskLogService.insertTaskLog(task.getId(), null, TaskActionEnum.UPDATE.getCode(), "remark"))
+        when(taskLogService.insertTaskLog(
+                        task.getId(), null, TaskActionEnum.UPDATE.getCode(), "remark"))
                 .thenReturn(123L);
 
         try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
@@ -439,7 +443,8 @@ class TaskStrategiesTest {
         dto.setFiles(List.of(new MockMultipartFile("f", "f.txt", null, "d".getBytes())));
 
         when(taskMapper.updateById(task)).thenReturn(1);
-        when(taskLogService.insertTaskLog(task.getId(), null, TaskActionEnum.UPDATE.getCode(), "remark"))
+        when(taskLogService.insertTaskLog(
+                        task.getId(), null, TaskActionEnum.UPDATE.getCode(), "remark"))
                 .thenReturn(22L);
 
         try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {

@@ -17,7 +17,7 @@ permissions:
 env:
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GCP_REGION: asia-southeast2
+  GCP_REGION: asia-southeast1
 
 jobs:
   # Detect changed services
@@ -111,6 +111,10 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+
+      - name: Clear cached Gatling plugin (task-service)
+        if: ${{ matrix.service == 'task-service' }}
+        run: rm -rf ~/.m2/repository/io/gatling/gatling-maven-plugin
 
       - name: Lint (Spotless + Checkstyle) for ${{ matrix.service }}
         run: mvn -B -pl ${{ matrix.service }} -am spotless:check checkstyle:check

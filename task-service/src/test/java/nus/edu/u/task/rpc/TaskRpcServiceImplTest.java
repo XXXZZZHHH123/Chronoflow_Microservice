@@ -58,15 +58,9 @@ class TaskRpcServiceImplTest {
         Map<Long, List<TaskDTO>> result = rpcService.getTasksByEventIds(Set.of(10L, 20L));
 
         assertThat(result.keySet()).containsExactlyInAnyOrder(10L, 20L);
-        assertThat(result.get(10L))
-                .extracting(TaskDTO::getId)
-                .containsExactly(1L, 2L);
-        assertThat(result.get(10L))
-                .extracting(TaskDTO::getStatus)
-                .containsExactly(1, 2);
-        assertThat(result.get(20L))
-                .extracting(TaskDTO::getId)
-                .containsExactly(3L);
+        assertThat(result.get(10L)).extracting(TaskDTO::getId).containsExactly(1L, 2L);
+        assertThat(result.get(10L)).extracting(TaskDTO::getStatus).containsExactly(1, 2);
+        assertThat(result.get(20L)).extracting(TaskDTO::getId).containsExactly(3L);
         verify(taskMapper).selectList(any());
     }
 

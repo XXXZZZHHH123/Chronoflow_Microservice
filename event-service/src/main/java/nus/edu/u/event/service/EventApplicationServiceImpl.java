@@ -39,7 +39,6 @@ import nus.edu.u.shared.rpc.task.TaskDTO;
 import nus.edu.u.shared.rpc.task.TaskRpcService;
 import nus.edu.u.shared.rpc.user.UserRpcService;
 import org.apache.dubbo.config.annotation.DubboReference;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,14 +52,13 @@ public class EventApplicationServiceImpl implements EventApplicationService {
     private final UserGroupMapper userGroupMapper;
     private final EventConvert eventConvert;
     private final GroupApplicationService groupApplicationService;
+    private final List<EventValidationHandler> validationHandlers;
 
     @DubboReference(check = false)
     private UserRpcService userRpcService;
 
     @DubboReference(check = false)
     private TaskRpcService taskRpcService;
-
-    @Autowired private List<EventValidationHandler> validationHandlers;
 
     @Override
     public EventRespVO createEvent(EventCreateReqVO reqVO) {

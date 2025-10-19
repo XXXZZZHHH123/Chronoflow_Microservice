@@ -12,7 +12,6 @@ import cn.dev33.satoken.context.mock.SaTokenContextMockUtil;
 import cn.dev33.satoken.stp.StpUtil;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import nus.edu.u.file.config.FileProviderPropertiesConfig;
 import nus.edu.u.file.domain.dataobject.FileDO;
 import nus.edu.u.file.domain.vo.FileResultVO;
@@ -124,12 +123,11 @@ class FileStorageServiceImplTest {
         when(providerConfig.getProvider()).thenReturn("gcs");
         when(fileClientFactory.create("gcs")).thenReturn(gcsClient);
 
-        AtomicInteger counter = new AtomicInteger();
         when(gcsClient.uploadFile(any()))
                 .thenAnswer(
                         invocation -> {
                             MockMultipartFile file = invocation.getArgument(0);
-                            if (counter.getAndIncrement() == 0) {
+                            if ("good.txt".equals(file.getOriginalFilename())) {
                                 return new FileClient.FileUploadResult(
                                         "obj-" + file.getOriginalFilename(),
                                         file.getContentType(),

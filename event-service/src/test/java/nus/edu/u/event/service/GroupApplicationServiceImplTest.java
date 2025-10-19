@@ -292,11 +292,7 @@ class GroupApplicationServiceImplTest {
                                         .build()));
         when(userGroupMapper.selectOne(any(LambdaQueryWrapper.class)))
                 .thenReturn(
-                        UserGroupDO.builder()
-                                .deptId(groupId)
-                                .eventId(1L)
-                                .userId(userId)
-                                .build());
+                        UserGroupDO.builder().deptId(groupId).eventId(1L).userId(userId).build());
 
         assertThatThrownBy(() -> service.addMemberToGroup(groupId, userId))
                 .isInstanceOf(ServiceException.class)
@@ -336,9 +332,7 @@ class GroupApplicationServiceImplTest {
     void addMembersToGroup_recordsFailures() {
         GroupApplicationServiceImpl spyService = spy(service);
         ReflectionTestUtils.setField(spyService, "userRpcService", userRpcService);
-        doThrow(new RuntimeException("fail"))
-                .when(spyService)
-                .addMemberToGroup(1L, 2L);
+        doThrow(new RuntimeException("fail")).when(spyService).addMemberToGroup(1L, 2L);
 
         assertThatThrownBy(() -> spyService.addMembersToGroup(1L, List.of(2L)))
                 .isInstanceOf(ServiceException.class)
@@ -349,9 +343,7 @@ class GroupApplicationServiceImplTest {
     @Test
     void removeMembersFromGroup_propagatesFirstException() {
         ServiceException failure = new ServiceException(USER_ALREADY_IN_OTHER_GROUP_OF_EVENT);
-        doThrow(failure)
-                .when(groupMemberRemovalService)
-                .removeMemberFromGroup(1L, 2L);
+        doThrow(failure).when(groupMemberRemovalService).removeMemberFromGroup(1L, 2L);
 
         assertThatThrownBy(() -> service.removeMembersFromGroup(1L, List.of(2L, 3L)))
                 .isSameAs(failure);
@@ -421,6 +413,7 @@ class GroupApplicationServiceImplTest {
         req.setRemark("remark");
         return req;
     }
+
     @Test
     void getGroupDTOsByEventIds_combinesGroupMetadataAndMembers() {
         Set<Long> eventIds = Set.of(1L, 2L);

@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import nus.edu.u.common.exception.ServiceException;
 import nus.edu.u.event.convert.EventConvert;
 import nus.edu.u.event.domain.dataobject.event.EventDO;
@@ -70,31 +69,35 @@ class EventRpcServiceImplTest {
                                 UserGroupDO.builder().eventId(event.getId()).userId(1L).build(),
                                 UserGroupDO.builder().eventId(event.getId()).userId(2L).build()));
         when(groupApplicationService.getGroupsByEvent(event.getId()))
-                .thenReturn(
-                        List.of(GroupRespVO.builder().id(5L).name("Group A").build()));
-        when(eventConvert.toRpc(converted)).thenAnswer(invocation -> {
-            EventRespVO source = invocation.getArgument(0);
-            EventRespDTO dto = new EventRespDTO();
-            dto.setId(source.getId());
-            dto.setJoiningParticipants(source.getJoiningParticipants());
-            dto.setGroups(
-                    source.getGroups().stream()
-                            .map(
-                                    g -> {
-                                        EventRespDTO.GroupVO vo = new EventRespDTO.GroupVO();
-                                        vo.setId(g.getId());
-                                        vo.setName(g.getName());
-                                        return vo;
-                                    })
-                            .toList());
-            return dto;
-        });
+                .thenReturn(List.of(GroupRespVO.builder().id(5L).name("Group A").build()));
+        when(eventConvert.toRpc(converted))
+                .thenAnswer(
+                        invocation -> {
+                            EventRespVO source = invocation.getArgument(0);
+                            EventRespDTO dto = new EventRespDTO();
+                            dto.setId(source.getId());
+                            dto.setJoiningParticipants(source.getJoiningParticipants());
+                            dto.setGroups(
+                                    source.getGroups().stream()
+                                            .map(
+                                                    g -> {
+                                                        EventRespDTO.GroupVO vo =
+                                                                new EventRespDTO.GroupVO();
+                                                        vo.setId(g.getId());
+                                                        vo.setName(g.getName());
+                                                        return vo;
+                                                    })
+                                            .toList());
+                            return dto;
+                        });
 
         EventRespDTO dto = rpcService.getEvent(event.getId());
 
         assertThat(dto.getId()).isEqualTo(event.getId());
         assertThat(dto.getJoiningParticipants()).isEqualTo(2); // distinct participants
-        assertThat(dto.getGroups()).singleElement().matches(group -> group.getName().equals("Group A"));
+        assertThat(dto.getGroups())
+                .singleElement()
+                .matches(group -> group.getName().equals("Group A"));
     }
 
     @Test

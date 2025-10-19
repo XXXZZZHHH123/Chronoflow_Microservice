@@ -24,7 +24,8 @@ class GroupRpcServiceImplTest {
     @Test
     void getGroupsByEventIds_delegatesToApplicationService() {
         Collection<Long> ids = List.of(1L, 2L);
-        Map<Long, List<GroupDTO>> expected = Map.of(1L, List.of(GroupDTO.builder().id(10L).build()));
+        Map<Long, List<GroupDTO>> expected =
+                Map.of(1L, List.of(GroupDTO.builder().id(10L).build()));
         when(groupApplicationService.getGroupDTOsByEventIds(ids)).thenReturn(expected);
 
         Map<Long, List<GroupDTO>> result = rpcService.getGroupsByEventIds(ids);

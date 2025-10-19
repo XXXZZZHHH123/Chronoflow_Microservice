@@ -1,0 +1,106 @@
+[
+  {
+    "resource": "/users/auth/login",
+    "grade": 0,
+    "count": 2000,
+    "timeWindow": 30,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.7
+  },
+  {
+    "resource": "/users/auth/login",
+    "grade": 1,
+    "count": 0.15,
+    "timeWindow": 60,
+    "minRequestAmount": 10,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "/users/auth/refresh",
+    "grade": 0,
+    "count": 1000,
+    "timeWindow": 10,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.5
+  },
+  {
+    "resource": "/users/permissions",
+    "grade": 0,
+    "count": 800,
+    "timeWindow": 10,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.5
+  },
+  {
+    "resource": "/users/roles",
+    "grade": 0,
+    "count": 800,
+    "timeWindow": 10,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.5
+  },
+  {
+    "resource": "/users/roles/assign",
+    "grade": 1,
+    "count": 0.08,
+    "timeWindow": 15,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "/users/organizer/create/user",
+    "grade": 1,
+    "count": 0.1,
+    "timeWindow": 15,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "/users/organizer/users",
+    "grade": 0,
+    "count": 1500,
+    "timeWindow": 15,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.6
+  },
+  {
+    "resource": "/users/organizer/users/bulk-upsert",
+    "grade": 0,
+    "count": 5000,
+    "timeWindow": 30,
+    "minRequestAmount": 2,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.8
+  },
+  {
+    "resource": "/users/reg/member",
+    "grade": 0,
+    "count": 2000,
+    "timeWindow": 20,
+    "minRequestAmount": 3,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.7
+  },
+  {
+    "resource": "/users/reg/member",
+    "grade": 1,
+    "count": 0.12,
+    "timeWindow": 30,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "/users/reg/organizer",
+    "grade": 0,
+    "count": 3000,
+    "timeWindow": 30,
+    "minRequestAmount": 2,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.8
+  }
+]

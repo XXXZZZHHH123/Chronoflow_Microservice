@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: notification-service
-  namespace: microservices
+  namespace: chronoflow
   labels:
     app: notification-service
     version: v1
@@ -38,7 +38,7 @@ spec:
             - name: SERVER_PORT
               value: "8086"
             - name: NACOS_HOST
-              value: "10.148.0.3"
+              value: "nacos.chronoflow.svc.cluster.local"
             - name: NACOS_PORT
               value: "8848"
             - name: NACOS_USERNAME

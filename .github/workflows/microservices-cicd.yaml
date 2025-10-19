@@ -18,6 +18,7 @@ env:
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GCP_REGION: asia-southeast1
+  K8S_NAMESPACE: chronoflow
 
 jobs:
   # Detect changed services
@@ -331,6 +332,10 @@ jobs:
           kubectl cluster-info
           kubectl get nodes
 
+      - name: Ensure namespace exists
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+
       - name: Prepare Kubernetes manifests
         run: |
           IMAGE_TAG="${{ github.ref_name }}-${{ github.sha }}"
@@ -353,7 +358,7 @@ jobs:
       - name: Deploy to GKE (using manifests)
         if: env.USE_MANIFEST == 'true'
         run: |
-          kubectl apply -f /tmp/k8s/${{ matrix.service }}/ -n microservices
+          kubectl apply -f /tmp/k8s/${{ matrix.service }}/ -n ${{ env.K8S_NAMESPACE }}
           
       - name: Deploy to GKE (using set image)
         if: env.USE_MANIFEST == 'false'
@@ -363,11 +368,11 @@ jobs:
           IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}:$IMAGE_TAG"
           
           # Check whether the deployment exists
-          if kubectl get deployment ${{ matrix.service }} -n microservices &> /dev/null; then
+          if kubectl get deployment ${{ matrix.service }} -n ${{ env.K8S_NAMESPACE }} &> /dev/null; then
           echo "Updating existing deployment..."
           kubectl set image deployment/${{ matrix.service }} \
            ${{ matrix.service }}=$IMAGE \
-           -n microservices
+           -n ${{ env.K8S_NAMESPACE }}
           else
           echo "Deployment not found. Please create manifests or manually create the deployment first."
           exit 1
@@ -377,22 +382,22 @@ jobs:
         run: |
           echo "Waiting for rollout to complete..."
           kubectl rollout status deployment/${{ matrix.service }} \
-          -n microservices \
+          -n ${{ env.K8S_NAMESPACE }} \
           --timeout=5m
 
       - name: Verify deployment
         run: |
           echo "Deployment status:"
-          kubectl get deployment ${{ matrix.service }} -n microservices
+          kubectl get deployment ${{ matrix.service }} -n ${{ env.K8S_NAMESPACE }}
           echo ""
           echo "Pod status:"
-          kubectl get pods -n microservices -l app=${{ matrix.service }}
+          kubectl get pods -n ${{ env.K8S_NAMESPACE }} -l app=${{ matrix.service }}
           echo ""
           echo "Service info:"
-          kubectl get service ${{ matrix.service }} -n microservices 2>/dev/null || echo "Service not configured"
+          kubectl get service ${{ matrix.service }} -n ${{ env.K8S_NAMESPACE }} 2>/dev/null || echo "Service not configured"
           echo ""
           echo "Recent events:"
-          kubectl get events -n microservices \
+          kubectl get events -n ${{ env.K8S_NAMESPACE }} \
             --field-selector involvedObject.name=${{ matrix.service }} \
             --sort-by='.lastTimestamp' \
             | tail -10
@@ -505,27 +510,27 @@ jobs:
         if: ${{ steps.perf-check.outputs.should-run == 'true' }}
         run: |
           set +e
-          kubectl wait --for=condition=complete job/${PERF_JOB_NAME} -n microservices --timeout=30m
+          kubectl wait --for=condition=complete job/${PERF_JOB_NAME} -n $K8S_NAMESPACE --timeout=30m
           STATUS=$?
           if [ $STATUS -ne 0 ]; then
             echo "Performance job did not complete successfully (status=$STATUS)."
-            kubectl describe job/${PERF_JOB_NAME} -n microservices || true
-            kubectl logs job/${PERF_JOB_NAME} -n microservices || true
+            kubectl describe job/${PERF_JOB_NAME} -n $K8S_NAMESPACE || true
+            kubectl logs job/${PERF_JOB_NAME} -n $K8S_NAMESPACE || true
             exit $STATUS
           fi
 
       - name: Stream Gatling job logs
         if: ${{ steps.perf-check.outputs.should-run == 'true' && always() }}
         run: |
-          kubectl logs job/${PERF_JOB_NAME} -n microservices || true
+          kubectl logs job/${PERF_JOB_NAME} -n $K8S_NAMESPACE || true
 
       - name: Collect Gatling results
         if: ${{ steps.perf-check.outputs.should-run == 'true' && always() }}
         run: |
           set -euo pipefail
-          POD=$(kubectl get pods -n microservices -l job-name=${PERF_JOB_NAME} -o jsonpath='{.items[0].metadata.name}')
+          POD=$(kubectl get pods -n $K8S_NAMESPACE -l job-name=${PERF_JOB_NAME} -o jsonpath='{.items[0].metadata.name}')
           mkdir -p gatling-results
-          kubectl cp microservices/${POD}:/workspace/task-service/target/gatling ./gatling-results || echo "No Gatling results copied."
+          kubectl cp ${K8S_NAMESPACE}/${POD}:/workspace/task-service/target/gatling ./gatling-results || echo "No Gatling results copied."
 
       - name: Upload Gatling report
         if: ${{ steps.perf-check.outputs.should-run == 'true' && always() }}

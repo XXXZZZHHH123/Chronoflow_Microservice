@@ -2,7 +2,7 @@ apiVersion: monitoring.googleapis.com/v1
 kind: PodMonitoring
 metadata:
   name: file-service
-  namespace: microservices
+  namespace: chronoflow
 spec:
   selector:
     matchLabels:

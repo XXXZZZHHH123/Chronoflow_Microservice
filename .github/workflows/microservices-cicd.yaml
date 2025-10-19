@@ -393,6 +393,144 @@ jobs:
             --sort-by='.lastTimestamp' \
             | tail -10
 
+  performance-task-service:
+    name: Performance - task-service
+    runs-on: ubuntu-latest
+    needs: deploy-to-gke
+    if: ${{ github.ref == 'refs/heads/main' && needs.deploy-to-gke.result == 'success' }}
+    env:
+      PERF_BASE_URL: ${{ secrets.TASK_SERVICE_PERF_BASE_URL }}
+      PERF_EVENT_ID: ${{ secrets.TASK_SERVICE_PERF_EVENT_ID }}
+      PERF_TASK_ID: ${{ secrets.TASK_SERVICE_PERF_TASK_ID }}
+      PERF_USERNAME: ${{ secrets.TASK_SERVICE_PERF_USERNAME }}
+      PERF_PASSWORD: ${{ secrets.TASK_SERVICE_PERF_PASSWORD }}
+      PERF_LOGIN_PATH: ${{ secrets.TASK_SERVICE_PERF_LOGIN_PATH }}
+    steps:
+      - name: Validate performance secrets
+        id: perf-check
+        run: |
+          if [ -z "${PERF_BASE_URL}" ]; then
+            echo "Performance base URL secret is not set. Skipping Gatling job."
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip summary
+        if: ${{ steps.perf-check.outputs.should-run == 'false' }}
+        run: echo "task-service performance job skipped because TASK_SERVICE_PERF_BASE_URL is empty."
+
+      - uses: actions/checkout@v4
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+
+      - name: Determine performance image tag
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        run: |
+          IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/task-service-gatling:${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          IMAGE=$(echo "${IMAGE}" | tr '[:upper:]' '[:lower:]')
+          JOB_NAME="task-service-gatling-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          JOB_NAME=$(echo "${JOB_NAME}" | tr '[:upper:]' '[:lower:]')
+          JOB_NAME=${JOB_NAME:0:62}
+          echo "PERF_IMAGE=${IMAGE}" >> "$GITHUB_ENV"
+          echo "PERF_JOB_NAME=${JOB_NAME}" >> "$GITHUB_ENV"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build and push Gatling image
+        uses: docker/build-push-action@v5
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        with:
+          context: .
+          file: task-service/perf/Dockerfile
+          push: true
+          tags: ${{ env.PERF_IMAGE }}
+
+      - name: Authenticate to Google Cloud
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          install_components: 'gke-gcloud-auth-plugin'
+
+      - name: Configure kubectl plugin
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        run: |
+          echo "USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> $GITHUB_ENV
+
+      - name: Get GKE credentials
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        run: |
+          gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Render Gatling job manifest
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        run: |
+          cat k8s/perf/task-service-gatling-job.yaml \
+            | sed "s|__IMAGE__|${PERF_IMAGE}|g" \
+            | sed "s|__BASE_URL__|${PERF_BASE_URL}|g" \
+            | sed "s|__LOGIN_PATH__|${PERF_LOGIN_PATH:-}|g" \
+            | sed "s|__USERNAME__|${PERF_USERNAME:-}|g" \
+            | sed "s|__PASSWORD__|${PERF_PASSWORD:-}|g" \
+            | sed "s|__EVENT_ID__|${PERF_EVENT_ID:-}|g" \
+            | sed "s|__TASK_ID__|${PERF_TASK_ID:-}|g" \
+            | sed "s|__JOB_NAME__|${PERF_JOB_NAME}|g" \
+            > /tmp/task-service-gatling-job.yaml
+
+      - name: Apply Gatling job
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        run: |
+          kubectl apply -f /tmp/task-service-gatling-job.yaml
+
+      - name: Wait for Gatling job completion
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        run: |
+          set +e
+          kubectl wait --for=condition=complete job/${PERF_JOB_NAME} -n microservices --timeout=30m
+          STATUS=$?
+          if [ $STATUS -ne 0 ]; then
+            echo "Performance job did not complete successfully (status=$STATUS)."
+            kubectl describe job/${PERF_JOB_NAME} -n microservices || true
+            kubectl logs job/${PERF_JOB_NAME} -n microservices || true
+            exit $STATUS
+          fi
+
+      - name: Stream Gatling job logs
+        if: ${{ steps.perf-check.outputs.should-run == 'true' && always() }}
+        run: |
+          kubectl logs job/${PERF_JOB_NAME} -n microservices || true
+
+      - name: Collect Gatling results
+        if: ${{ steps.perf-check.outputs.should-run == 'true' && always() }}
+        run: |
+          set -euo pipefail
+          POD=$(kubectl get pods -n microservices -l job-name=${PERF_JOB_NAME} -o jsonpath='{.items[0].metadata.name}')
+          mkdir -p gatling-results
+          kubectl cp microservices/${POD}:/workspace/task-service/target/gatling ./gatling-results || echo "No Gatling results copied."
+
+      - name: Upload Gatling report
+        if: ${{ steps.perf-check.outputs.should-run == 'true' && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: task-service-gatling-${{ github.run_id }}-${{ github.run_attempt }}
+          path: gatling-results
+          retention-days: 3
+
   dast-zap:
     name: DAST (ZAP full scan)
     runs-on: ubuntu-latest

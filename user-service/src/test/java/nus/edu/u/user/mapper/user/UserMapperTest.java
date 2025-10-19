@@ -6,12 +6,12 @@ import static org.mockito.Mockito.*;
 
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
-import org.apache.ibatis.builder.MapperBuilderAssistant;
 import java.util.List;
 import java.util.Set;
 import nus.edu.u.shared.rpc.user.UserProfileDTO;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
 import nus.edu.u.user.domain.vo.user.UserProfileRespVO;
+import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,8 +94,7 @@ class UserMapperTest {
     void selectExistingEmails_returnsExistingEmails() {
         when(mapper.selectObjs(any())).thenReturn(List.of("a@example.com", "b@example.com"));
 
-        Set<String> result =
-                mapper.selectExistingEmails(List.of("a@example.com", "c@example.com"));
+        Set<String> result = mapper.selectExistingEmails(List.of("a@example.com", "c@example.com"));
 
         assertThat(result).containsExactlyInAnyOrder("a@example.com", "b@example.com");
     }

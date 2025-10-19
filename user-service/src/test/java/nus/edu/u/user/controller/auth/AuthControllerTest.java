@@ -49,8 +49,7 @@ class AuthControllerTest {
         resp.setRefreshToken("new-refresh");
         when(authService.login(any(LoginReqVO.class))).thenReturn(resp);
 
-        CommonResult<LoginRespVO> result =
-                controller.login(req, "old-refresh", response);
+        CommonResult<LoginRespVO> result = controller.login(req, "old-refresh", response);
 
         assertThat(result.getData()).isSameAs(resp);
         assertThat(req.getRefreshToken()).isEqualTo("old-refresh");

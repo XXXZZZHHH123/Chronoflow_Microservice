@@ -73,7 +73,8 @@ jobs:
 
           if echo "$CHANGED" | jq -e 'index("shared-modules")' >/dev/null; then
             echo "Shared module changed. Building all services."
-            echo "services=${{ steps.set-services.outputs.all }}" >> "$GITHUB_OUTPUT"
+            ALL_SERVICES='${{ steps.set-services.outputs.all }}'
+            echo "services=$ALL_SERVICES" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 

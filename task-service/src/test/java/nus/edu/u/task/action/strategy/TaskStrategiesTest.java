@@ -235,6 +235,37 @@ class TaskStrategiesTest {
     }
 
     @Test
+    void acceptTask_whenNotOwner_throws() {
+        TaskDO task = baseTask();
+        TaskActionDTO dto = baseActionDto();
+        try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
+            stp.when(StpUtil::getLoginId).thenReturn(999L);
+
+            assertThatThrownBy(() -> acceptTask.execute(task, dto))
+                    .isInstanceOf(ServiceException.class)
+                    .extracting("code")
+                    .isEqualTo(MODIFY_OTHER_TASK_ERROR.getCode());
+        }
+    }
+
+    @Test
+    void acceptTask_whenUpdateFails_throws() {
+        TaskDO task = baseTask();
+        TaskActionDTO dto = baseActionDto();
+        dto.setStartTime(task.getStartTime());
+        dto.setEndTime(task.getEndTime());
+        when(taskMapper.updateById(task)).thenReturn(0);
+        try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
+            stp.when(StpUtil::getLoginId).thenReturn(task.getUserId());
+
+            assertThatThrownBy(() -> acceptTask.execute(task, dto))
+                    .isInstanceOf(ServiceException.class)
+                    .extracting("code")
+                    .isEqualTo(ACCEPT_TASK_FAILED.getCode());
+        }
+    }
+
+    @Test
     void approveTask_allowsOrganizerToComplete() {
         TaskDO task = baseTask();
         task.setStatus(TaskStatusEnum.PENDING_APPROVAL.getStatus());
@@ -271,6 +302,41 @@ class TaskStrategiesTest {
     }
 
     @Test
+    void approveTask_whenStatusInvalid_throws() {
+        TaskDO task = baseTask();
+        task.setStatus(TaskStatusEnum.PENDING.getStatus());
+        task.setCreator("owner");
+        TaskActionDTO dto = baseActionDto();
+        try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
+            stp.when(() -> StpUtil.checkPermission("task:update")).thenAnswer(invocation -> null);
+            stp.when(StpUtil::getLoginId).thenReturn("owner");
+
+            assertThatThrownBy(() -> approveTask.execute(task, dto))
+                    .isInstanceOf(ServiceException.class)
+                    .extracting("code")
+                    .isEqualTo(MODIFY_WRONG_TASK_STATUS.getCode());
+        }
+    }
+
+    @Test
+    void approveTask_whenUpdateFails_throws() {
+        TaskDO task = baseTask();
+        task.setStatus(TaskStatusEnum.PENDING_APPROVAL.getStatus());
+        task.setCreator("owner");
+        TaskActionDTO dto = baseActionDto();
+        when(taskMapper.updateById(task)).thenReturn(0);
+        try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
+            stp.when(() -> StpUtil.checkPermission("task:update")).thenAnswer(invocation -> null);
+            stp.when(StpUtil::getLoginId).thenReturn("owner");
+
+            assertThatThrownBy(() -> approveTask.execute(task, dto))
+                    .isInstanceOf(ServiceException.class)
+                    .extracting("code")
+                    .isEqualTo(APPROVE_TASK_FAILED.getCode());
+        }
+    }
+
+    @Test
     void blockTask_updatesStatusAndLogs() {
         TaskDO task = baseTask();
         task.setStatus(TaskStatusEnum.PROGRESS.getStatus());
@@ -298,6 +364,19 @@ class TaskStrategiesTest {
                 .isInstanceOf(ServiceException.class)
                 .extracting("code")
                 .isEqualTo(MODIFY_WRONG_TASK_STATUS.getCode());
+    }
+
+    @Test
+    void blockTask_whenUpdateFails_throws() {
+        TaskDO task = baseTask();
+        task.setStatus(TaskStatusEnum.PROGRESS.getStatus());
+        TaskActionDTO dto = baseActionDto();
+        when(taskMapper.updateById(task)).thenReturn(0);
+
+        assertThatThrownBy(() -> blockTask.execute(task, dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(BLOCK_TASK_FAILED.getCode());
     }
 
     @Test
@@ -336,6 +415,37 @@ class TaskStrategiesTest {
     }
 
     @Test
+    void submitTask_whenStatusInvalid_throws() {
+        TaskDO task = baseTask();
+        task.setStatus(TaskStatusEnum.PENDING.getStatus());
+        TaskActionDTO dto = baseActionDto();
+        try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
+            stp.when(StpUtil::getLoginId).thenReturn(task.getUserId());
+
+            assertThatThrownBy(() -> submitTask.execute(task, dto))
+                    .isInstanceOf(ServiceException.class)
+                    .extracting("code")
+                    .isEqualTo(MODIFY_WRONG_TASK_STATUS.getCode());
+        }
+    }
+
+    @Test
+    void submitTask_whenUpdateFails_throws() {
+        TaskDO task = baseTask();
+        task.setStatus(TaskStatusEnum.PROGRESS.getStatus());
+        TaskActionDTO dto = baseActionDto();
+        when(taskMapper.updateById(task)).thenReturn(0);
+        try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
+            stp.when(StpUtil::getLoginId).thenReturn(task.getUserId());
+
+            assertThatThrownBy(() -> submitTask.execute(task, dto))
+                    .isInstanceOf(ServiceException.class)
+                    .extracting("code")
+                    .isEqualTo(SUBMIT_TASK_FAILED.getCode());
+        }
+    }
+
+    @Test
     void rejectTask_updatesStatus() {
         TaskDO task = baseTask();
         TaskActionDTO dto = baseActionDto();
@@ -365,6 +475,35 @@ class TaskStrategiesTest {
                     .isInstanceOf(ServiceException.class)
                     .extracting("code")
                     .isEqualTo(REJECT_TASK_FAILED.getCode());
+        }
+    }
+
+    @Test
+    void rejectTask_whenNotOwner_throws() {
+        TaskDO task = baseTask();
+        TaskActionDTO dto = baseActionDto();
+        try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
+            stp.when(StpUtil::getLoginId).thenReturn(999L);
+
+            assertThatThrownBy(() -> rejectTask.execute(task, dto))
+                    .isInstanceOf(ServiceException.class)
+                    .extracting("code")
+                    .isEqualTo(MODIFY_OTHER_TASK_ERROR.getCode());
+        }
+    }
+
+    @Test
+    void rejectTask_whenStatusInvalid_throws() {
+        TaskDO task = baseTask();
+        task.setStatus(TaskStatusEnum.PROGRESS.getStatus());
+        TaskActionDTO dto = baseActionDto();
+        try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
+            stp.when(StpUtil::getLoginId).thenReturn(task.getUserId());
+
+            assertThatThrownBy(() -> rejectTask.execute(task, dto))
+                    .isInstanceOf(ServiceException.class)
+                    .extracting("code")
+                    .isEqualTo(MODIFY_WRONG_TASK_STATUS.getCode());
         }
     }
 
@@ -431,6 +570,25 @@ class TaskStrategiesTest {
                     .isInstanceOf(ServiceException.class)
                     .extracting("code")
                     .isEqualTo(MODIFY_WRONG_TASK_STATUS.getCode());
+        }
+    }
+
+    @Test
+    void updateTask_whenUpdateFails_throws() {
+        TaskDO task = baseTask();
+        task.setStatus(TaskStatusEnum.PROGRESS.getStatus());
+        TaskActionDTO dto = baseActionDto();
+        dto.setStartTime(task.getStartTime());
+        dto.setEndTime(task.getEndTime());
+        when(taskMapper.updateById(task)).thenReturn(0);
+
+        try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
+            stp.when(() -> StpUtil.checkPermission("task:update")).thenAnswer(invocation -> null);
+
+            assertThatThrownBy(() -> updateTask.execute(task, dto))
+                    .isInstanceOf(ServiceException.class)
+                    .extracting("code")
+                    .isEqualTo(TASK_UPDATE_FAILED.getCode());
         }
     }
 

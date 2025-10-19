@@ -10,18 +10,27 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import jakarta.annotation.Resource;
 import java.util.*;
 import java.util.regex.Pattern;
+import static nus.edu.u.framework.mybatis.MybatisPlusConfig.getCurrentTenantId;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.enums.CommonStatusEnum;
 import nus.edu.u.common.exception.ServiceException;
+import nus.edu.u.shared.rpc.notification.dto.common.NotificationRequestDTO;
+import nus.edu.u.shared.rpc.notification.dto.member.RegSearchReqDTO;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
 import nus.edu.u.user.domain.dataobject.user.UserRoleDO;
 import nus.edu.u.user.domain.dto.*;
 import nus.edu.u.user.domain.vo.user.BulkUpsertUsersRespVO;
 import nus.edu.u.user.domain.vo.user.UserProfileRespVO;
 import nus.edu.u.user.enums.user.UserStatusEnum;
+import nus.edu.u.user.mapper.notification.OrganizerNotificationMapper;
 import nus.edu.u.user.mapper.role.RoleMapper;
 import nus.edu.u.user.mapper.user.UserMapper;
 import nus.edu.u.user.mapper.user.UserRoleMapper;
+import nus.edu.u.user.publisher.member.MemberNotificationPublisher;
+
+import org.checkerframework.checker.units.qual.m;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     @Resource private UserMapper userMapper;
@@ -49,6 +59,8 @@ public class UserServiceImpl implements UserService {
     // Self-injection proxy to avoid transaction enhancement failure caused by internal calls of
     // similar methods
     @Resource @Lazy private UserService self;
+
+    private final MemberNotificationPublisher memberNotificationPublisher;
 
     private static final Set<Long> FORBIDDEN_ROLE_IDS = Set.of(1L);
 
@@ -116,6 +128,16 @@ public class UserServiceImpl implements UserService {
                 }
             }
         }
+
+
+                RegSearchReqDTO req = RegSearchReqDTO.builder()
+                    .organizationId(getCurrentTenantId()) 
+                    .userId(user.getId())
+                    .recipientEmail(user.getEmail())
+                    .build();
+
+        memberNotificationPublisher.sendMemberInviteEmail(req);
+
 
         return user.getId();
     }

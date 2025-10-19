@@ -7,9 +7,12 @@ import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.constant.PermissionConstants;
 import nus.edu.u.common.enums.CommonStatusEnum;
+import nus.edu.u.shared.rpc.notification.dto.organizer.RegOrganizerReqDTO;
 import nus.edu.u.user.domain.dataobject.permission.PermissionDO;
 import nus.edu.u.user.domain.dataobject.role.RoleDO;
 import nus.edu.u.user.domain.dataobject.role.RolePermissionDO;
@@ -27,6 +30,9 @@ import nus.edu.u.user.mapper.role.RolePermissionMapper;
 import nus.edu.u.user.mapper.tenant.TenantMapper;
 import nus.edu.u.user.mapper.user.UserMapper;
 import nus.edu.u.user.mapper.user.UserRoleMapper;
+import nus.edu.u.user.publisher.organizer.OrganizerNotificationPublisher;
+
+import org.aspectj.weaver.ast.Or;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class RegServiceImpl implements RegService {
 
     @Resource private TenantMapper tenantMapper;
@@ -52,6 +59,7 @@ public class RegServiceImpl implements RegService {
     @Resource private UserRoleMapper userRoleMapper;
 
     @Resource private PasswordEncoder passwordEncoder;
+    private final OrganizerNotificationPublisher organizerNotificationPublisher;
 
     public static final String ORGANIZER_REMARK = "Organizer account";
 
@@ -202,6 +210,24 @@ public class RegServiceImpl implements RegService {
                         .permissionId(permissionDO.getId())
                         .build();
         rolePermissionDO.setTenantId(tenant.getId());
+
+        RegOrganizerReqDTO dto = RegOrganizerReqDTO.builder()
+                .name(regOrganizerReqVO.getName())
+                .username(user.getUsername())               
+                .userEmail(user.getEmail())                 
+                .mobile(regOrganizerReqVO.getMobile())
+                .organizationName(tenant.getName())
+                .organizationAddress(tenant.getAddress())
+                .organizationCode(regOrganizerReqVO.getOrganizationCode()) 
+                .build();
+
+        try {
+            organizerNotificationPublisher.sendWelcomeOrganizerEmail(dto);
+        }catch (Exception e) {
+            log.warn("Send organizer registration notification failed. email={}", dto.getUserEmail(), e);
+        }
+        
+
         isSuccess = rolePermissionMapper.insert(rolePermissionDO) > 0;
         if (!isSuccess) {
             throw exception(REG_FAIL);

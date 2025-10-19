@@ -246,10 +246,12 @@ jobs:
     name: Docker Build & Push - ${{ matrix.service }}
     runs-on: ubuntu-latest
     needs: [detect-changes, build-and-test]
+    # TEMP: include cicd branch for full workflow testing
     if: |
       needs.detect-changes.outputs.services != '[]' && 
       (github.ref == 'refs/heads/main' || 
-       github.ref == 'refs/heads/dev')
+       github.ref == 'refs/heads/dev' ||
+       github.ref == 'refs/heads/cicd')
     strategy:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.services) }}
@@ -298,9 +300,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [detect-changes, build-and-push-docker]
     if: |
-      needs.detect-changes.outputs.services != '[]' && 
-      github.ref == 'refs/heads/main' &&
+      needs.detect-changes.outputs.services != '[]' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/cicd') &&
       vars.USE_GKE == 'true'
+    # TEMP: include cicd branch for full workflow testing
     strategy:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.services) }}
@@ -406,7 +409,8 @@ jobs:
     name: Performance - task-service
     runs-on: ubuntu-latest
     needs: deploy-to-gke
-    if: ${{ github.ref == 'refs/heads/main' && needs.deploy-to-gke.result == 'success' }}
+    # TEMP: include cicd branch for full workflow testing
+    if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/cicd') && needs.deploy-to-gke.result == 'success' }}
     env:
       PERF_BASE_URL: ${{ secrets.TASK_SERVICE_PERF_BASE_URL }}
       PERF_EVENT_ID: ${{ secrets.TASK_SERVICE_PERF_EVENT_ID }}
@@ -544,7 +548,8 @@ jobs:
     name: DAST (ZAP full scan)
     runs-on: ubuntu-latest
     needs: deploy-to-gke
-    if: github.ref == 'refs/heads/main'
+    # TEMP: include cicd branch for full workflow testing
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/cicd'
     steps:
       - name: Prepare target URL
         run: |

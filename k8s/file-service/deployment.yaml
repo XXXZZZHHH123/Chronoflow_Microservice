@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: file-service
-  namespace: microservices
+  namespace: chronoflow
   labels:
     app: file-service
     version: v1
@@ -22,6 +22,10 @@ spec:
         app: file-service
         version: v1
     spec:
+      tolerations:
+        - key: "node.gke.io/balloon-pod-resize"
+          operator: "Exists"
+          effect: "NoSchedule"
       containers:
         - name: file-service
           image: e1241986/file-service:latest
@@ -38,7 +42,7 @@ spec:
             - name: SERVER_PORT
               value: "8085"
             - name: NACOS_HOST
-              value: "10.148.0.3"
+              value: "nacos.chronoflow.svc.cluster.local"
             - name: NACOS_PORT
               value: "8848"
             - name: NACOS_USERNAME
@@ -47,8 +51,8 @@ spec:
               value: "nacos"
           resources:
             requests:
-              memory: "400Mi"
-              cpu: "100m"
+              memory: "512Mi"
+              cpu: "250m"
             limits:
               memory: "700Mi"
               cpu: "400m"

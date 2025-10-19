@@ -70,12 +70,6 @@
                 <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <configuration>
-                        <includes>
-                            <include>nus/edu/u/user/service/auth/**</include>
-                            <include>nus/edu/u/user/service/user/**</include>
-                            <include>nus/edu/u/user/service/permission/**</include>
-                            <include>nus/edu/u/user/service/role/**</include>
-                        </includes>
                     <excludes>
                         <exclude>**/generated/**</exclude>
                         <exclude>**/*Generated*</exclude>

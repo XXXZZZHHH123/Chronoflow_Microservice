@@ -1,0 +1,37 @@
+[
+  {
+    "resource": "/attendees/list/*",
+    "grade": 0,
+    "count": 1000,
+    "timeWindow": 10,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.5
+  },
+  {
+    "resource": "/attendees/bulk/*",
+    "grade": 0,
+    "count": 5000,
+    "timeWindow": 30,
+    "minRequestAmount": 2,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.8
+  },
+  {
+    "resource": "/attendees",
+    "grade": 0,
+    "count": 3000,
+    "timeWindow": 20,
+    "minRequestAmount": 3,
+    "statIntervalMs": 1000,
+    "slowRatioThreshold": 0.7
+  },
+  {
+    "resource": "/attendees/staff-scan",
+    "grade": 1,
+    "count": 0.05,
+    "timeWindow": 15,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000
+  }
+]

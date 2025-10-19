@@ -13,6 +13,10 @@
     <packaging>jar</packaging>
     <name>${project.artifactId}</name>
 
+    <properties>
+        <gatling.skip>true</gatling.skip>
+    </properties>
+
     <dependencies>
 
         <dependency>
@@ -38,6 +42,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gatling.highcharts</groupId>
+            <artifactId>gatling-charts-highcharts</artifactId>
+            <version>3.10.4</version>
             <scope>test</scope>
         </dependency>
 
@@ -70,20 +81,31 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <configuration>
-                    <includes>
-                        <include>nus/edu/u/task/service/TaskLogServiceApplicationImpl*</include>
-                        <include>nus/edu/u/task/service/TaskApplicationServiceImpl*</include>
-                        <include>nus/edu/u/task/controller/TaskController*</include>
-                        <include>nus/edu/u/task/builder/TaskRespVOBuilder*</include>
-                        <include>nus/edu/u/task/builder/TasksRespVOBuilder*</include>
-                        <include>nus/edu/u/task/action/TaskActionFactory*</include>
-                    </includes>
                     <excludes>
                         <exclude>**/generated/**</exclude>
                         <exclude>**/*Generated*</exclude>
                         <exclude>**/*MapperImpl.class</exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.gatling</groupId>
+                <artifactId>gatling-maven-plugin</artifactId>
+                <version>4.20.6</version>
+                <configuration>
+                    <simulationsFolder>src/test/scala</simulationsFolder>
+                    <simulationClass>nus.edu.u.task.perf.TaskServiceSimulation</simulationClass>
+                    <skip>${gatling.skip}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>gatling-test</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

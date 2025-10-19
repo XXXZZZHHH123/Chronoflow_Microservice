@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: microservices
+  name: chronoflow
   labels:
-    name: microservices
+    name: chronoflow
     environment: production

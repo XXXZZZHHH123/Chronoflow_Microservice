@@ -2,7 +2,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: task-service-pdb
-  namespace: microservices
+  namespace: chronoflow
 spec:
   minAvailable: 1
   selector:

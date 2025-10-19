@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: file-service
-  namespace: microservices
+  namespace: chronoflow
   labels:
     app: file-service
 spec:

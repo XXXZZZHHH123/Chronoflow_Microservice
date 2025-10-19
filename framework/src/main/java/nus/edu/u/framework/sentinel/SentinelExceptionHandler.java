@@ -17,7 +17,6 @@ import nus.edu.u.common.core.domain.CommonResult;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
-/** Sentinel统一限流异常处理器 */
 @Slf4j
 @Component
 @RequiredArgsConstructor

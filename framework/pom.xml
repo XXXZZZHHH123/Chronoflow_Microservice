@@ -133,11 +133,6 @@
             <artifactId>common</artifactId>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.springframework</groupId>-->
-<!--            <artifactId>spring-webmvc</artifactId>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-web-servlet</artifactId>
@@ -147,12 +142,6 @@
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-        </dependency>
-
 
     </dependencies>
 

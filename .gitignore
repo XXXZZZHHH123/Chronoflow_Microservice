@@ -38,3 +38,5 @@ logs/
 .env
 
 .DS_Store
+
+**/README.md

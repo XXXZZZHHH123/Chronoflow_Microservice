@@ -22,6 +22,10 @@ spec:
         app: attendee-service
         version: v1
     spec:
+      tolerations:
+        - key: "node.gke.io/balloon-pod-resize"
+          operator: "Exists"
+          effect: "NoSchedule"
       containers:
         - name: attendee-service
           image: e1241986/attendee-service:latest
@@ -47,11 +51,11 @@ spec:
               value: "nacos"
           resources:
             requests:
-              memory: "400Mi"
-              cpu: "100m"
+              memory: "512Mi"
+              cpu: "250m"
             limits:
               memory: "800Mi"
-              cpu: "400m"
+              cpu: "500m"
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness

@@ -268,8 +268,8 @@ class EventApplicationServiceImplTest {
         assertThat(updatedEvents.getAllValues())
                 .extracting(EventDO::getId, EventDO::getStatus)
                 .containsExactlyInAnyOrder(
-                tuple(participantEvent.getId(), EventStatusEnum.COMPLETED.getCode()),
-                tuple(organizerEvent.getId(), EventStatusEnum.NOT_STARTED.getCode()));
+                        tuple(participantEvent.getId(), EventStatusEnum.COMPLETED.getCode()),
+                        tuple(organizerEvent.getId(), EventStatusEnum.NOT_STARTED.getCode()));
     }
 
     @Test
@@ -301,16 +301,11 @@ class EventApplicationServiceImplTest {
         organizerEvent.setCreateTime(now.minusDays(1));
 
         UserGroupDO participantRecord =
-                UserGroupDO.builder()
-                        .id(99L)
-                        .userId(organizerId)
-                        .eventId(500L)
-                        .build();
+                UserGroupDO.builder().id(99L).userId(organizerId).eventId(500L).build();
 
         when(userRpcService.exists(organizerId)).thenReturn(true);
         when(eventMapper.selectList(any())).thenReturn(List.of(organizerEvent));
-        when(userGroupMapper.selectList(any()))
-                .thenReturn(List.of(participantRecord));
+        when(userGroupMapper.selectList(any())).thenReturn(List.of(participantRecord));
         when(eventMapper.selectBatchIds(anyCollection())).thenReturn(null);
         when(groupApplicationService.getGroupsByEventIds(anyCollection()))
                 .thenReturn(Collections.emptyMap());
@@ -749,31 +744,31 @@ class EventApplicationServiceImplTest {
     void fetchParticipantCountsByEventIds_returnsEmptyForNullOrEmptyInput() {
         @SuppressWarnings("unchecked")
         Map<Long, Integer> nullResult =
-                ReflectionTestUtils.invokeMethod(service, "fetchParticipantCountsByEventIds", (Object) null);
+                ReflectionTestUtils.invokeMethod(
+                        service, "fetchParticipantCountsByEventIds", (Object) null);
         assertThat(nullResult).isEmpty();
 
         @SuppressWarnings("unchecked")
         Map<Long, Integer> emptyResult =
-                ReflectionTestUtils.invokeMethod(service, "fetchParticipantCountsByEventIds", List.<Long>of());
+                ReflectionTestUtils.invokeMethod(
+                        service, "fetchParticipantCountsByEventIds", List.<Long>of());
         assertThat(emptyResult).isEmpty();
     }
 
     @Test
     void fetchParticipantCountsByEventIds_filtersInvalidEntries() {
-        UserGroupDO valid =
-                UserGroupDO.builder().eventId(1L).userId(10L).build();
-        UserGroupDO duplicate =
-                UserGroupDO.builder().eventId(1L).userId(11L).build();
-        UserGroupDO nullUser =
-                UserGroupDO.builder().eventId(1L).userId(null).build();
-        UserGroupDO nullEvent =
-                UserGroupDO.builder().eventId(null).userId(12L).build();
+        UserGroupDO valid = UserGroupDO.builder().eventId(1L).userId(10L).build();
+        UserGroupDO duplicate = UserGroupDO.builder().eventId(1L).userId(11L).build();
+        UserGroupDO nullUser = UserGroupDO.builder().eventId(1L).userId(null).build();
+        UserGroupDO nullEvent = UserGroupDO.builder().eventId(null).userId(12L).build();
 
-        when(userGroupMapper.selectList(any())).thenReturn(List.of(valid, duplicate, nullUser, nullEvent));
+        when(userGroupMapper.selectList(any()))
+                .thenReturn(List.of(valid, duplicate, nullUser, nullEvent));
 
         @SuppressWarnings("unchecked")
         Map<Long, Integer> counts =
-                ReflectionTestUtils.invokeMethod(service, "fetchParticipantCountsByEventIds", List.of(1L));
+                ReflectionTestUtils.invokeMethod(
+                        service, "fetchParticipantCountsByEventIds", List.of(1L));
 
         assertThat(counts.get(1L)).isEqualTo(2);
     }
@@ -782,7 +777,8 @@ class EventApplicationServiceImplTest {
     void fetchParticipantIdsByEventId_returnsEmptyWhenNull() {
         @SuppressWarnings("unchecked")
         List<Long> result =
-                ReflectionTestUtils.invokeMethod(service, "fetchParticipantIdsByEventId", new Object[] {null});
+                ReflectionTestUtils.invokeMethod(
+                        service, "fetchParticipantIdsByEventId", new Object[] {null});
         assertThat(result).isEmpty();
     }
 
@@ -801,10 +797,8 @@ class EventApplicationServiceImplTest {
 
     @Test
     void fetchTaskStatusesByEventIds_handlesEmptyAndCompletedTasks() {
-        TaskDTO completed =
-                TaskDTO.builder().status(TaskStatusEnum.COMPLETED.getStatus()).build();
-        TaskDTO pending =
-                TaskDTO.builder().status(TaskStatusEnum.PENDING.getStatus()).build();
+        TaskDTO completed = TaskDTO.builder().status(TaskStatusEnum.COMPLETED.getStatus()).build();
+        TaskDTO pending = TaskDTO.builder().status(TaskStatusEnum.PENDING.getStatus()).build();
         when(taskRpcService.getTasksByEventIds(List.of(1L, 2L)))
                 .thenReturn(
                         Map.of(
@@ -813,7 +807,8 @@ class EventApplicationServiceImplTest {
 
         @SuppressWarnings("unchecked")
         Map<Long, EventRespVO.TaskStatusVO> result =
-                ReflectionTestUtils.invokeMethod(service, "fetchTaskStatusesByEventIds", List.of(1L, 2L));
+                ReflectionTestUtils.invokeMethod(
+                        service, "fetchTaskStatusesByEventIds", List.of(1L, 2L));
 
         assertThat(result.get(1L).getTotal()).isZero();
         EventRespVO.TaskStatusVO status = result.get(2L);

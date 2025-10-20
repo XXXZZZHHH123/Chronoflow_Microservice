@@ -517,7 +517,8 @@ jobs:
           kubectl wait --for=condition=complete job/${PERF_JOB_NAME} -n $K8S_NAMESPACE --timeout=30m
           STATUS=$?
           if [ $STATUS -ne 0 ]; then
-            echo "Performance job did not complete successfully (status=$STATUS)."
+            echo "Performance job did not complete successfully (wait exit=$STATUS). Checking failure condition..."
+            kubectl wait --for=condition=failed job/${PERF_JOB_NAME} -n $K8S_NAMESPACE --timeout=1s || true
             kubectl describe job/${PERF_JOB_NAME} -n $K8S_NAMESPACE || true
             kubectl logs job/${PERF_JOB_NAME} -n $K8S_NAMESPACE || true
             exit $STATUS

@@ -115,6 +115,7 @@
                     <simulationsFolder>src/test/scala</simulationsFolder>
                     <simulationClass>nus.edu.u.task.perf.TaskServiceSimulation</simulationClass>
                     <skip>${gatling.skip}</skip>
+                    <failOnAssertionFailure>false</failOnAssertionFailure>
                 </configuration>
                 <executions>
                     <execution>

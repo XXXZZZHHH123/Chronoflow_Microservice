@@ -6,6 +6,8 @@ if [[ -z "${TASK_SERVICE_BASE_URL:-}" ]]; then
   exit 1
 fi
 
+export MAVEN_OPTS="${MAVEN_OPTS:--Xms256m -Xmx512m -XX:+UseContainerSupport}"
+
 declare -a args
 args=(mvn -pl task-service -am gatling:test -Dgatling.skip=false "-DtaskService.baseUrl=${TASK_SERVICE_BASE_URL}")
 

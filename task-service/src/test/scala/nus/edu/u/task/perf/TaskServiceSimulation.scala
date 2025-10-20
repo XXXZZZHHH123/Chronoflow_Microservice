@@ -69,8 +69,8 @@ class TaskServiceSimulation extends Simulation {
           ))
         .asJson
         .check(status.is(200))
-        .check(cookie("Authorization").saveAs("authorizationCookie"))
-        .check(cookie("refreshToken").saveAs("refreshTokenCookie"))
+        .check(headerRegex("Set-Cookie", """Authorization=([^;]+)""").find.saveAs("authorizationCookie"))
+        .check(headerRegex("Set-Cookie", """refreshToken=([^;]+)""").find.saveAs("refreshTokenCookie"))
     ).exitHereIfFailed
 
   private val getTaskScenario =

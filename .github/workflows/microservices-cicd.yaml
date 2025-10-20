@@ -513,12 +513,29 @@ jobs:
       - name: Wait for Gatling job completion
         if: ${{ steps.perf-check.outputs.should-run == 'true' }}
         run: |
-          set +e
-          kubectl wait --for=condition=complete job/${PERF_JOB_NAME} -n $K8S_NAMESPACE --timeout=30m
-          STATUS=$?
-          if [ $STATUS -ne 0 ]; then
-            echo "Performance job did not complete successfully (wait exit=$STATUS). Checking failure condition..."
-            kubectl wait --for=condition=failed job/${PERF_JOB_NAME} -n $K8S_NAMESPACE --timeout=1s || true
+          set -euo pipefail
+          deadline=$((SECONDS + 1800))
+          job_state="UNKNOWN"
+          while [ $SECONDS -le $deadline ]; do
+            if ! kubectl get job/${PERF_JOB_NAME} -n $K8S_NAMESPACE >/dev/null 2>&1; then
+              echo "Job ${PERF_JOB_NAME} not found yet, retrying in 10s..."
+              sleep 10
+              continue
+            fi
+            conditions=$(kubectl get job/${PERF_JOB_NAME} -n $K8S_NAMESPACE -o jsonpath='{range .status.conditions[*]}{.type}={.status}{"\n"}{end}' || true)
+            if echo "$conditions" | grep -q "Complete=True"; then
+              echo "Performance job completed successfully."
+              job_state="SUCCEEDED"
+              break
+            fi
+            if echo "$conditions" | grep -q "Failed=True"; then
+              echo "Performance job reported Failed condition."
+              job_state="FAILED"
+              break
+            fi
+            sleep 10
+          done
+          if [ "$job_state" = "FAILED" ]; then
             kubectl describe job/${PERF_JOB_NAME} -n $K8S_NAMESPACE || true
             kubectl logs job/${PERF_JOB_NAME} -n $K8S_NAMESPACE || true
           fi

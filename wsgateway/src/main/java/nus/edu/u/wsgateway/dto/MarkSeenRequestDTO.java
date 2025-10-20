@@ -1,8 +1,7 @@
 package nus.edu.u.wsgateway.dto;
 
-import lombok.Value;
-
 import java.util.List;
+import lombok.Value;
 
 @Value
 public class MarkSeenRequestDTO {

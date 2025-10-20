@@ -394,7 +394,9 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                             .userId(user.getId())
                             .username(user.getUsername())
                             .build();
-            membersByGroup.computeIfAbsent(relation.getDeptId(), key -> new ArrayList<>()).add(member);
+            membersByGroup
+                    .computeIfAbsent(relation.getDeptId(), key -> new ArrayList<>())
+                    .add(member);
         }
 
         Map<Long, List<GroupDTO>> result = new HashMap<>();
@@ -422,7 +424,10 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
                                                 .leadUserId(group.getLeadUserId())
                                                 .remark(group.getRemark())
                                                 .status(group.getStatus())
-                                                .members(members.isEmpty() ? List.of() : List.copyOf(members))
+                                                .members(
+                                                        members.isEmpty()
+                                                                ? List.of()
+                                                                : List.copyOf(members))
                                                 .build();
                                     })
                             .toList();

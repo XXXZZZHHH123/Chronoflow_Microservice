@@ -8,5 +8,4 @@ public record AttachmentDTO(
         @JsonProperty("bytes") byte[] bytes,
         @JsonProperty("url") String url,
         @JsonProperty("inline") boolean inline,
-        @JsonProperty("contentId") String contentId
-) {}
+        @JsonProperty("contentId") String contentId) {}

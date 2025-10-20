@@ -10,15 +10,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.core.domain.CommonResult;
-import nus.edu.u.task.domain.dto.EmailPubSubMessage;
-import nus.edu.u.task.domain.dto.NotificationEventType;
 import nus.edu.u.task.domain.vo.task.TaskCreateReqVO;
 import nus.edu.u.task.domain.vo.task.TaskDashboardRespVO;
 import nus.edu.u.task.domain.vo.task.TaskRespVO;
@@ -40,7 +35,7 @@ public class TaskController {
     private final TaskApplicationService taskApplicationService;
     private final TaskLogApplicationService taskLogApplicationService;
 
-    //super testing
+    // super testing
 
     private final PubSubTemplate pubSubTemplate;
     private final ObjectMapper objectMapper;
@@ -49,7 +44,8 @@ public class TaskController {
     public ResponseEntity<?> sendRawEmailPubSubMessage() {
         try {
             // 1️⃣ Simple raw JSON payload (no DTO, no template)
-            String rawJson = """
+            String rawJson =
+                    """
         {
           "to": "chenyuliang1121@gmail.com",
           "recipientKey": "email:chenyuliang1121@gmail.com",
@@ -66,24 +62,17 @@ public class TaskController {
             pubSubTemplate.publish(topicName, rawJson);
 
             log.info("📤 Published raw email message to topic {}: {}", topicName, rawJson);
-            return ResponseEntity.ok(Map.of(
-                    "status", "PUBLISHED",
-                    "topic", topicName,
-                    "payload", rawJson
-            ));
+            return ResponseEntity.ok(
+                    Map.of(
+                            "status", "PUBLISHED",
+                            "topic", topicName,
+                            "payload", rawJson));
 
         } catch (Exception e) {
             log.error("❌ Failed to publish raw Pub/Sub email", e);
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
-
-
-
-
-
-
-
 
     @SaCheckPermission(CREATE_TASK)
     @PostMapping("{eventId}")

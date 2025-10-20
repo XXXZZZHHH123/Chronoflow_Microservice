@@ -1,6 +1,5 @@
 package nus.edu.u.domain.dataObject.common;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,8 +16,7 @@ import nus.edu.u.enums.push.PushPlatform;
 @Table(
         name = "notification_device",
         uniqueConstraints = @UniqueConstraint(name = "uk_device_token", columnNames = "token"),
-        indexes = @Index(name = "idx_device_user_status", columnList = "user_id,status")
-)
+        indexes = @Index(name = "idx_device_user_status", columnList = "user_id,status"))
 public class NotificationDeviceDO extends BaseNotificationEntity {
 
     @Id
@@ -45,6 +43,3 @@ public class NotificationDeviceDO extends BaseNotificationEntity {
         if (id == null) id = java.util.UUID.randomUUID().toString();
     }
 }
-
-
-

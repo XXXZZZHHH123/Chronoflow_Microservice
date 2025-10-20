@@ -1,11 +1,10 @@
 package nus.edu.u.task.domain.dto;
 
-import lombok.*;
-import lombok.extern.jackson.Jacksonized;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
 @Value
 @Builder

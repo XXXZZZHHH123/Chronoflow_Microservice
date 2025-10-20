@@ -1,6 +1,7 @@
 package nus.edu.u.services.ws;
 
-
+import java.util.Collections;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.configuration.ws.WsGatewayLimitPropertiesConfig;
@@ -16,9 +17,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-
-import java.util.Collections;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -36,15 +34,16 @@ public class WsServiceImpl implements WsService {
             throw new IllegalArgumentException("userId is required");
 
         // build a dto with recipientKey = ws:user:<userId>
-        WsRequestDTO dto = WsRequestDTO.builder()
-                .eventId(base.getEventId())
-                .recipientKey("ws:user:" + userId)
-                .userId(userId)
-                .title(base.getTitle())
-                .body(base.getBody())
-                .data(base.getData())
-                .type(base.getType())
-                .build();
+        WsRequestDTO dto =
+                WsRequestDTO.builder()
+                        .eventId(base.getEventId())
+                        .recipientKey("ws:user:" + userId)
+                        .userId(userId)
+                        .title(base.getTitle())
+                        .body(base.getBody())
+                        .data(base.getData())
+                        .type(base.getType())
+                        .build();
 
         return send(dto);
     }
@@ -69,28 +68,30 @@ public class WsServiceImpl implements WsService {
 
         try {
             // 1) Insert parent delivery row and flush so idempotency can trip early
-            delivery = deliveryRepo.saveAndFlush(
-                    NotificationDeliveryDO.builder()
-                            .eventId(dto.getEventId())
-                            .recipientKey(dto.getRecipientKey())
-                            .channel(NotificationChannel.WS)
-                            .type(dto.getType())
-                            .status(NotificationStatus.CREATED)
-                            .build()
-            );
+            delivery =
+                    deliveryRepo.saveAndFlush(
+                            NotificationDeliveryDO.builder()
+                                    .eventId(dto.getEventId())
+                                    .recipientKey(dto.getRecipientKey())
+                                    .channel(NotificationChannel.WS)
+                                    .type(dto.getType())
+                                    .status(NotificationStatus.CREATED)
+                                    .build());
 
             // 2) Call gateway (no WS-channel table; gateway persists Mongo feed)
-            Map<String, Object> data = dto.getData() == null ? Collections.emptyMap() : dto.getData();
+            Map<String, Object> data =
+                    dto.getData() == null ? Collections.emptyMap() : dto.getData();
 
             // NOTE: the gateway client expects WsPushRequestDTO; we can map inline
-            var gwDto = WsRequestDTO.builder()
-                    .userId(dto.getUserId())
-                    .eventId(dto.getEventId())
-                    .type(dto.getType())
-                    .title(dto.getTitle())
-                    .body(dto.getBody())
-                    .data(data)
-                    .build();
+            var gwDto =
+                    WsRequestDTO.builder()
+                            .userId(dto.getUserId())
+                            .eventId(dto.getEventId())
+                            .type(dto.getType())
+                            .title(dto.getTitle())
+                            .body(dto.getBody())
+                            .data(data)
+                            .build();
 
             wsClient.sendToUser(gwDto).block();
 
@@ -98,38 +99,53 @@ public class WsServiceImpl implements WsService {
             delivery.setStatus(NotificationStatus.DELIVERED);
             deliveryRepo.save(delivery);
 
-            log.info("WS DELIVERED: eventId={}, recipientKey={}, userId={}",
-                    dto.getEventId(), dto.getRecipientKey(), dto.getUserId());
+            log.info(
+                    "WS DELIVERED: eventId={}, recipientKey={}, userId={}",
+                    dto.getEventId(),
+                    dto.getRecipientKey(),
+                    dto.getUserId());
             return "ACCEPTED";
 
         } catch (DataIntegrityViolationException dup) {
             // (eventId + channel + recipientKey) unique ⇒ idempotent duplicate
-            log.info("WS duplicate suppressed (idempotent): eventId={}, recipientKey={}",
-                    dto.getEventId(), dto.getRecipientKey());
+            log.info(
+                    "WS duplicate suppressed (idempotent): eventId={}, recipientKey={}",
+                    dto.getEventId(),
+                    dto.getRecipientKey());
             return "ALREADY_ACCEPTED";
 
         } catch (WebClientResponseException wcre) {
             // Provider (gateway) error
-            log.warn("WS FAILED: status={} reason={} body={}",
-                    wcre.getRawStatusCode(), wcre.getStatusText(), wcre.getResponseBodyAsString());
+            log.warn(
+                    "WS FAILED: status={} reason={} body={}",
+                    wcre.getRawStatusCode(),
+                    wcre.getStatusText(),
+                    wcre.getResponseBodyAsString());
             try {
                 if (delivery != null) {
                     delivery.setStatus(NotificationStatus.FAILED);
                     deliveryRepo.save(delivery);
                 }
-            } catch (Exception ignore) {}
+            } catch (Exception ignore) {
+            }
             return "FAILED";
 
         } catch (Exception ex) {
             // Generic failure
-            log.warn("WS FAILED: eventId={}, recipientKey={}, userId={}, err={}",
-                    dto.getEventId(), dto.getRecipientKey(), dto.getUserId(), ex.toString(), ex);
+            log.warn(
+                    "WS FAILED: eventId={}, recipientKey={}, userId={}, err={}",
+                    dto.getEventId(),
+                    dto.getRecipientKey(),
+                    dto.getUserId(),
+                    ex.toString(),
+                    ex);
             try {
                 if (delivery != null) {
                     delivery.setStatus(NotificationStatus.FAILED);
                     deliveryRepo.save(delivery);
                 }
-            } catch (Exception ignore) {}
+            } catch (Exception ignore) {
+            }
             return "FAILED";
         }
     }

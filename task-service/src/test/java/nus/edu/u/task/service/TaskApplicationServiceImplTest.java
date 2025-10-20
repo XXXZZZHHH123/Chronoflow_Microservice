@@ -600,7 +600,6 @@ class TaskApplicationServiceImplTest {
         assertThat(exception.getCode()).isEqualTo(TASK_NOT_FOUND.getCode());
     }
 
-
     @Test
     void getTask_whenEventMissing_throwsServiceException() {
         stubEvents(new LinkedHashMap<>());
@@ -813,7 +812,6 @@ class TaskApplicationServiceImplTest {
         TasksRespVO taskSummary = dashboard.getTasks().get(0);
         assertThat(taskSummary.getAssignedUser().getGroups()).hasSize(1);
     }
-
 
     @Test
     void getByMemberId_whenNoTasks_returnsEmptyCollections() {

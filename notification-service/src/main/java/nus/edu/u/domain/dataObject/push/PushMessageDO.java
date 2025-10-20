@@ -28,8 +28,7 @@ public class PushMessageDO extends BaseNotificationEntity {
     @JoinColumn(
             name = "delivery_id",
             referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "fk_push_delivery")
-    )
+            foreignKey = @ForeignKey(name = "fk_push_delivery"))
     private NotificationDeliveryDO delivery;
 
     /** Device token used for FCM/APNs */
@@ -47,9 +46,7 @@ public class PushMessageDO extends BaseNotificationEntity {
     private PushStatus status = PushStatus.PENDING;
 
     /** Error message (nullable) */
-    @Lob
-    private String errorMessage;
-
+    @Lob private String errorMessage;
 
     // --- convenient helpers ---
     public PushMessageDO markSent(String fcmId) {

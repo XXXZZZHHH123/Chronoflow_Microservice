@@ -1,9 +1,9 @@
 package nus.edu.u.enums.common;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
@@ -16,9 +16,9 @@ public enum NotificationEventType {
     private final String code;
 
     public static String buildEventId(NotificationEventType type, Object... parts) {
-        return type.getCode() + ":" + Arrays.stream(parts)
-                .map(String::valueOf)
-                .collect(Collectors.joining(":"));
+        return type.getCode()
+                + ":"
+                + Arrays.stream(parts).map(String::valueOf).collect(Collectors.joining(":"));
     }
 
     @Override

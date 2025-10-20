@@ -1,4 +1,5 @@
 package nus.edu.u.enums.ws;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

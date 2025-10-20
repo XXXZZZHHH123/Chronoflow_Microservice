@@ -57,7 +57,9 @@ class UserServiceImplTest {
     @Mock private UserRoleMapper userRoleMapper;
     @Mock private RoleMapper roleMapper;
     @Mock private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
-    @Mock private nus.edu.u.user.publisher.member.MemberNotificationPublisher memberNotificationPublisher;
+
+    @Mock
+    private nus.edu.u.user.publisher.member.MemberNotificationPublisher memberNotificationPublisher;
 
     @BeforeAll
     static void initTableInfo() {

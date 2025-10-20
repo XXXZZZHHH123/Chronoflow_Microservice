@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.attendee.domain.dataobject.EventAttendeeDO;
 import nus.edu.u.attendee.domain.vo.attendee.AttendeeInfoRespVO;
-import nus.edu.u.attendee.domain.vo.attendee.AttendeeInviteReqVO;
 import nus.edu.u.attendee.domain.vo.attendee.AttendeeQrCodeRespVO;
 import nus.edu.u.attendee.domain.vo.attendee.AttendeeReqVO;
 import nus.edu.u.attendee.domain.vo.checkin.CheckInRespVO;

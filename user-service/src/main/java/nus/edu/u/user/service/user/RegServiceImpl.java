@@ -7,7 +7,6 @@ import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.constant.PermissionConstants;
@@ -31,8 +30,6 @@ import nus.edu.u.user.mapper.tenant.TenantMapper;
 import nus.edu.u.user.mapper.user.UserMapper;
 import nus.edu.u.user.mapper.user.UserRoleMapper;
 import nus.edu.u.user.publisher.organizer.OrganizerNotificationPublisher;
-
-import org.aspectj.weaver.ast.Or;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -211,22 +208,25 @@ public class RegServiceImpl implements RegService {
                         .build();
         rolePermissionDO.setTenantId(tenant.getId());
 
-        RegOrganizerReqDTO dto = RegOrganizerReqDTO.builder()
-                .name(regOrganizerReqVO.getName())
-                .username(user.getUsername())               
-                .userEmail(user.getEmail())                 
-                .mobile(regOrganizerReqVO.getMobile())
-                .organizationName(tenant.getName())
-                .organizationAddress(tenant.getAddress())
-                .organizationCode(regOrganizerReqVO.getOrganizationCode()) 
-                .build();
+        RegOrganizerReqDTO dto =
+                RegOrganizerReqDTO.builder()
+                        .name(regOrganizerReqVO.getName())
+                        .username(user.getUsername())
+                        .userEmail(user.getEmail())
+                        .mobile(regOrganizerReqVO.getMobile())
+                        .organizationName(tenant.getName())
+                        .organizationAddress(tenant.getAddress())
+                        .organizationCode(regOrganizerReqVO.getOrganizationCode())
+                        .build();
 
         try {
             organizerNotificationPublisher.sendWelcomeOrganizerEmail(dto);
-        }catch (Exception e) {
-            log.warn("Send organizer registration notification failed. email={}", dto.getUserEmail(), e);
+        } catch (Exception e) {
+            log.warn(
+                    "Send organizer registration notification failed. email={}",
+                    dto.getUserEmail(),
+                    e);
         }
-        
 
         isSuccess = rolePermissionMapper.insert(rolePermissionDO) > 0;
         if (!isSuccess) {

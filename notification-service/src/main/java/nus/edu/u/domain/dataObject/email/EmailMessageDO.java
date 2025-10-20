@@ -1,6 +1,5 @@
 package nus.edu.u.domain.dataObject.email;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import nus.edu.u.domain.dataObject.common.BaseNotificationEntity;
@@ -28,8 +27,7 @@ public class EmailMessageDO extends BaseNotificationEntity {
     @JoinColumn(
             name = "delivery_id",
             referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "fk_email_delivery")
-    )
+            foreignKey = @ForeignKey(name = "fk_email_delivery"))
     private NotificationDeliveryDO delivery;
 
     /** Actual email provider (e.g., AWS_SES, SMTP, SENDGRID) */

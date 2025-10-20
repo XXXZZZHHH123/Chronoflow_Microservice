@@ -114,16 +114,17 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                         .build();
         taskActionFactory.getStrategy(TaskActionEnum.CREATE).execute(task, actionDTO);
 
-        NewTaskAssignmentDTO dto = NewTaskAssignmentDTO.builder()
-                .taskId(String.valueOf(task.getId()))
-                .eventId(String.valueOf(event.getId()))
-                .assigneeUserId(String.valueOf(assignee.getId()))
-                .assigneeEmail(assignee.getEmail())
-                .assignerName(assigner != null ? assigner.getUsername() : "System")
-                .taskName(task.getName())
-                .eventName(event.getName())
-                .description(task.getDescription())
-                .build();
+        NewTaskAssignmentDTO dto =
+                NewTaskAssignmentDTO.builder()
+                        .taskId(String.valueOf(task.getId()))
+                        .eventId(String.valueOf(event.getId()))
+                        .assigneeUserId(String.valueOf(assignee.getId()))
+                        .assigneeEmail(assignee.getEmail())
+                        .assignerName(assigner != null ? assigner.getUsername() : "System")
+                        .taskName(task.getName())
+                        .eventName(event.getName())
+                        .description(task.getDescription())
+                        .build();
 
         taskNotificationPublisher.notifyNewTaskToAssigneeEmail(dto);
 
@@ -222,8 +223,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
         Map<Long, List<DeptDO>> deptsByUser =
                 groupUserIds.isEmpty()
                         ? Map.of()
-                        : fetchUserDeptsByEvents(
-                                groupUserIds, List.of(eventId), groupsByEvent);
+                        : fetchUserDeptsByEvents(groupUserIds, List.of(eventId), groupsByEvent);
         List<DeptDO> assignerDepts =
                 assignerId != null ? deptsByUser.getOrDefault(assignerId, List.of()) : List.of();
         List<DeptDO> assigneeDepts =
@@ -337,7 +337,8 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                                     userId != null
                                             ? deptsByUser.getOrDefault(userId, List.of())
                                             : List.of();
-                            return toTaskRespVO(task, assigner, assignerDepts, assignee, assigneeDepts);
+                            return toTaskRespVO(
+                                    task, assigner, assignerDepts, assignee, assigneeDepts);
                         })
                 .toList();
     }
@@ -382,10 +383,8 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                         task -> {
                             Long eventId = task.getEventId();
                             EventRespDTO event = eventId != null ? eventsById.get(eventId) : null;
-                            Long assignerId =
-                                    event != null ? event.getOrganizerId() : null;
-                            UserDO assigner =
-                                    assignerId != null ? usersById.get(assignerId) : null;
+                            Long assignerId = event != null ? event.getOrganizerId() : null;
+                            UserDO assigner = assignerId != null ? usersById.get(assignerId) : null;
                             List<DeptDO> assignerDepts =
                                     assignerId != null
                                             ? filterDeptsByEvent(
@@ -421,11 +420,14 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                         task -> {
                             TasksRespVO respVO = TaskConvert.INSTANCE.toTasksRespVO(task);
                             EventRespDTO event =
-                                    task.getEventId() != null ? eventsById.get(task.getEventId()) : null;
+                                    task.getEventId() != null
+                                            ? eventsById.get(task.getEventId())
+                                            : null;
                             respVO.setEvent(toTasksEvent(event));
                             List<DeptDO> depts =
                                     filterDeptsByEvent(
-                                            memberDeptsByEvent.getOrDefault(member.getId(), List.of()),
+                                            memberDeptsByEvent.getOrDefault(
+                                                    member.getId(), List.of()),
                                             task.getEventId());
                             respVO.setAssignedUser(toDashboardAssignedUser(member, depts));
                             return respVO;
@@ -456,8 +458,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
 
         TaskDashboardRespVO dashboard = new TaskDashboardRespVO();
         dashboard.setMember(toMemberVO(member));
-        dashboard.setGroups(
-                resolveMemberGroups(member, memberTasks, groupsByEvent, eventsById));
+        dashboard.setGroups(resolveMemberGroups(member, memberTasks, groupsByEvent, eventsById));
         dashboard.setTasks(
                 listDashboardTasksByMember(member, memberTasks, groupsByEvent, eventsById));
         return dashboard;
@@ -493,9 +494,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
         assignerVO.setEmail(user.getEmail());
         assignerVO.setPhone(user.getPhone());
         assignerVO.setGroups(
-                depts == null
-                        ? List.of()
-                        : depts.stream().map(this::toAssignerGroupVO).toList());
+                depts == null ? List.of() : depts.stream().map(this::toAssignerGroupVO).toList());
         return assignerVO;
     }
 
@@ -506,9 +505,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
         assignedVO.setEmail(user.getEmail());
         assignedVO.setPhone(user.getPhone());
         assignedVO.setGroups(
-                depts == null
-                        ? List.of()
-                        : depts.stream().map(this::toCrudGroupVO).toList());
+                depts == null ? List.of() : depts.stream().map(this::toCrudGroupVO).toList());
         return assignedVO;
     }
 
@@ -548,9 +545,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
         assignedUserVO.setEmail(user.getEmail());
         assignedUserVO.setPhone(user.getPhone());
         assignedUserVO.setGroups(
-                depts == null
-                        ? List.of()
-                        : depts.stream().map(this::toDashboardGroupVO).toList());
+                depts == null ? List.of() : depts.stream().map(this::toDashboardGroupVO).toList());
         return assignedUserVO;
     }
 

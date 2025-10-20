@@ -19,7 +19,6 @@ public class TaskRespVO {
     private LocalDateTime updateTime;
     private AssignerUserVO assignerUser;
     private AssignedUserVO assignedUser;
-    private EventVO event;
 
     @Data
     public static class AssignerUserVO {
@@ -49,18 +48,5 @@ public class TaskRespVO {
             private Long id;
             private String name;
         }
-    }
-
-    @Data
-    public static class EventVO {
-        private Long id;
-        private String name;
-        private String description;
-        private Long organizerId;
-        private String location;
-        private Integer status;
-        private LocalDateTime startTime;
-        private LocalDateTime endTime;
-        private String remark;
     }
 }

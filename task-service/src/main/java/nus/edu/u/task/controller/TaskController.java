@@ -6,9 +6,13 @@ import static nus.edu.u.common.constant.PermissionConstants.QUERY_TASK;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.core.domain.CommonResult;
 import nus.edu.u.task.domain.vo.task.TaskCreateReqVO;
 import nus.edu.u.task.domain.vo.task.TaskDashboardRespVO;
@@ -17,6 +21,7 @@ import nus.edu.u.task.domain.vo.task.TaskUpdateReqVO;
 import nus.edu.u.task.domain.vo.taskLog.TaskLogRespVO;
 import nus.edu.u.task.service.TaskApplicationService;
 import nus.edu.u.task.service.TaskLogApplicationService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,10 +29,50 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/tasks")
 @Validated
 @RequiredArgsConstructor
+@Slf4j
 public class TaskController {
 
     private final TaskApplicationService taskApplicationService;
     private final TaskLogApplicationService taskLogApplicationService;
+
+    // super testing
+
+    private final PubSubTemplate pubSubTemplate;
+    private final ObjectMapper objectMapper;
+
+    @PostMapping("/send")
+    public ResponseEntity<?> sendRawEmailPubSubMessage() {
+        try {
+            // 1️⃣ Simple raw JSON payload (no DTO, no template)
+            String rawJson =
+                    """
+        {
+          "to": "chenyuliang1121@gmail.com",
+          "recipientKey": "email:chenyuliang1121@gmail.com",
+          "subject": "ChronoFlow Test Email",
+          "body": "Hello! This is a raw Pub/Sub email test from TaskService.",
+          "eventId": "demo-email-raw-00123",
+          "type": "MEMBER_INVITE",
+          "templateId": "member-invite"
+        }
+        """;
+
+            // 2️⃣ Publish to Pub/Sub topic
+            String topicName = "chronoflow-notification"; // must match your GCP topic
+            pubSubTemplate.publish(topicName, rawJson);
+
+            log.info("📤 Published raw email message to topic {}: {}", topicName, rawJson);
+            return ResponseEntity.ok(
+                    Map.of(
+                            "status", "PUBLISHED",
+                            "topic", topicName,
+                            "payload", rawJson));
+
+        } catch (Exception e) {
+            log.error("❌ Failed to publish raw Pub/Sub email", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
 
     @SaCheckPermission(CREATE_TASK)
     @PostMapping("{eventId}")

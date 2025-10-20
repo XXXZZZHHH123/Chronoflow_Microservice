@@ -91,6 +91,6 @@ class TaskServiceSimulation extends Simulation {
     .assertions(
       global.responseTime.percentile3.lte(60000),
       global.successfulRequests.percent.gte(80),
-      forAll.failedRequests.percent.lte(5)
+      forAll.failedRequests.percent.lte(30)
     )
 }

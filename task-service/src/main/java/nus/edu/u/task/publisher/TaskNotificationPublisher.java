@@ -1,6 +1,5 @@
 package nus.edu.u.task.publisher;
 
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import nus.edu.u.shared.rpc.notification.dto.task.NewTaskAssignmentDTO;
 import nus.edu.u.shared.rpc.notification.service.TaskAssignmentService;
@@ -13,19 +12,20 @@ public class TaskNotificationPublisher implements TaskAssignmentService {
 
     private final NotificationPublisher notificationPublisher;
 
+
     @Override
     public String notifyNewTaskToAssigneePush(NewTaskAssignmentDTO dto) {
-        return "";
+        return notificationPublisher.publish(TaskNotificationMapper.taskAssignmentToPushNotification(dto));
     }
 
     @Override
     public String notifyNewTaskToAssigneeEmail(NewTaskAssignmentDTO dto) {
-        return notificationPublisher.publish(
-                TaskNotificationMapper.taskAssignmentToNotification(dto));
+        return notificationPublisher.publish(TaskNotificationMapper.taskAssignmentToEmailNotification(dto));
     }
 
     @Override
-    public Map<String, String> notifyNewTaskAllChannels(NewTaskAssignmentDTO dto) {
-        return Map.of();
+    public String notifyNewTaskToAssigneeWs(NewTaskAssignmentDTO dto)
+    {
+        return notificationPublisher.publish(TaskNotificationMapper.taskAssignmentToWsNotification(dto));
     }
 }

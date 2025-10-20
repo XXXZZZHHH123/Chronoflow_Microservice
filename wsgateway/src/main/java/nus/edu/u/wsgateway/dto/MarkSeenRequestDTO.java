@@ -1,9 +1,13 @@
 package nus.edu.u.wsgateway.dto;
 
-import java.util.List;
-import lombok.Value;
+import lombok.*;
 
-@Value
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class MarkSeenRequestDTO {
     String userId;
     List<String> notificationIds;

@@ -1,7 +1,4 @@
 package nus.edu.u.core.ws;
-
-import java.util.Locale;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.core.common.NotificationSender;
@@ -12,6 +9,9 @@ import nus.edu.u.enums.common.NotificationChannel;
 import nus.edu.u.services.template.push.PushTemplateService;
 import nus.edu.u.services.ws.WsService;
 import org.springframework.stereotype.Component;
+
+import java.util.Locale;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -43,48 +43,41 @@ public class WsNotificationSender implements NotificationSender {
         String body;
         Map<String, Object> extras;
         try {
-            RenderedTemplateDTO rendered =
-                    templateService.render(
-                            request.getTemplateId(),
-                            request.getVariables(),
-                            request.getLocale() == null ? Locale.ENGLISH : request.getLocale());
-            title = rendered.getTitle() != null ? rendered.getTitle() : "Notification";
-            body = rendered.getBody() != null ? rendered.getBody() : "";
+            RenderedTemplateDTO rendered = templateService.render(
+                    request.getTemplateId(),
+                    request.getVariables(),
+                    request.getLocale() == null ? Locale.ENGLISH : request.getLocale()
+            );
+            title  = rendered.getTitle()  != null ? rendered.getTitle()  : "Notification";
+            body   = rendered.getBody()   != null ? rendered.getBody()   : "";
             extras = rendered.getExtras() != null ? rendered.getExtras() : Map.of();
         } catch (Exception ex) {
-            Map<String, Object> vars =
-                    request.getVariables() == null ? Map.of() : request.getVariables();
-            title = String.valueOf(vars.getOrDefault("title", "Notification"));
-            body = String.valueOf(vars.getOrDefault("body", ""));
+            Map<String, Object> vars = request.getVariables() == null ? Map.of() : request.getVariables();
+            title  = String.valueOf(vars.getOrDefault("title", "Notification"));
+            body   = String.valueOf(vars.getOrDefault("body", ""));
             @SuppressWarnings("unchecked")
             Map<String, Object> fallbackExtras =
-                    (vars.get("extras") instanceof Map<?, ?> m)
-                            ? (Map<String, Object>) m
-                            : Map.of();
+                    (vars.get("extras") instanceof Map<?, ?> m) ? (Map<String, Object>) m : Map.of();
             extras = fallbackExtras;
             log.debug("[WS] template fallback: {}", ex.getMessage());
         }
 
         String recipientKey = "ws:user:" + request.getUserId();
 
-        WsRequestDTO dto =
-                WsRequestDTO.builder()
-                        .userId(request.getUserId())
-                        .eventId(request.getEventId())
-                        .type(request.getType())
-                        .title(title)
-                        .recipientKey(recipientKey)
-                        .body(body)
-                        .data(extras)
-                        .build();
+        WsRequestDTO dto = WsRequestDTO.builder()
+                .userId(request.getUserId())
+                .eventId(request.getEventId())
+                .type(request.getType())
+                .title(title)
+                .recipientKey(recipientKey)
+                .body(body)
+                .data(extras)
+                .build();
 
         String result = wsService.send(dto);
 
-        log.info(
-                "[WS] notification initiated for userId={} eventId={} status={}",
-                request.getUserId(),
-                request.getEventId(),
-                result);
+        log.info("[WS] notification initiated for userId={} eventId={} status={}",
+                request.getUserId(), request.getEventId(), result);
 
         return result;
     }

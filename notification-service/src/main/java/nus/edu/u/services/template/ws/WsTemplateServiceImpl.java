@@ -1,7 +1,6 @@
 package nus.edu.u.services.template.ws;
 
-import java.util.Locale;
-import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.domain.dto.common.RenderedTemplateDTO;
@@ -9,10 +8,13 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.util.Locale;
+import java.util.Map;
+
 /**
- * Renders WS templates from templates/ws/<templateKey>.txt (optional). Falls back to
- * variables["body"] when the file is missing. Extras defaults to variables["extras"] or the whole
- * variables map.
+ * Renders WS templates from templates/ws/<templateKey>.txt (optional).
+ * Falls back to variables["body"] when the file is missing.
+ * Extras defaults to variables["extras"] or the whole variables map.
  */
 @Service
 @RequiredArgsConstructor
@@ -22,8 +24,7 @@ public class WsTemplateServiceImpl implements WsTemplateService {
     private final TemplateEngine templateEngine;
 
     @Override
-    public RenderedTemplateDTO render(
-            String templateKey, Map<String, Object> variables, Locale locale) {
+    public RenderedTemplateDTO render(String templateKey, Map<String, Object> variables, Locale locale) {
         Locale effectiveLocale = (locale != null) ? locale : Locale.ENGLISH;
         Context ctx = new Context(effectiveLocale);
         if (variables != null) variables.forEach(ctx::setVariable);
@@ -36,7 +37,10 @@ public class WsTemplateServiceImpl implements WsTemplateService {
             body = String.valueOf(variables.get("body"));
         }
 
-        return RenderedTemplateDTO.builder().body(body).extras(resolveExtras(variables)).build();
+        return RenderedTemplateDTO.builder()
+                .body(body)
+                .extras(resolveExtras(variables))
+                .build();
     }
 
     // ---- helpers ----

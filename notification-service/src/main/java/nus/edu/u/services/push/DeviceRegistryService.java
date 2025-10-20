@@ -1,13 +1,14 @@
 package nus.edu.u.services.push;
 
-import java.util.List;
+
 import nus.edu.u.domain.dataObject.common.NotificationDeviceDO;
 import nus.edu.u.domain.dto.common.DeviceRegisterDTO;
 import nus.edu.u.domain.dto.common.NotificationDeviceViewDTO;
 
+import java.util.List;
+
 public interface DeviceRegistryService {
     void register(String userId, DeviceRegisterDTO dto);
-
     void revokeByToken(String token);
 
     /** Old: returns entities (no caching) */

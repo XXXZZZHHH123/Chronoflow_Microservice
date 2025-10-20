@@ -1,6 +1,5 @@
 package nus.edu.u.wsgateway.socket;
 
-import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.wsgateway.runtime.LocalConnectionRegistry;
@@ -11,6 +10,8 @@ import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
+
+import java.net.URI;
 
 @Slf4j
 @Component
@@ -23,8 +24,10 @@ public class WsHandler implements WebSocketHandler {
     public Mono<Void> handle(WebSocketSession session) {
 
         URI uri = session.getHandshakeInfo().getUri();
-        String userId =
-                UriComponentsBuilder.fromUri(uri).build().getQueryParams().getFirst("userId");
+        String userId = UriComponentsBuilder.fromUri(uri)
+                .build()
+                .getQueryParams()
+                .getFirst("userId");
 
         if (userId == null || userId.isBlank()) {
             log.warn("[WS] missing userId query param for session {}", session.getId());
@@ -37,51 +40,34 @@ public class WsHandler implements WebSocketHandler {
         var outbound = registry.stream(userId).map(session::textMessage);
 
         // Inbound: optional logging / simple ping
-        var inbound =
-                session.receive()
-                        .doOnNext(
-                                msg -> {
-                                    WebSocketMessage.Type type = msg.getType();
-                                    if (type == WebSocketMessage.Type.TEXT) {
-                                        String text = msg.getPayloadAsText();
-                                        if ("ping".equalsIgnoreCase(text)) {
-                                            session.send(Mono.just(session.textMessage("pong")))
-                                                    .subscribe(
-                                                            null,
-                                                            ex ->
-                                                                    log.debug(
-                                                                            "[WS] pong send failed to {}: {}",
-                                                                            session.getId(),
-                                                                            ex.toString()));
-                                        } else {
-                                            log.debug(
-                                                    "[WS] inbound text {} -> {}",
-                                                    session.getId(),
-                                                    text);
-                                        }
-                                    } else {
-                                        log.trace(
-                                                "[WS] ignoring {} from {}", type, session.getId());
-                                    }
-                                })
-                        .onErrorResume(
-                                ex -> {
-                                    log.warn(
-                                            "[WS] receive error session {}: {}",
-                                            session.getId(),
-                                            ex.toString());
-                                    return Mono.empty();
-                                })
-                        .then();
+        var inbound = session.receive()
+                .doOnNext(msg -> {
+                    WebSocketMessage.Type type = msg.getType();
+                    if (type == WebSocketMessage.Type.TEXT) {
+                        String text = msg.getPayloadAsText();
+                        if ("ping".equalsIgnoreCase(text)) {
+                            session.send(Mono.just(session.textMessage("pong")))
+                                    .subscribe(
+                                            null,
+                                            ex -> log.debug("[WS] pong send failed to {}: {}", session.getId(), ex.toString())
+                                    );
+                        } else {
+                            log.debug("[WS] inbound text {} -> {}", session.getId(), text);
+                        }
+                    } else {
+                        log.trace("[WS] ignoring {} from {}", type, session.getId());
+                    }
+                })
+                .onErrorResume(ex -> {
+                    log.warn("[WS] receive error session {}: {}", session.getId(), ex.toString());
+                    return Mono.empty();
+                })
+                .then();
 
         // Keep both directions alive; channel cleanup is handled by registry.stream() ref-count
         return Mono.when(session.send(outbound), inbound)
-                .doFinally(
-                        sig ->
-                                log.info(
-                                        "[WS] disconnect userId={}, session={}, signal={}",
-                                        userId,
-                                        session.getId(),
-                                        sig));
+                .doFinally(sig ->
+                        log.info("[WS] disconnect userId={}, session={}, signal={}", userId, session.getId(), sig)
+                );
     }
 }

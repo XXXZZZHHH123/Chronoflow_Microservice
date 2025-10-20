@@ -1,14 +1,15 @@
 package nus.edu.u.shared.rpc.notification.dto.common;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import nus.edu.u.shared.rpc.notification.enums.NotificationChannel;
 import nus.edu.u.shared.rpc.notification.enums.NotificationEventType;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @Data
 @Builder(toBuilder = true)
@@ -35,4 +36,5 @@ public class NotificationRequestDTO {
     private String eventId;
 
     private NotificationEventType type;
+
 }

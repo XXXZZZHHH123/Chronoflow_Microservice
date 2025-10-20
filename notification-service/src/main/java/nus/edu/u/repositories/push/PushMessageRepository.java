@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PushMessageRepository extends JpaRepository<PushMessageDO, String> {}
+public interface PushMessageRepository extends JpaRepository<PushMessageDO, String> {
+}

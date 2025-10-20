@@ -2,15 +2,15 @@ package nus.edu.u.domain.dto.common;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import nus.edu.u.enums.common.NotificationChannel;
 import nus.edu.u.enums.common.NotificationEventType;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @Data
 @Builder(toBuilder = true)
@@ -18,7 +18,8 @@ import nus.edu.u.enums.common.NotificationEventType;
 @AllArgsConstructor
 public class NotificationRequestDTO {
 
-    @NotNull private NotificationChannel channel;
+    @NotNull
+    private NotificationChannel channel;
 
     private String to;
 
@@ -34,9 +35,11 @@ public class NotificationRequestDTO {
 
     private List<AttachmentDTO> attachments;
 
-    @NotBlank private String eventId;
+    @NotBlank
+    private String eventId;
 
-    @NotNull private NotificationEventType type;
+    @NotNull
+    private NotificationEventType type;
 
     /** Immutable-style helper methods */
     public NotificationRequestDTO withLocale(Locale locale) {

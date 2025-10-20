@@ -1,7 +1,5 @@
 package nus.edu.u.wsgateway.service;
 
-import java.time.Instant;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.wsgateway.domain.NotificationFeedDoc;
@@ -13,6 +11,9 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
+import java.util.Map;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -22,32 +23,54 @@ public class FeedAndPushService {
     private final LocalConnectionRegistry registry;
 
     /**
-     * Upsert feed entry (by userId+eventId) and push to online subscribers. - If the pair exists:
-     * re-push (touch) and return existing. - Else: create, push, and return new.
+     * Upsert feed entry (by userId+eventId) and push to online subscribers.
+     * - If the pair exists: re-push (touch) and return existing.
+     * - Else: create, push, and return new.
      */
     public Mono<NotificationFeedDoc> createOrTouchAndPush(WsPushRequestDTO req) {
         return repo.findByUserIdAndEventId(req.getUserId(), req.getEventId())
-                .flatMap(existing -> pushIfOnline(existing, req).thenReturn(existing))
+                .flatMap(existing -> {
+                    // Optional: update mutable fields if provided
+                    boolean changed = false;
+                    if (req.getTitle() != null && !req.getTitle().equals(existing.getTitle())) {
+                        existing.setTitle(req.getTitle()); changed = true;
+                    }
+                    if (req.getBody() != null && !req.getBody().equals(existing.getBody())) {
+                        existing.setBody(req.getBody()); changed = true;
+                    }
+                    if (req.getType() != null && !req.getType().equals(existing.getType())) {
+                        existing.setType(req.getType()); changed = true;
+                    }
+                    if (req.getData() != null && !req.getData().equals(existing.getData())) {
+                        existing.setData(req.getData()); changed = true;
+                    }
+
+                    existing.setUpdatedAt(Instant.now());
+
+                    Mono<NotificationFeedDoc> afterSave = changed
+                            ? repo.save(existing)
+                            : Mono.just(existing);
+
+                    return afterSave.flatMap(doc -> pushIfOnline(doc, req).thenReturn(doc));
+                })
                 .switchIfEmpty(
-                        repo.save(
-                                        NotificationFeedDoc.builder()
-                                                .userId(req.getUserId())
-                                                .eventId(req.getEventId())
-                                                .type(req.getType())
-                                                .title(req.getTitle())
-                                                .body(req.getBody())
-                                                .data(
-                                                        req.getData() == null
-                                                                ? Map.of()
-                                                                : req.getData())
-                                                .createdAt(Instant.now())
-                                                .build())
-                                .flatMap(doc -> pushIfOnline(doc, req).thenReturn(doc)));
+                        repo.save(NotificationFeedDoc.builder()
+                                        .userId(req.getUserId())
+                                        .eventId(req.getEventId())
+                                        .type(req.getType())
+                                        .title(req.getTitle())
+                                        .body(req.getBody())
+                                        .data(req.getData() == null ? Map.of() : req.getData())
+                                        .createdAt(Instant.now())
+                                        .updatedAt(Instant.now())
+                                        .build())
+                                .flatMap(doc -> pushIfOnline(doc, req).thenReturn(doc))
+                );
     }
 
     /**
-     * If the user has an active sink, emit the payload. On first successful emission for a given
-     * document, best-effort mark deliveredAt.
+     * If the user has an active sink, emit the payload.
+     * On first successful emission for a given document, best-effort mark deliveredAt.
      */
     private Mono<Void> pushIfOnline(NotificationFeedDoc doc, WsPushRequestDTO req) {
         final String userId = req.getUserId();
@@ -69,12 +92,7 @@ public class FeedAndPushService {
         if (doc.getDeliveredAt() == null) {
             doc.setDeliveredAt(Instant.now());
             return repo.save(doc)
-                    .doOnError(
-                            e ->
-                                    log.debug(
-                                            "[WS] deliveredAt save failed for {}: {}",
-                                            doc.getId(),
-                                            e.toString()))
+                    .doOnError(e -> log.debug("[WS] deliveredAt save failed for {}: {}", doc.getId(), e.toString()))
                     .onErrorResume(e -> Mono.empty())
                     .then();
         }
@@ -91,40 +109,28 @@ public class FeedAndPushService {
     }
 
     public Mono<Long> unreadCount(String userId) {
-        return repo.countByUserIdAndSeenAtIsNull(userId);
+        return repo.countByUserIdAndOpenedAtIsNull(userId);
     }
 
     public Mono<Long> markSeen(String userId, Iterable<String> ids) {
         return Flux.fromIterable(ids)
-                .flatMap(
-                        id ->
-                                repo.findById(id)
-                                        .filter(
-                                                doc ->
-                                                        userId.equals(doc.getUserId())
-                                                                && doc.getSeenAt() == null)
-                                        .flatMap(
-                                                doc -> {
-                                                    doc.setSeenAt(Instant.now());
-                                                    return repo.save(doc);
-                                                }))
+                .flatMap(id -> repo.findById(id)
+                        .filter(doc -> userId.equals(doc.getUserId()) && doc.getSeenAt() == null)
+                        .flatMap(doc -> {
+                            doc.setSeenAt(Instant.now());
+                            return repo.save(doc);
+                        }))
                 .count();
     }
 
     public Mono<Long> markOpened(String userId, Iterable<String> ids) {
         return Flux.fromIterable(ids)
-                .flatMap(
-                        id ->
-                                repo.findById(id)
-                                        .filter(
-                                                doc ->
-                                                        userId.equals(doc.getUserId())
-                                                                && doc.getOpenedAt() == null)
-                                        .flatMap(
-                                                doc -> {
-                                                    doc.setOpenedAt(Instant.now());
-                                                    return repo.save(doc);
-                                                }))
+                .flatMap(id -> repo.findById(id)
+                        .filter(doc -> userId.equals(doc.getUserId()) && doc.getOpenedAt() == null)
+                        .flatMap(doc -> {
+                            doc.setOpenedAt(Instant.now());
+                            return repo.save(doc);
+                        }))
                 .count();
     }
 }

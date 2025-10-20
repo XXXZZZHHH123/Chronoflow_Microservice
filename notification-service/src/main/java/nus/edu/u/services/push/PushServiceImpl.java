@@ -1,9 +1,7 @@
 package nus.edu.u.services.push;
 
+
 import com.google.firebase.messaging.FirebaseMessagingException;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.configuration.push.PushLimitPropertiesConfig;
@@ -21,6 +19,10 @@ import nus.edu.u.services.rateLimiter.RateLimiter;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -48,17 +50,16 @@ public class PushServiceImpl implements PushService {
         }
 
         for (var d : devices) {
-            var dto =
-                    PushRequestDTO.builder()
-                            .eventId(base.getEventId())
-                            // per-device idempotency:
-                            .recipientKey("push:token:" + d.getToken())
-                            .token(d.getToken())
-                            .title(base.getTitle())
-                            .body(base.getBody())
-                            .data(base.getData())
-                            .type(base.getType())
-                            .build();
+            var dto = PushRequestDTO.builder()
+                    .eventId(base.getEventId())
+                    // per-device idempotency:
+                    .recipientKey("push:token:" + d.getToken())
+                    .token(d.getToken())
+                    .title(base.getTitle())
+                    .body(base.getBody())
+                    .data(base.getData())
+                    .type(base.getType())
+                    .build();
 
             String status = this.send(dto);
             results.put(d.getId(), status);
@@ -90,30 +91,28 @@ public class PushServiceImpl implements PushService {
 
         try {
             // 1) Insert delivery and FLUSH so unique constraint triggers before external call
-            delivery =
-                    deliveryRepo.saveAndFlush(
-                            NotificationDeliveryDO.builder()
-                                    .eventId(dto.getEventId())
-                                    .recipientKey(dto.getRecipientKey())
-                                    .channel(NotificationChannel.PUSH)
-                                    .type(dto.getType())
-                                    .status(NotificationStatus.CREATED)
-                                    .build());
+            delivery = deliveryRepo.saveAndFlush(
+                    NotificationDeliveryDO.builder()
+                            .eventId(dto.getEventId())
+                            .recipientKey(dto.getRecipientKey())
+                            .channel(NotificationChannel.PUSH)
+                            .type(dto.getType())
+                            .status(NotificationStatus.CREATED)
+                            .build()
+            );
 
             // 2) Channel row (PENDING)
-            pushRow =
-                    pushRepo.save(
-                            PushMessageDO.builder()
-                                    .delivery(delivery)
-                                    .token(dto.getToken())
-                                    .status(PushStatus.PENDING)
-                                    .build());
+            pushRow = pushRepo.save(
+                    PushMessageDO.builder()
+                            .delivery(delivery)
+                            .token(dto.getToken())
+                            .status(PushStatus.PENDING)
+                            .build()
+            );
 
             // 3) Send via provider
-            Map<String, Object> data =
-                    dto.getData() == null ? Collections.emptyMap() : dto.getData();
-            String providerMsgId =
-                    pushClient.send(dto.getToken(), dto.getTitle(), dto.getBody(), data);
+            Map<String, Object> data = dto.getData() == null ? Collections.emptyMap() : dto.getData();
+            String providerMsgId = pushClient.send(dto.getToken(), dto.getTitle(), dto.getBody(), data);
 
             // 4) Success state
             pushRow.setFcmId(providerMsgId);
@@ -122,32 +121,20 @@ public class PushServiceImpl implements PushService {
             delivery.setStatus(NotificationStatus.DELIVERED);
             deliveryRepo.save(delivery);
 
-            log.info(
-                    "Push DELIVERED: eventId={}, recipientKey={}, token={}",
-                    dto.getEventId(),
-                    dto.getRecipientKey(),
-                    dto.getToken());
+            log.info("Push DELIVERED: eventId={}, recipientKey={}, token={}",
+                    dto.getEventId(), dto.getRecipientKey(), dto.getToken());
             return "ACCEPTED";
 
         } catch (DataIntegrityViolationException dup) {
             // idempotent duplicate (eventId + channel + recipientKey)
-            log.info(
-                    "Duplicate push suppressed (idempotent): eventId={}, recipientKey={}",
-                    dto.getEventId(),
-                    dto.getRecipientKey());
+            log.info("Duplicate push suppressed (idempotent): eventId={}, recipientKey={}",
+                    dto.getEventId(), dto.getRecipientKey());
             return "ALREADY_ACCEPTED";
 
         } catch (FirebaseMessagingException fme) {
             // --- Provider error handling (UNREGISTERED etc.) ---
-            String code =
-                    (fme.getMessagingErrorCode() != null)
-                            ? fme.getMessagingErrorCode().name()
-                            : null;
-            log.warn(
-                    "FCM error: code={}, message={}, token={}",
-                    code,
-                    fme.getMessage(),
-                    dto.getToken());
+            String code = (fme.getMessagingErrorCode() != null) ? fme.getMessagingErrorCode().name() : null;
+            log.warn("FCM error: code={}, message={}, token={}", code, fme.getMessage(), dto.getToken());
 
             // If token is invalid/expired, immediately revoke it so we won't reuse it
             if ("UNREGISTERED".equals(code)) {
@@ -160,39 +147,26 @@ public class PushServiceImpl implements PushService {
             }
 
             // best-effort state marking
-            try {
-                if (pushRow != null) pushRepo.save(pushRow.markFailed(fme.getMessage()));
-            } catch (Exception ignore) {
-            }
+            try { if (pushRow != null) pushRepo.save(pushRow.markFailed(fme.getMessage())); } catch (Exception ignore) {}
             try {
                 if (delivery != null) {
                     delivery.setStatus(NotificationStatus.FAILED);
                     deliveryRepo.save(delivery);
                 }
-            } catch (Exception ignore) {
-            }
+            } catch (Exception ignore) {}
             return "FAILED";
 
         } catch (Exception ex) {
             // generic failure
-            log.warn(
-                    "Push FAILED: eventId={}, recipientKey={}, token={}, err={}",
-                    dto.getEventId(),
-                    dto.getRecipientKey(),
-                    dto.getToken(),
-                    ex.getMessage(),
-                    ex);
-            try {
-                if (pushRow != null) pushRepo.save(pushRow.markFailed(ex.getMessage()));
-            } catch (Exception ignore) {
-            }
+            log.warn("Push FAILED: eventId={}, recipientKey={}, token={}, err={}",
+                    dto.getEventId(), dto.getRecipientKey(), dto.getToken(), ex.getMessage(), ex);
+            try { if (pushRow != null) pushRepo.save(pushRow.markFailed(ex.getMessage())); } catch (Exception ignore) {}
             try {
                 if (delivery != null) {
                     delivery.setStatus(NotificationStatus.FAILED);
                     deliveryRepo.save(delivery);
                 }
-            } catch (Exception ignore) {
-            }
+            } catch (Exception ignore) {}
             return "FAILED";
         }
     }

@@ -35,71 +35,20 @@ spring:
       config:
         namespace: ${spring.profiles.active}
         group: DEFAULT_GROUP
-    sentinel:
-      enabled: true
-      transport:
-        dashboard: ${SENTINEL_DASHBOARD:localhost:8090}
-        port: ${SENTINEL_PORT:8719}
-        heartbeat-interval-ms: 10000
 
-      eager: true
-
-      log:
-        dir: ${user.home}/logs/csp/
-        switch-pid: false
-
-      # 过滤器 排除后不进行Sentinel监控和限流
-      filter:
+    gcp:
+      project-id: ${GCP_PROJECT_ID}
+      credentials:
+        encoded-key: ${PUB_SUB_SERVICE_ACCOUNT_JSON}
+      pubsub:
         enabled: true
-        url-patterns: /**
 
-      web-context-unify: true
-
-      # 数据源配置
-      datasource:
-        # 流控规则
-        flow-nacos:
-          nacos:
-            server-addr: ${spring.cloud.nacos.server-addr}
-            namespace: ${spring.cloud.nacos.config.namespace}
-            group-id: SENTINEL_GROUP
-            data-id: ${spring.application.name}-flow-rules
-            data-type: json
-            rule-type: flow
-            username: ${spring.cloud.nacos.username}
-            password: ${spring.cloud.nacos.password}
-
-        flow-file:
-          file:
-            file: classpath:sentinel/flow-rules.json
-            data-type: json
-            rule-type: flow
-
-        # 降级规则
-        degrade-nacos:
-          nacos:
-            server-addr: ${spring.cloud.nacos.server-addr}
-            namespace: ${spring.cloud.nacos.config.namespace}
-            group-id: SENTINEL_GROUP
-            data-id: ${spring.application.name}-degrade-rules
-            data-type: json
-            rule-type: degrade
-            username: ${spring.cloud.nacos.username}
-            password: ${spring.cloud.nacos.password}
-
-        degrade-file:
-          file:
-            file: classpath:sentinel/degrade-rules.json
-            data-type: json
-            rule-type: degrade
 
   config:
     import:
       - optional:classpath:application-${spring.profiles.active}.yaml # Load【dev】config
       - optional:nacos:${spring.application.name}.yaml # Load【Nacos】config
       - optional:nacos:common-config.yaml
-      # sentinel
-      - optional:nacos:sentinel-common.yaml
 
   # Servlet Config
   servlet:

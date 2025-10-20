@@ -1,6 +1,5 @@
 package nus.edu.u.services.domains.attendee;
 
-import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.domain.dto.common.AttachmentDTO;
@@ -13,13 +12,15 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
+import java.util.*;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AttendeeNotificationServiceImpl implements AttendeeNotificationService {
 
     private static final String TEMPLATE_ID = "attendee-qr-invite";
-    private static final String QR_CID = "qr-code";
+    private static final String QR_CID   = "qr-code";
     private static final String LOGO_CID = "logo";
 
     private final NotificationService notificationService;
@@ -38,32 +39,27 @@ public class AttendeeNotificationServiceImpl implements AttendeeNotificationServ
         addInlineLogoIfPresent(attachments);
 
         // deterministic event id (no dupes on retries)
-        String eventId =
-                NotificationEventType.buildEventId(
-                        NotificationEventType.ATTENDEE_INVITE,
-                        req.getToEmail(),
-                        req.getOrganizationName(),
-                        String.valueOf(req.getEventId() == null ? "no-event" : req.getEventId()));
-
-        NotificationRequestDTO request =
-                NotificationRequestDTO.builder()
-                        .channel(NotificationChannel.EMAIL)
-                        .to(req.getToEmail())
-                        .recipientKey("email:" + req.getToEmail()) // normalize
-                        .templateId(TEMPLATE_ID)
-                        .variables(vars)
-                        .locale(Locale.ENGLISH)
-                        .attachments(attachments)
-                        .eventId(eventId)
-                        .type(NotificationEventType.ATTENDEE_INVITE)
-                        .build();
-
-        log.info(
-                "Sending attendee invite email: to={}, cids=[qr:{}, logo:{}], atts={}",
+        String eventId = NotificationEventType.buildEventId(
+                NotificationEventType.ATTENDEE_INVITE,
                 req.getToEmail(),
-                QR_CID,
-                LOGO_CID,
-                attachments.size());
+                req.getOrganizationName(),
+                String.valueOf(req.getEventId() == null ? "no-event" : req.getEventId())
+        );
+
+        NotificationRequestDTO request = NotificationRequestDTO.builder()
+                .channel(NotificationChannel.EMAIL)
+                .to(req.getToEmail())
+                .recipientKey("email:" + req.getToEmail())   // normalize
+                .templateId(TEMPLATE_ID)
+                .variables(vars)
+                .locale(Locale.ENGLISH)
+                .attachments(attachments)
+                .eventId(eventId)
+                .type(NotificationEventType.ATTENDEE_INVITE)
+                .build();
+
+        log.info("Sending attendee invite email: to={}, cids=[qr:{}, logo:{}], atts={}",
+                req.getToEmail(), QR_CID, LOGO_CID, attachments.size());
 
         return notificationService.send(request);
     }
@@ -87,18 +83,14 @@ public class AttendeeNotificationServiceImpl implements AttendeeNotificationServ
     private static void addInlineQrIfPresent(AttendeeInviteReqDTO req, List<AttachmentDTO> out) {
         byte[] bytes = req.getQrCodeBytes();
         if (bytes != null && bytes.length > 0) {
-            out.add(
-                    AttachmentDTO.builder()
-                            .filename(null)
-                            .contentType(
-                                    req.getQrCodeContentType() != null
-                                            ? req.getQrCodeContentType()
-                                            : "image/png")
-                            .bytes(bytes)
-                            .url(null)
-                            .inline(true)
-                            .contentId(QR_CID)
-                            .build());
+            out.add(AttachmentDTO.builder()
+                    .filename(null)
+                    .contentType(req.getQrCodeContentType() != null ? req.getQrCodeContentType() : "image/png")
+                    .bytes(bytes)
+                    .url(null)
+                    .inline(true)
+                    .contentId(QR_CID)
+                    .build());
         } else {
             log.warn("No QR bytes provided; inline QR will be omitted.");
         }
@@ -110,15 +102,14 @@ public class AttendeeNotificationServiceImpl implements AttendeeNotificationServ
             ClassPathResource res = new ClassPathResource("/images/logo.png");
             if (res.exists()) {
                 byte[] bytes = StreamUtils.copyToByteArray(res.getInputStream());
-                out.add(
-                        AttachmentDTO.builder()
-                                .filename(null)
-                                .contentType("image/png")
-                                .bytes(bytes)
-                                .url(null)
-                                .inline(true)
-                                .contentId(LOGO_CID)
-                                .build());
+                out.add(AttachmentDTO.builder()
+                        .filename(null)
+                        .contentType("image/png")
+                        .bytes(bytes)
+                        .url(null)
+                        .inline(true)
+                        .contentId(LOGO_CID)
+                        .build());
             } else {
                 log.warn("Inline logo not found at classpath: images/logo.png");
             }

@@ -1,7 +1,6 @@
 package nus.edu.u.services.email;
 
-import java.util.Collections;
-import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.configuration.email.EmailLimitPropertiesConfig;
@@ -21,6 +20,9 @@ import nus.edu.u.repositories.email.EmailMessageRepository;
 import nus.edu.u.services.rateLimiter.RateLimiter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -51,26 +53,23 @@ public class EmailServiceImpl implements EmailService {
         }
 
         try {
-            // 1) Insert delivery and FLUSH so unique constraint trips *before* external side
-            // effects
-            NotificationDeliveryDO delivery =
-                    NotificationDeliveryDO.builder()
-                            .eventId(dto.getEventId())
-                            .recipientKey(dto.getRecipientKey())
-                            .channel(NotificationChannel.EMAIL)
-                            .type(dto.getType())
-                            .status(NotificationStatus.CREATED)
-                            .build();
+            // 1) Insert delivery and FLUSH so unique constraint trips *before* external side effects
+            NotificationDeliveryDO delivery = NotificationDeliveryDO.builder()
+                    .eventId(dto.getEventId())
+                    .recipientKey(dto.getRecipientKey())
+                    .channel(NotificationChannel.EMAIL)
+                    .type(dto.getType())
+                    .status(NotificationStatus.CREATED)
+                    .build();
 
             delivery = deliveryRepo.saveAndFlush(delivery);
 
             // 2) Insert channel row; you can flush here as well if you want it guaranteed in DB
-            EmailMessageDO emailRow =
-                    EmailMessageDO.builder()
-                            .delivery(delivery)
-                            .provider(EmailProvider.AWS_SES)
-                            .status(EmailStatus.PENDING)
-                            .build();
+            EmailMessageDO emailRow = EmailMessageDO.builder()
+                    .delivery(delivery)
+                    .provider(EmailProvider.AWS_SES)
+                    .status(EmailStatus.PENDING)
+                    .build();
 
             emailRow = messageRepo.save(emailRow);
             // messageRepo.flush(); // optional
@@ -80,8 +79,7 @@ public class EmailServiceImpl implements EmailService {
                     (dto.getAttachments() == null) ? Collections.emptyList() : dto.getAttachments();
 
             EmailClient client = emailClientFactory.getClient(attachments);
-            var result =
-                    client.sendEmail(dto.getTo(), dto.getSubject(), dto.getHtml(), attachments);
+            var result = client.sendEmail(dto.getTo(), dto.getSubject(), dto.getHtml(), attachments);
 
             // 4) Mark success
             emailRow.setProvider(result.provider());
@@ -90,29 +88,19 @@ public class EmailServiceImpl implements EmailService {
             delivery.setStatus(NotificationStatus.DELIVERED);
             deliveryRepo.save(delivery);
 
-            log.info(
-                    "Email DELIVERED: eventId={}, recipientKey={}, to={}",
-                    dto.getEventId(),
-                    dto.getRecipientKey(),
-                    dto.getTo());
+            log.info("Email DELIVERED: eventId={}, recipientKey={}, to={}",
+                    dto.getEventId(), dto.getRecipientKey(), dto.getTo());
             return "ACCEPTED";
 
         } catch (org.springframework.dao.DataIntegrityViolationException dup) {
             // Unique (event_id, channel, recipient_key) hit — idempotent duplicate
-            log.info(
-                    "Duplicate email suppressed (idempotent): eventId={}, recipientKey={}",
-                    dto.getEventId(),
-                    dto.getRecipientKey());
+            log.info("Duplicate email suppressed (idempotent): eventId={}, recipientKey={}",
+                    dto.getEventId(), dto.getRecipientKey());
             return "ALREADY_ACCEPTED";
 
         } catch (Exception ex) {
-            log.error(
-                    "Email FAILED: eventId={}, recipientKey={}, to={}, error={}",
-                    dto.getEventId(),
-                    dto.getRecipientKey(),
-                    dto.getTo(),
-                    ex.getMessage(),
-                    ex);
+            log.error("Email FAILED: eventId={}, recipientKey={}, to={}, error={}",
+                    dto.getEventId(), dto.getRecipientKey(), dto.getTo(), ex.getMessage(), ex);
             return "FAILED";
         }
     }

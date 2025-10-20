@@ -1,7 +1,3 @@
 package nus.edu.u.enums.common;
 
-public enum DeviceStatus {
-    ACTIVE,
-    INVALID,
-    REVOKED
-}
+public enum DeviceStatus { ACTIVE, INVALID, REVOKED }

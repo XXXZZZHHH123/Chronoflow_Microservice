@@ -1,11 +1,13 @@
 package nus.edu.u.wsgateway.repositories;
 
-import java.time.Instant;
 import nus.edu.u.wsgateway.domain.NotificationFeedDoc;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.time.Instant;
+
 
 public interface NotificationFeedRepository
         extends ReactiveMongoRepository<NotificationFeedDoc, String> {
@@ -17,5 +19,6 @@ public interface NotificationFeedRepository
     Flux<NotificationFeedDoc> findByUserIdAndCreatedAtLessThanOrderByCreatedAtDesc(
             String userId, Instant before, Pageable pageable);
 
-    Mono<Long> countByUserIdAndSeenAtIsNull(String userId);
+    Mono<Long> countByUserIdAndOpenedAtIsNull(String userId);
+
 }

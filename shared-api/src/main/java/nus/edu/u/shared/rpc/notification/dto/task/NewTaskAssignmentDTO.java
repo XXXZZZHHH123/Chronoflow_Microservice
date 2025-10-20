@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 /**
  * Represents a domain-level "Task Assignment" event.
  *
- * <p>This is not tied to any specific notification channel — it's the pure business payload passed
- * from the Task domain to the Notification module.
+ * This is not tied to any specific notification channel — it's the pure business payload
+ * passed from the Task domain to the Notification module.
  */
 @Data
 @NoArgsConstructor

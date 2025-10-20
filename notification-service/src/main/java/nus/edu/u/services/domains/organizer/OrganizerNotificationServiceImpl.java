@@ -1,6 +1,6 @@
 package nus.edu.u.services.domains.organizer;
 
-import java.util.*;
+
 import lombok.RequiredArgsConstructor;
 import nus.edu.u.domain.dto.common.AttachmentDTO;
 import nus.edu.u.domain.dto.common.NotificationRequestDTO;
@@ -11,6 +11,8 @@ import nus.edu.u.services.common.NotificationService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
+
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,35 +33,35 @@ public class OrganizerNotificationServiceImpl implements OrganizerNotificationSe
             var res = new ClassPathResource("images/logo.png");
             if (res.exists()) {
                 byte[] bytes = StreamUtils.copyToByteArray(res.getInputStream());
-                attachments.add(
-                        new AttachmentDTO(
-                                "images/logo.png",
-                                "image/png",
-                                bytes,
-                                null, // url
-                                true, // inline
-                                LOGO_CID));
+                attachments.add(new AttachmentDTO(
+                        "images/logo.png",
+                        "image/png",
+                        bytes,
+                        null,   // url
+                        true,   // inline
+                        LOGO_CID
+                ));
             }
         } catch (Exception ignored) {
             // if logo missing, just proceed without it
         }
 
-        var eventId =
-                NotificationEventType.buildEventId(
-                        NotificationEventType.ORGANIZER_WELCOME, req.getUserEmail());
+        var eventId = NotificationEventType.buildEventId(
+                NotificationEventType.ORGANIZER_WELCOME,
+                req.getUserEmail()
+        );
 
-        var request =
-                NotificationRequestDTO.builder()
-                        .channel(NotificationChannel.EMAIL)
-                        .to(req.getUserEmail())
-                        .recipientKey(req.getUserEmail())
-                        .templateId(WELCOME_EMAIL_ORGANIZER_TEMPLATE_ID)
-                        .variables(vars)
-                        .locale(Locale.ENGLISH)
-                        .attachments(attachments)
-                        .type(NotificationEventType.ORGANIZER_WELCOME)
-                        .eventId(eventId)
-                        .build();
+        var request = NotificationRequestDTO.builder()
+                .channel(NotificationChannel.EMAIL)
+                .to(req.getUserEmail())
+                .recipientKey(req.getUserEmail())
+                .templateId(WELCOME_EMAIL_ORGANIZER_TEMPLATE_ID)
+                .variables(vars)
+                .locale(Locale.ENGLISH)
+                .attachments(attachments)
+                .type(NotificationEventType.ORGANIZER_WELCOME)
+                .eventId(eventId)
+                .build();
 
         return notificationService.send(request);
     }
@@ -72,12 +74,8 @@ public class OrganizerNotificationServiceImpl implements OrganizerNotificationSe
         vars.put("email", req.getUserEmail());
         vars.put("mobile", req.getMobile());
         vars.put("organizationName", req.getOrganizationName());
-        vars.put(
-                "organizationAddress",
-                req.getOrganizationAddress() == null ? "" : req.getOrganizationAddress());
-        vars.put(
-                "organizationCode",
-                req.getOrganizationCode() == null ? "" : req.getOrganizationCode());
+        vars.put("organizationAddress", req.getOrganizationAddress() == null ? "" : req.getOrganizationAddress());
+        vars.put("organizationCode", req.getOrganizationCode() == null ? "" : req.getOrganizationCode());
         vars.put("logoCid", LOGO_CID);
 
         return vars;

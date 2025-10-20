@@ -1,6 +1,7 @@
 package nus.edu.u.domain.dto.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

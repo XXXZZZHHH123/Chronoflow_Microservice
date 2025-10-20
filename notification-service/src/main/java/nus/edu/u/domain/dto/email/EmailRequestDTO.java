@@ -1,12 +1,14 @@
 package nus.edu.u.domain.dto.email;
 
-import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import nus.edu.u.domain.dto.common.AttachmentDTO;
 import nus.edu.u.enums.common.NotificationEventType;
+
+import java.util.List;
 
 @Data
 @Builder

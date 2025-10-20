@@ -30,7 +30,7 @@ fi
 echo "Starting Gatling with command: ${args[*]}"
 set +e
 "${args[@]}"
-status=$?
+status=$? 
 set -e
 
 HOLD_SECONDS="${GATLING_HOLD_SECONDS:-60}"

@@ -90,6 +90,11 @@
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>nus.edu.u</groupId>
+            <artifactId>framework</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

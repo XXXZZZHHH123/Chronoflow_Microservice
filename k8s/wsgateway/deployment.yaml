@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notification-service
+  name: wsgateway
   namespace: chronoflow
   labels:
-    app: notification-service
+    app: wsgateway
     version: v1
 spec:
   replicas: 2
@@ -15,11 +15,11 @@ spec:
       maxUnavailable: 0
   selector:
     matchLabels:
-      app: notification-service
+      app: wsgateway
   template:
     metadata:
       labels:
-        app: notification-service
+        app: wsgateway
         version: v1
     spec:
       tolerations:
@@ -27,12 +27,12 @@ spec:
           operator: "Exists"
           effect: "NoSchedule"
       containers:
-        - name: notification-service
-          image: e1241986/notification-service:latest
+        - name: wsgateway
+          image: e1241986/wsgateway:latest
           imagePullPolicy: Always
           ports:
             - name: http
-              containerPort: 8086
+              containerPort: 8087
               protocol: TCP
           env:
             - name: SPRING_PROFILES_ACTIVE
@@ -40,7 +40,7 @@ spec:
             - name: JAVA_OPTS
               value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
             - name: SERVER_PORT
-              value: "8086"
+              value: "8087"
             - name: NACOS_HOST
               value: "nacos.chronoflow.svc.cluster.local"
             - name: NACOS_PORT
@@ -49,11 +49,6 @@ spec:
               value: "nacos"
             - name: NACOS_PASSWORD
               value: "nacos"
-            - name: GCP_SERVICE_ACCOUNT_JSON
-              valueFrom:
-                secretKeyRef:
-                  name: gcp
-                  key: file-service-account
             - name: PUB_SUB_SERVICE_ACCOUNT_JSON
               valueFrom:
                 secretKeyRef:
@@ -69,23 +64,6 @@ spec:
                 secretKeyRef:
                   name: firebase
                   key: account-json
-            - name: AWS_REGION
-              valueFrom:
-                secretKeyRef:
-                  name: aws
-                  key: region
-            - name: AWS_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: aws
-                  key: secret-key
-            - name: AWS_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: aws
-                  key: access-key
-            - name: WS_URL
-              value: wsgateway.chronoflow.svc.cluster.local
           resources:
             requests:
               memory: "512Mi"
@@ -96,7 +74,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: 8086
+              port: 8087
             initialDelaySeconds: 240
             periodSeconds: 10
             timeoutSeconds: 5
@@ -104,7 +82,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 8086
+              port: 8087
             initialDelaySeconds: 240
             periodSeconds: 5
             timeoutSeconds: 3

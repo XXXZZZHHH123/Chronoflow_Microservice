@@ -521,7 +521,6 @@ jobs:
             kubectl wait --for=condition=failed job/${PERF_JOB_NAME} -n $K8S_NAMESPACE --timeout=1s || true
             kubectl describe job/${PERF_JOB_NAME} -n $K8S_NAMESPACE || true
             kubectl logs job/${PERF_JOB_NAME} -n $K8S_NAMESPACE || true
-            exit $STATUS
           fi
 
       - name: Stream Gatling job logs

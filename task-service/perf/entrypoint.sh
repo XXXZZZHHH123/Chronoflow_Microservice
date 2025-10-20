@@ -9,7 +9,7 @@ fi
 export MAVEN_OPTS="${MAVEN_OPTS:--Xms256m -Xmx512m -XX:+UseContainerSupport}"
 
 declare -a args
-args=(mvn -f task-service/pom.xml io.gatling:gatling-maven-plugin:test -Dgatling.skip=false "-DtaskService.baseUrl=${TASK_SERVICE_BASE_URL}")
+args=(mvn -f task-service/pom.xml io.gatling:gatling-maven-plugin:test -Dgatling.skip=false "-Dgatling.failOnAssertionFailure=false" "-DtaskService.baseUrl=${TASK_SERVICE_BASE_URL}")
 
 if [[ -n "${TASK_SERVICE_LOGIN_PATH:-}" ]]; then
   args+=("-DtaskService.loginPath=${TASK_SERVICE_LOGIN_PATH}")

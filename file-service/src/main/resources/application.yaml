@@ -125,7 +125,7 @@ knife4j:
 
 # Mybatis-plus config
 mybatis-plus:
-  mapper-locations: classpath*:mapper/*/.xml
+  mapper-locations: classpath*:mapper/**/*.xml
   configuration:
     map-underscore-to-camel-case: true            # db: user_name -> java: userName
     cache-enabled: false

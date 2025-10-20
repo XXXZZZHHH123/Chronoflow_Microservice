@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.*;
         allowedHeaders = {"Content-Type", "Accept", "Authorization", "X-Requested-With"},
         methods = {RequestMethod.POST, RequestMethod.OPTIONS},
         allowCredentials = "true",
-        maxAge = 3600
-)
+        maxAge = 3600)
 @RequestMapping("/notifications/push/devices")
 public class DeviceRegisterController {
 

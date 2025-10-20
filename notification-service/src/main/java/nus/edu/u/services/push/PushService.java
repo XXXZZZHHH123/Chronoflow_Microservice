@@ -1,10 +1,7 @@
 package nus.edu.u.services.push;
 
-
-
-import nus.edu.u.domain.dto.push.PushRequestDTO;
-
 import java.util.Map;
+import nus.edu.u.domain.dto.push.PushRequestDTO;
 
 public interface PushService {
     String send(PushRequestDTO dto);

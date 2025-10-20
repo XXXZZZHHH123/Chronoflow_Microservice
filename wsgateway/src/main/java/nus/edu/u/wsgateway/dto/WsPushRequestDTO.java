@@ -1,22 +1,18 @@
 package nus.edu.u.wsgateway.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
-
 import java.util.Map;
+import lombok.*;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class WsPushRequestDTO {
-    @NotBlank
-    String userId;
-    @NotBlank
-    String eventId;
-    @NotBlank
-    String type;
+    @NotBlank String userId;
+    @NotBlank String eventId;
+    @NotBlank String type;
     String title;
     String body;
-    Map<String,Object> data;
+    Map<String, Object> data;
 }

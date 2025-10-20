@@ -28,8 +28,7 @@ public class EmailMessageDO extends BaseNotificationEntity {
             referencedColumnName = "id",
             insertable = false,
             updatable = false,
-            foreignKey = @ForeignKey(name = "fk_email_delivery")
-    )
+            foreignKey = @ForeignKey(name = "fk_email_delivery"))
     private NotificationDeliveryDO delivery;
 
     @Enumerated(EnumType.STRING)

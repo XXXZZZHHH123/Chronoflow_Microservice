@@ -1,15 +1,13 @@
 package nus.edu.u.domain.dto.ws;
 
-
+import java.util.Map;
 import lombok.Builder;
 import lombok.Value;
 import nus.edu.u.enums.common.NotificationEventType;
 
-import java.util.Map;
-
 /**
- * Channel-specific DTO for WebSocket delivery.
- * Mirrors PushRequestDTO shape but without token/device details.
+ * Channel-specific DTO for WebSocket delivery. Mirrors PushRequestDTO shape but without
+ * token/device details.
  */
 @Value
 @Builder
@@ -26,6 +24,7 @@ public class WsRequestDTO {
 
     /** Rendered text */
     String title;
+
     String body;
 
     /** Extra payload (deepLink, screen, ids, etc.) */

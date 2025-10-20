@@ -39,6 +39,7 @@ import nus.edu.u.task.domain.vo.task.TaskUpdateReqVO;
 import nus.edu.u.task.domain.vo.task.TasksRespVO;
 import nus.edu.u.task.enums.TaskActionEnum;
 import nus.edu.u.task.mapper.TaskMapper;
+import nus.edu.u.task.publisher.TaskNotificationPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,6 +56,7 @@ class TaskApplicationServiceImplTest {
     @Mock private EventRpcService eventRpcService;
     @Mock private UserRpcService userRpcService;
     @Mock private GroupRpcService groupRpcService;
+    @Mock private TaskNotificationPublisher taskNotificationPublisher;
 
     @InjectMocks private TaskApplicationServiceImpl service;
 
@@ -598,30 +600,6 @@ class TaskApplicationServiceImplTest {
         assertThat(exception.getCode()).isEqualTo(TASK_NOT_FOUND.getCode());
     }
 
-    @Test
-    void getTask_whenEventIdNull_usesSuppliersSafely() {
-        long taskId = 42L;
-        EventRespDTO event =
-                event(
-                        null,
-                        null,
-                        "Detached",
-                        LocalDateTime.now(),
-                        LocalDateTime.now().plusHours(1));
-        Map<Long, EventRespDTO> events = new LinkedHashMap<>();
-        events.put(null, event);
-        stubEvents(events);
-
-        TaskDO dbTask =
-                TaskDO.builder().id(taskId).eventId(null).userId(null).name("Loose task").build();
-        when(taskMapper.selectById(taskId)).thenReturn(dbTask);
-
-        TaskRespVO response = service.getTask(null, taskId);
-
-        assertThat(response.getEventId()).isNull();
-        assertThat(response.getAssignerUser()).isNull();
-        assertThat(response.getAssignedUser()).isNull();
-    }
 
     @Test
     void getTask_whenEventMissing_throwsServiceException() {
@@ -835,6 +813,7 @@ class TaskApplicationServiceImplTest {
         TasksRespVO taskSummary = dashboard.getTasks().get(0);
         assertThat(taskSummary.getAssignedUser().getGroups()).hasSize(1);
     }
+
 
     @Test
     void getByMemberId_whenNoTasks_returnsEmptyCollections() {

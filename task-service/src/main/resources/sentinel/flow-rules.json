@@ -34,23 +34,5 @@
     "strategy": 0,
     "controlBehavior": 0,
     "clusterMode": false
-  },
-  {
-    "resource": "/sentinel-test/simple",
-    "limitApp": "default",
-    "grade": 1,
-    "count": 10,
-    "strategy": 0,
-    "controlBehavior": 0,
-    "clusterMode": false
-  },
-  {
-    "resource": "/sentinel-test/param/*",
-    "limitApp": "default",
-    "grade": 1,
-    "count": 5,
-    "strategy": 0,
-    "controlBehavior": 0,
-    "clusterMode": false
   }
 ]

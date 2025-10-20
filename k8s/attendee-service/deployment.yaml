@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: attendee-service
-  namespace: microservices
+  namespace: chronoflow
   labels:
     app: attendee-service
     version: v1
@@ -38,7 +38,7 @@ spec:
             - name: SERVER_PORT
               value: "8084"
             - name: NACOS_HOST
-              value: "10.148.0.3"
+              value: "nacos.default.svc.cluster.local"
             - name: NACOS_PORT
               value: "8848"
             - name: NACOS_USERNAME

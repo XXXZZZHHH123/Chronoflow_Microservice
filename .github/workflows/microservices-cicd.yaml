@@ -272,6 +272,21 @@ jobs:
           echo "Timed out waiting for Gatling results directory." >&2
           exit 1
 
+      - name: Copy Gatling results (early)
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        run: |
+          set -euo pipefail
+          mkdir -p gatling-results
+          if [ -z "${PERF_POD_NAME:-}" ]; then
+            echo "PERF_POD_NAME not resolved. Skipping early copy."
+            exit 0
+          fi
+          if kubectl cp ${K8S_NAMESPACE}/${PERF_POD_NAME}:/workspace/task-service/target/gatling ./gatling-results; then
+            echo "Initial Gatling results copied."
+          else
+            echo "Initial Gatling copy failed (possibly still running). Will retry after job completion."
+          fi
+
       - name: Wait for Gatling job completion
         if: ${{ steps.perf-check.outputs.should-run == 'true' }}
         run: |

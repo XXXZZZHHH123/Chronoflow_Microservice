@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
         allowCredentials = "true",
         maxAge = 3600
 )
-@RequestMapping("/push/devices")
+@RequestMapping("/notifications/push/devices")
 public class DeviceRegisterController {
 
     private final DeviceRegistryService deviceRegistryService;

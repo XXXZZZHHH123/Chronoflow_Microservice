@@ -4,7 +4,7 @@ metadata:
   name: __JOB_NAME__
   namespace: chronoflow
 spec:
-  ttlSecondsAfterFinished: 600
+  ttlSecondsAfterFinished: 120
   backoffLimit: 0
   template:
     spec:

@@ -28,4 +28,15 @@ if [[ -n "${TASK_SERVICE_TASK_ID:-}" ]]; then
 fi
 
 echo "Starting Gatling with command: ${args[*]}"
-exec "${args[@]}"
+set +e
+"${args[@]}"
+status=$?
+set -e
+
+HOLD_SECONDS="${GATLING_HOLD_SECONDS:-60}"
+if [ "$HOLD_SECONDS" -gt 0 ]; then
+  echo "Gatling finished with status ${status}. Holding pod for ${HOLD_SECONDS}s to allow artifact collection..."
+  sleep "${HOLD_SECONDS}"
+fi
+
+exit "$status"

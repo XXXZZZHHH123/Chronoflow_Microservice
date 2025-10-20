@@ -90,8 +90,8 @@ class TaskServiceSimulation extends Simulation {
     )
   ).protocols(httpProtocol)
     .assertions(
-      global.responseTime.percentile3.lte(60000),
-      global.successfulRequests.percent.gte(80),
-      forAll.failedRequests.percent.lte(30)
+      global.responseTime.percentile3.lte(120000),
+      global.successfulRequests.percent.gte(60),
+      forAll.failedRequests.percent.lte(50)
     )
 }

@@ -17,7 +17,7 @@ RUN mvn -pl task-service -am dependency:go-offline
 
 COPY . .
 
-RUN mvn -pl task-service -am -DskipTests package
+RUN mvn -pl task-service -am -DskipTests install
 
 FROM maven:3.9.6-eclipse-temurin-17 AS runner
 WORKDIR /workspace

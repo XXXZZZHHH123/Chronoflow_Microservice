@@ -2,6 +2,11 @@ package nus.edu.u.provider.ws;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.configuration.ws.WsGatewayLimitPropertiesConfig;
 import nus.edu.u.domain.dto.ws.WsRequestDTO;
@@ -17,13 +22,6 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 
-import java.net.ConnectException;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
-
 @Slf4j
 @Component
 public class WebSocketGatewayClientImpl implements WebSocketGatewayClient {
@@ -31,22 +29,31 @@ public class WebSocketGatewayClientImpl implements WebSocketGatewayClient {
     private final WsGatewayLimitPropertiesConfig props;
     private final WebClient client;
 
-    public WebSocketGatewayClientImpl(WsGatewayLimitPropertiesConfig props,
-                                      @Value("${spring.application.name:notificationservice}") String appName) {
+    public WebSocketGatewayClientImpl(
+            WsGatewayLimitPropertiesConfig props,
+            @Value("${spring.application.name:notificationservice}") String appName) {
         this.props = props;
 
-        HttpClient http = HttpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, props.getTimeouts().getConnectMs())
-                .responseTimeout(Duration.ofMillis(props.getTimeouts().getReadMs()))
-                .doOnConnected(c -> c.addHandlerLast(
-                        new WriteTimeoutHandler(props.getTimeouts().getWriteMs(), TimeUnit.MILLISECONDS)));
+        HttpClient http =
+                HttpClient.create()
+                        .option(
+                                ChannelOption.CONNECT_TIMEOUT_MILLIS,
+                                props.getTimeouts().getConnectMs())
+                        .responseTimeout(Duration.ofMillis(props.getTimeouts().getReadMs()))
+                        .doOnConnected(
+                                c ->
+                                        c.addHandlerLast(
+                                                new WriteTimeoutHandler(
+                                                        props.getTimeouts().getWriteMs(),
+                                                        TimeUnit.MILLISECONDS)));
 
-        this.client = WebClient.builder()
-                .baseUrl(props.getBaseUrl())
-                .clientConnector(new ReactorClientHttpConnector(http))
-                .defaultHeader("X-Source-Service", appName)
-                .filter(errorFilter())
-                .build();
+        this.client =
+                WebClient.builder()
+                        .baseUrl(props.getBaseUrl())
+                        .clientConnector(new ReactorClientHttpConnector(http))
+                        .defaultHeader("X-Source-Service", appName)
+                        .filter(errorFilter())
+                        .build();
     }
 
     @Override
@@ -64,13 +71,27 @@ public class WebSocketGatewayClientImpl implements WebSocketGatewayClient {
                 .bodyValue(req)
                 .retrieve()
                 .bodyToMono(Void.class)
-                .retryWhen(Retry
-                        .backoff(props.getRetry().getMaxRetries(), Duration.ofMillis(props.getRetry().getInitialBackoffMs()))
-                        .jitter(0.2)
-                        .filter(this::isRetryable))
-                .doOnSuccess(v -> log.debug("[WS] OK user={} type={} eventId={}", req.getUserId(), req.getType(), req.getEventId()))
-                .doOnError(e -> log.warn("[WS] FAIL user={} type={} eventId={} err={}",
-                        req.getUserId(), req.getType(), req.getEventId(), e.toString()));
+                .retryWhen(
+                        Retry.backoff(
+                                        props.getRetry().getMaxRetries(),
+                                        Duration.ofMillis(props.getRetry().getInitialBackoffMs()))
+                                .jitter(0.2)
+                                .filter(this::isRetryable))
+                .doOnSuccess(
+                        v ->
+                                log.debug(
+                                        "[WS] OK user={} type={} eventId={}",
+                                        req.getUserId(),
+                                        req.getType(),
+                                        req.getEventId()))
+                .doOnError(
+                        e ->
+                                log.warn(
+                                        "[WS] FAIL user={} type={} eventId={} err={}",
+                                        req.getUserId(),
+                                        req.getType(),
+                                        req.getEventId(),
+                                        e.toString()));
     }
 
     private boolean isRetryable(Throwable t) {
@@ -83,19 +104,25 @@ public class WebSocketGatewayClientImpl implements WebSocketGatewayClient {
     }
 
     private ExchangeFilterFunction errorFilter() {
-        return ExchangeFilterFunction.ofResponseProcessor(resp -> {
-            if (resp.statusCode().is2xxSuccessful()) return Mono.just(resp);
+        return ExchangeFilterFunction.ofResponseProcessor(
+                resp -> {
+                    if (resp.statusCode().is2xxSuccessful()) return Mono.just(resp);
 
-            return resp.bodyToMono(String.class).defaultIfEmpty("")
-                    .flatMap(body -> Mono.error(
-                            WebClientResponseException.create(
-                                    resp.statusCode().value(),
-                                    (resp.statusCode() instanceof HttpStatus hs) ? hs.getReasonPhrase() : "",
-                                    resp.headers().asHttpHeaders(),
-                                    body.getBytes(StandardCharsets.UTF_8),
-                                    StandardCharsets.UTF_8
-                            )
-                    ));
-        });
+                    return resp.bodyToMono(String.class)
+                            .defaultIfEmpty("")
+                            .flatMap(
+                                    body ->
+                                            Mono.error(
+                                                    WebClientResponseException.create(
+                                                            resp.statusCode().value(),
+                                                            (resp.statusCode()
+                                                                            instanceof
+                                                                            HttpStatus hs)
+                                                                    ? hs.getReasonPhrase()
+                                                                    : "",
+                                                            resp.headers().asHttpHeaders(),
+                                                            body.getBytes(StandardCharsets.UTF_8),
+                                                            StandardCharsets.UTF_8)));
+                });
     }
 }

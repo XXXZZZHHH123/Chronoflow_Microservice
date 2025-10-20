@@ -2,18 +2,17 @@ package nus.edu.u.task.publisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.spring.pubsub.core.PubSubTemplate;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.shared.rpc.notification.dto.common.NotificationRequestDTO;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * Publishes NotificationRequestDTO messages to a fixed Pub/Sub topic.
- * Used by other microservices to trigger notifications via the Notification Service.
+ * Publishes NotificationRequestDTO messages to a fixed Pub/Sub topic. Used by other microservices
+ * to trigger notifications via the Notification Service.
  */
 @Slf4j
 @Component
@@ -25,9 +24,7 @@ public class NotificationPublisher {
     private final PubSubTemplate pubSubTemplate;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Publishes a NotificationRequestDTO to the fixed Pub/Sub topic.
-     */
+    /** Publishes a NotificationRequestDTO to the fixed Pub/Sub topic. */
     public String publish(NotificationRequestDTO req) {
         validate(req);
 
@@ -44,12 +41,21 @@ public class NotificationPublisher {
             put(attrs, "to", req.getTo());
 
             String messageId = String.valueOf(pubSubTemplate.publish(TOPIC_NAME, payload, attrs));
-            log.info("📤 Published Notification to topic={} msgId={} eventId={} channel={} type={}",
-                    TOPIC_NAME, messageId, req.getEventId(), req.getChannel(), req.getType());
+            log.info(
+                    "📤 Published Notification to topic={} msgId={} eventId={} channel={} type={}",
+                    TOPIC_NAME,
+                    messageId,
+                    req.getEventId(),
+                    req.getChannel(),
+                    req.getType());
 
             return messageId;
         } catch (Exception e) {
-            log.error(" Failed to publish notification eventId={} type={}", req.getEventId(), req.getType(), e);
+            log.error(
+                    " Failed to publish notification eventId={} type={}",
+                    req.getEventId(),
+                    req.getType(),
+                    e);
             throw new RuntimeException("Pub/Sub publish failed", e);
         }
     }

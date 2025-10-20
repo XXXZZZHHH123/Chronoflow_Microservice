@@ -23,7 +23,6 @@
         <module>notification-service</module>
         <module>file-service</module>
         <module>wsgateway</module>
-        <module>notification-service</module>
     </modules>
 
     <properties>

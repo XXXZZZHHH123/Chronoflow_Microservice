@@ -14,6 +14,7 @@
     <name>${project.artifactId}</name>
 
     <properties>
+        <gatling.skip>true</gatling.skip>
         <spring.cloud.gcp.version>7.3.1</spring.cloud.gcp.version>
     </properties>
 
@@ -64,6 +65,13 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.gatling.highcharts</groupId>
+            <artifactId>gatling-charts-highcharts</artifactId>
+            <version>3.10.4</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -105,6 +113,25 @@
                         <exclude>**/*MapperImpl.class</exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.gatling</groupId>
+                <artifactId>gatling-maven-plugin</artifactId>
+                <version>4.20.6</version>
+                <configuration>
+                    <simulationsFolder>src/test/scala</simulationsFolder>
+                    <simulationClass>nus.edu.u.task.perf.TaskServiceSimulation</simulationClass>
+                    <skip>${gatling.skip}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>gatling-test</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

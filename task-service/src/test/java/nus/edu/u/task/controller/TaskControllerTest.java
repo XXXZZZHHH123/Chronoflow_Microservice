@@ -128,11 +128,12 @@ class TaskControllerTest {
 
     @Test
     void logs_returnsTaskLogs() {
+        long eventId = 21L;
         long taskId = 66L;
         List<TaskLogRespVO> logs = List.of(TaskLogRespVO.builder().id(taskId).build());
         when(taskLogApplicationService.getTaskLog(taskId)).thenReturn(logs);
 
-        CommonResult<List<TaskLogRespVO>> result = controller.logs(taskId);
+        CommonResult<List<TaskLogRespVO>> result = controller.logs(eventId, taskId);
 
         assertThat(result.getData()).isSameAs(logs);
         verify(taskLogApplicationService).getTaskLog(taskId);

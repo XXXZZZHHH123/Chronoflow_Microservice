@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __JOB_NAME__
+  namespace: chronoflow
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: gatling
+          image: __IMAGE__
+          imagePullPolicy: Always
+          env:
+            - name: TASK_SERVICE_BASE_URL
+              value: "__BASE_URL__"
+            - name: TASK_SERVICE_LOGIN_PATH
+              value: "__LOGIN_PATH__"
+            - name: TASK_SERVICE_USERNAME
+              value: "__USERNAME__"
+            - name: TASK_SERVICE_PASSWORD
+              value: "__PASSWORD__"
+            - name: TASK_SERVICE_EVENT_ID
+              value: "__EVENT_ID__"
+            - name: TASK_SERVICE_TASK_ID
+              value: "__TASK_ID__"

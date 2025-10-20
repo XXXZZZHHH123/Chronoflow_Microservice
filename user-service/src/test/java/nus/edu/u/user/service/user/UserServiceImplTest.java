@@ -83,6 +83,37 @@ class UserServiceImplTest {
     }
 
     @Test
+    void getUserByUsername_delegatesToMapper() {
+        UserDO user = new UserDO();
+        when(userMapper.selectByUsername("alice")).thenReturn(user);
+
+        assertThat(service.getUserByUsername("alice")).isSameAs(user);
+    }
+
+    @Test
+    void isPasswordMatch_usesPasswordEncoder() {
+        when(passwordEncoder.matches("raw", "encoded")).thenReturn(true);
+
+        assertThat(service.isPasswordMatch("raw", "encoded")).isTrue();
+    }
+
+    @Test
+    void selectUserWithRole_delegatesToMapper() {
+        UserRoleDTO dto = new UserRoleDTO();
+        when(userMapper.selectUserWithRole(1L)).thenReturn(dto);
+
+        assertThat(service.selectUserWithRole(1L)).isSameAs(dto);
+    }
+
+    @Test
+    void selectUserById_delegatesToMapper() {
+        UserDO user = new UserDO();
+        when(userMapper.selectById(2L)).thenReturn(user);
+
+        assertThat(service.selectUserById(2L)).isSameAs(user);
+    }
+
+    @Test
     void createUserWithRoleIds_persistsUserAndRoles() {
         CreateUserDTO dto =
                 CreateUserDTO.builder()
@@ -121,6 +152,96 @@ class UserServiceImplTest {
     }
 
     @Test
+    void createUserWithRoleIds_whenEmailExists_throwsEmailExist() {
+        CreateUserDTO dto =
+                CreateUserDTO.builder().email("dup@example.com").roleIds(List.of(10L)).build();
+
+        when(userMapper.existsEmail("dup@example.com", null)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.createUserWithRoleIds(dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.EMAIL_EXIST.getCode());
+    }
+
+    @Test
+    void createUserWithRoleIds_roleCountMismatch_throwsRoleNotFound() {
+        CreateUserDTO dto =
+                CreateUserDTO.builder()
+                        .email("user@example.com")
+                        .roleIds(List.of(10L, 11L))
+                        .build();
+
+        when(userMapper.existsEmail("user@example.com", null)).thenReturn(false);
+        when(roleMapper.countByIds(dto.getRoleIds())).thenReturn(1);
+
+        assertThatThrownBy(() -> service.createUserWithRoleIds(dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.ROLE_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void createUserWithRoleIds_whenInsertFails_throwsUserInsertFailure() {
+        CreateUserDTO dto =
+                CreateUserDTO.builder().email("user@example.com").roleIds(List.of(10L)).build();
+
+        when(userMapper.existsEmail("user@example.com", null)).thenReturn(false);
+        when(roleMapper.countByIds(dto.getRoleIds())).thenReturn(1);
+        when(userMapper.insert(any(UserDO.class))).thenReturn(0);
+
+        assertThatThrownBy(() -> service.createUserWithRoleIds(dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_INSERT_FAILURE.getCode());
+    }
+
+    @Test
+    void createUserWithRoleIds_whenRoleBindingFails_throwsUserRoleBindFailure() {
+        CreateUserDTO dto =
+                CreateUserDTO.builder().email("user@example.com").roleIds(List.of(10L)).build();
+
+        when(userMapper.existsEmail("user@example.com", null)).thenReturn(false);
+        when(roleMapper.countByIds(dto.getRoleIds())).thenReturn(1);
+        doAnswer(
+                        invocation -> {
+                            UserDO user = invocation.getArgument(0);
+                            user.setId(100L);
+                            return 1;
+                        })
+                .when(userMapper)
+                .insert(any(UserDO.class));
+        when(userRoleMapper.insert(any(UserRoleDO.class))).thenReturn(0);
+
+        assertThatThrownBy(() -> service.createUserWithRoleIds(dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_ROLE_BIND_FAILURE.getCode());
+    }
+
+    @Test
+    void createUserWithRoleIds_withoutRoles_skipsBinding() {
+        CreateUserDTO dto =
+                CreateUserDTO.builder().email("user@example.com").roleIds(List.of()).build();
+
+        when(userMapper.existsEmail("user@example.com", null)).thenReturn(false);
+        when(roleMapper.countByIds(dto.getRoleIds())).thenReturn(0);
+        doAnswer(
+                        invocation -> {
+                            UserDO user = invocation.getArgument(0);
+                            user.setId(123L);
+                            return 1;
+                        })
+                .when(userMapper)
+                .insert(any(UserDO.class));
+
+        Long id = service.createUserWithRoleIds(dto);
+
+        assertThat(id).isEqualTo(123L);
+        verify(userRoleMapper, times(0)).insert(any(UserRoleDO.class));
+    }
+
+    @Test
     void updateUserWithRoleIds_updatesUserAndSynchronizesRoles() {
         UpdateUserDTO dto =
                 UpdateUserDTO.builder()
@@ -153,6 +274,126 @@ class UserServiceImplTest {
     }
 
     @Test
+    void updateUserWithRoleIds_whenUserMissing_throwsNotFound() {
+        UpdateUserDTO dto = UpdateUserDTO.builder().id(1L).build();
+        when(userMapper.selectById(1L)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.updateUserWithRoleIds(dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void updateUserWithRoleIds_whenEmailExists_throwsEmailExist() {
+        UpdateUserDTO dto = UpdateUserDTO.builder().id(1L).email("dup@example.com").build();
+        UserDO user = new UserDO();
+        user.setId(1L);
+        user.setDeleted(false);
+
+        when(userMapper.selectById(1L)).thenReturn(user);
+        when(userMapper.existsEmail("dup@example.com", 1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.updateUserWithRoleIds(dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.EMAIL_EXIST.getCode());
+    }
+
+    @Test
+    void updateUserWithRoleIds_whenUpdateFails_throwsUpdateFailure() {
+        UpdateUserDTO dto = UpdateUserDTO.builder().id(1L).email("user@example.com").build();
+        UserDO user = new UserDO();
+        user.setId(1L);
+        user.setDeleted(false);
+
+        when(userMapper.selectById(1L)).thenReturn(user);
+        when(userMapper.existsEmail("user@example.com", 1L)).thenReturn(false);
+        when(userMapper.update(any(UserDO.class), any())).thenReturn(0);
+
+        assertThatThrownBy(() -> service.updateUserWithRoleIds(dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.UPDATE_FAILURE.getCode());
+    }
+
+    @Test
+    void updateUserWithRoleIds_whenRolesContainForbidden_throwsRoleNotFound() {
+        UpdateUserDTO dto = UpdateUserDTO.builder().id(1L).roleIds(List.of(1L)).build();
+        UserDO user = new UserDO();
+        user.setId(1L);
+        user.setDeleted(false);
+        when(userMapper.selectById(1L)).thenReturn(user);
+        when(userMapper.update(any(UserDO.class), any())).thenReturn(1);
+
+        assertThatThrownBy(() -> service.updateUserWithRoleIds(dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.ROLE_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void updateUserWithRoleIds_roleCountMismatch_throwsRoleNotFound() {
+        UpdateUserDTO dto = UpdateUserDTO.builder().id(1L).roleIds(List.of(10L, 11L)).build();
+        UserDO user = new UserDO();
+        user.setId(1L);
+        user.setDeleted(false);
+
+        when(userMapper.selectById(1L)).thenReturn(user);
+        when(userMapper.update(any(UserDO.class), any())).thenReturn(1);
+        when(roleMapper.countByIds(dto.getRoleIds())).thenReturn(1);
+
+        assertThatThrownBy(() -> service.updateUserWithRoleIds(dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.ROLE_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void updateUserWithRoleIds_whenUserDeleted_throwsNotFound() {
+        UpdateUserDTO dto = UpdateUserDTO.builder().id(1L).build();
+        UserDO user = new UserDO();
+        user.setDeleted(true);
+        when(userMapper.selectById(1L)).thenReturn(user);
+
+        assertThatThrownBy(() -> service.updateUserWithRoleIds(dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void updateUserWithRoleIds_whenRoleIdsEmpty_doesNotCheckRoles() {
+        UpdateUserDTO dto = UpdateUserDTO.builder().id(1L).roleIds(List.of()).build();
+        UserDO user = new UserDO();
+        user.setDeleted(false);
+
+        when(userMapper.selectById(1L)).thenReturn(user);
+        when(userMapper.update(any(UserDO.class), any())).thenReturn(1);
+        when(userMapper.selectById(1L)).thenReturn(user);
+
+        service.updateUserWithRoleIds(dto);
+
+        verify(roleMapper, times(0)).countByIds(any());
+    }
+
+    @Test
+    void updateUserWithRoleIds_whenRoleIdsNull_skipsRoleSync() {
+        UpdateUserDTO dto = UpdateUserDTO.builder().id(1L).roleIds(null).build();
+        UserDO user = new UserDO();
+        user.setId(1L);
+        user.setDeleted(false);
+
+        when(userMapper.selectById(1L)).thenReturn(user);
+        when(userMapper.update(any(UserDO.class), any())).thenReturn(1);
+        when(userMapper.selectById(1L)).thenReturn(user);
+
+        service.updateUserWithRoleIds(dto);
+
+        verify(roleMapper, times(0)).countByIds(any());
+    }
+
+    @Test
     void softDeleteUser_marksDeleted() {
         UserDO existing = new UserDO();
         existing.setId(5L);
@@ -167,6 +408,41 @@ class UserServiceImplTest {
     }
 
     @Test
+    void softDeleteUser_whenNotFound_throwsUserNotFound() {
+        when(userMapper.selectRawById(5L)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.softDeleteUser(5L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_NOTFOUND.getCode());
+    }
+
+    @Test
+    void softDeleteUser_whenAlreadyDeleted_throwsUserAlreadyDeleted() {
+        UserDO deleted = new UserDO();
+        deleted.setDeleted(true);
+        when(userMapper.selectRawById(5L)).thenReturn(deleted);
+
+        assertThatThrownBy(() -> service.softDeleteUser(5L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_ALREADY_DELETED.getCode());
+    }
+
+    @Test
+    void softDeleteUser_whenUpdateFails_throwsUpdateFailure() {
+        UserDO existing = new UserDO();
+        existing.setDeleted(false);
+        when(userMapper.selectRawById(5L)).thenReturn(existing);
+        when(userMapper.update(any(UserDO.class), any())).thenReturn(0);
+
+        assertThatThrownBy(() -> service.softDeleteUser(5L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.UPDATE_FAILURE.getCode());
+    }
+
+    @Test
     void restoreUser_reactivatesRecord() {
         UserDO deleted = new UserDO();
         deleted.setId(7L);
@@ -178,6 +454,41 @@ class UserServiceImplTest {
         service.restoreUser(7L);
 
         verify(userMapper).update(any(UserDO.class), any());
+    }
+
+    @Test
+    void restoreUser_whenNotFound_throwsUserNotFound() {
+        when(userMapper.selectRawById(7L)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.restoreUser(7L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_NOTFOUND.getCode());
+    }
+
+    @Test
+    void restoreUser_whenNotDeleted_throwsUserNotDeleted() {
+        UserDO user = new UserDO();
+        user.setDeleted(false);
+        when(userMapper.selectRawById(7L)).thenReturn(user);
+
+        assertThatThrownBy(() -> service.restoreUser(7L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_NOT_DELETED.getCode());
+    }
+
+    @Test
+    void restoreUser_whenUpdateFails_throwsUpdateFailure() {
+        UserDO user = new UserDO();
+        user.setDeleted(true);
+        when(userMapper.selectRawById(7L)).thenReturn(user);
+        when(userMapper.update(any(UserDO.class), any())).thenReturn(0);
+
+        assertThatThrownBy(() -> service.restoreUser(7L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.UPDATE_FAILURE.getCode());
     }
 
     @Test
@@ -209,6 +520,104 @@ class UserServiceImplTest {
     }
 
     @Test
+    void disableUser_whenUserNotFound_throws() {
+        when(userMapper.selectById(8L)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.disableUser(8L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void disableUser_whenUserDeleted_throws() {
+        UserDO user = new UserDO();
+        user.setDeleted(true);
+        when(userMapper.selectById(8L)).thenReturn(user);
+
+        assertThatThrownBy(() -> service.disableUser(8L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void disableUser_whenUpdateFails_throwsDisableFailure() {
+        UserDO user = new UserDO();
+        user.setDeleted(false);
+        user.setStatus(UserStatusEnum.ENABLE.getCode());
+        when(userMapper.selectById(8L)).thenReturn(user);
+        when(userMapper.update(any(UserDO.class), any())).thenReturn(0);
+
+        assertThatThrownBy(() -> service.disableUser(8L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_DISABLE_FAILURE.getCode());
+    }
+
+    @Test
+    void disableUser_successfullyUpdatesStatus() {
+        UserDO user = new UserDO();
+        user.setDeleted(false);
+        user.setStatus(UserStatusEnum.ENABLE.getCode());
+        when(userMapper.selectById(15L)).thenReturn(user);
+        when(userMapper.update(any(UserDO.class), any())).thenReturn(1);
+
+        service.disableUser(15L);
+
+        verify(userMapper).update(any(UserDO.class), any());
+    }
+
+    @Test
+    void enableUser_whenUserNotFound_throws() {
+        when(userMapper.selectById(9L)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.enableUser(9L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void enableUser_whenUserDeleted_throws() {
+        UserDO user = new UserDO();
+        user.setDeleted(true);
+        when(userMapper.selectById(9L)).thenReturn(user);
+
+        assertThatThrownBy(() -> service.enableUser(9L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void enableUser_whenUpdateFails_throwsEnableFailure() {
+        UserDO user = new UserDO();
+        user.setDeleted(false);
+        user.setStatus(UserStatusEnum.DISABLE.getCode());
+        when(userMapper.selectById(9L)).thenReturn(user);
+        when(userMapper.update(any(UserDO.class), any())).thenReturn(0);
+
+        assertThatThrownBy(() -> service.enableUser(9L))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.USER_ENABLE_FAILURE.getCode());
+    }
+
+    @Test
+    void enableUser_successfullyUpdatesStatus() {
+        UserDO user = new UserDO();
+        user.setDeleted(false);
+        user.setStatus(UserStatusEnum.DISABLE.getCode());
+        when(userMapper.selectById(16L)).thenReturn(user);
+        when(userMapper.update(any(UserDO.class), any())).thenReturn(1);
+
+        service.enableUser(16L);
+
+        verify(userMapper).update(any(UserDO.class), any());
+    }
+
+    @Test
     void getAllUserProfiles_excludesCurrentUser() {
         StpUtil.login(500L);
         UserRoleDTO self =
@@ -236,6 +645,75 @@ class UserServiceImplTest {
     }
 
     @Test
+    void getAllUserProfiles_whenNoUsers_returnsEmptyList() {
+        when(userMapper.selectAllUsersWithRoles()).thenReturn(List.of());
+
+        assertThat(service.getAllUserProfiles()).isEmpty();
+    }
+
+    @Test
+    void getAliveRoleIdsByUserId_delegatesToMapper() {
+        when(userRoleMapper.selectRoleIdsByUserId(20L)).thenReturn(List.of(1L, 2L));
+
+        assertThat(service.getAliveRoleIdsByUserId(20L)).containsExactly(1L, 2L);
+    }
+
+    @Test
+    void getEnabledUserProfiles_filtersDisabledUsersAndSelf() {
+        StpUtil.login(100L);
+        UserRoleDTO disabled =
+                UserRoleDTO.builder()
+                        .userId(200L)
+                        .username("Disabled")
+                        .email("disabled@example.com")
+                        .status(UserStatusEnum.DISABLE.getCode())
+                        .roles(null)
+                        .build();
+        UserRoleDTO enabled =
+                UserRoleDTO.builder()
+                        .userId(201L)
+                        .username("Enabled")
+                        .email("enabled@example.com")
+                        .status(UserStatusEnum.ENABLE.getCode())
+                        .roles(null)
+                        .build();
+        UserRoleDTO self =
+                UserRoleDTO.builder()
+                        .userId(100L)
+                        .username("Self")
+                        .email("self@example.com")
+                        .status(UserStatusEnum.ENABLE.getCode())
+                        .roles(null)
+                        .build();
+        when(userMapper.selectAllUsersWithRoles()).thenReturn(List.of(disabled, enabled, self));
+
+        var profiles = service.getEnabledUserProfiles();
+
+        assertThat(profiles).hasSize(1);
+        assertThat(profiles.get(0).getId()).isEqualTo(201L);
+        assertThat(profiles.get(0).isRegistered()).isTrue();
+    }
+
+    @Test
+    void getAllUserProfiles_handlesNullRolesAndPendingStatus() {
+        StpUtil.login(999L);
+        UserRoleDTO dto =
+                UserRoleDTO.builder()
+                        .userId(500L)
+                        .username("NoRoles")
+                        .email("noroles@example.com")
+                        .status(UserStatusEnum.PENDING.getCode())
+                        .roles(null)
+                        .build();
+        when(userMapper.selectAllUsersWithRoles()).thenReturn(List.of(dto));
+
+        var profiles = service.getAllUserProfiles();
+
+        assertThat(profiles.get(0).getRoles()).isEmpty();
+        assertThat(profiles.get(0).isRegistered()).isFalse();
+    }
+
+    @Test
     void bulkUpsertUsers_countsCreatedAndUpdated() {
         CreateUserDTO row1 =
                 CreateUserDTO.builder()
@@ -259,6 +737,72 @@ class UserServiceImplTest {
         assertThat(resp.getCreatedCount()).isEqualTo(1);
         assertThat(resp.getUpdatedCount()).isEqualTo(1);
         assertThat(resp.getFailedCount()).isEqualTo(0);
+    }
+
+    @Test
+    void bulkUpsertUsers_recordsFailureWhenServiceThrowsRuntime() {
+        CreateUserDTO row =
+                CreateUserDTO.builder()
+                        .email("user@example.com")
+                        .roleIds(List.of(10L))
+                        .rowIndex(4)
+                        .build();
+        doThrow(new RuntimeException("boom"))
+                .when(service)
+                .tryCreateOrFallbackToUpdate(anyString(), any(), anyList());
+
+        BulkUpsertUsersRespVO resp = service.bulkUpsertUsers(List.of(row));
+
+        assertThat(resp.getFailedCount()).isEqualTo(1);
+        assertThat(resp.getFailures().get(0).getReason()).contains("INTERNAL_ERROR");
+    }
+
+    @Test
+    void bulkUpsertUsers_recordsFailureForForbiddenRole() {
+        CreateUserDTO row =
+                CreateUserDTO.builder()
+                        .email("user@example.com")
+                        .roleIds(List.of(1L))
+                        .rowIndex(5)
+                        .build();
+
+        BulkUpsertUsersRespVO resp = service.bulkUpsertUsers(List.of(row));
+
+        assertThat(resp.getFailures()).hasSize(1);
+        assertThat(resp.getFailures().get(0).getEmail()).isEqualTo("user@example.com");
+    }
+
+    @Test
+    void bulkUpsertUsers_recordsFailureForBlankEmail() {
+        CreateUserDTO row =
+                CreateUserDTO.builder().email("   ").roleIds(List.of(10L)).rowIndex(6).build();
+
+        BulkUpsertUsersRespVO resp = service.bulkUpsertUsers(List.of(row));
+
+        assertThat(resp.getFailures()).hasSize(1);
+        assertThat(resp.getFailures().get(0).getRowIndex()).isEqualTo(6);
+    }
+
+    @Test
+    void bulkUpsertUsers_whenInputEmpty_returnsZeroStats() {
+        BulkUpsertUsersRespVO resp = service.bulkUpsertUsers(List.of());
+        assertThat(resp.getTotalRows()).isZero();
+        assertThat(resp.getFailures()).isEmpty();
+    }
+
+    @Test
+    void bulkUpsertUsers_recordsFailuresForInvalidEmail() {
+        CreateUserDTO invalid =
+                CreateUserDTO.builder()
+                        .email("invalid-email")
+                        .roleIds(List.of(10L))
+                        .rowIndex(3)
+                        .build();
+
+        BulkUpsertUsersRespVO resp = service.bulkUpsertUsers(List.of(invalid));
+
+        assertThat(resp.getFailedCount()).isEqualTo(1);
+        assertThat(resp.getFailures().get(0).getRowIndex()).isEqualTo(3);
     }
 
     @Test
@@ -292,5 +836,36 @@ class UserServiceImplTest {
                 .isInstanceOf(ServiceException.class)
                 .extracting("code")
                 .isEqualTo(ErrorCodeConstants.NULL_USERID.getCode());
+    }
+
+    @Test
+    void tryCreateOrFallbackToUpdate_otherServiceExceptionPropagates() {
+        doThrow(ServiceExceptionUtil.exception(ErrorCodeConstants.ROLE_NOT_FOUND))
+                .when(service)
+                .createUserWithRoleIds(any(CreateUserDTO.class));
+
+        assertThatThrownBy(
+                        () ->
+                                service.tryCreateOrFallbackToUpdate(
+                                        "user@example.com", "remark", List.of(10L)))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.ROLE_NOT_FOUND.getCode());
+    }
+
+    @Test
+    void tryCreateOrFallbackToUpdate_whenRoleValidationFails_propagatesException() {
+        doThrow(ServiceExceptionUtil.exception(ErrorCodeConstants.EMAIL_EXIST))
+                .when(service)
+                .createUserWithRoleIds(any(CreateUserDTO.class));
+        when(userMapper.selectIdByEmail("existing@example.com")).thenReturn(4000L);
+
+        assertThatThrownBy(
+                        () ->
+                                service.tryCreateOrFallbackToUpdate(
+                                        "existing@example.com", "remark", List.of()))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(ErrorCodeConstants.EMPTY_ROLEIDS.getCode());
     }
 }

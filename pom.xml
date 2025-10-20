@@ -60,6 +60,14 @@
         <zxing-core.version>3.5.3</zxing-core.version>
         <zxing-javase.version>3.5.3</zxing-javase.version>
         <gcs.version>2.22.2</gcs.version>
+
+        <!-- SonarQube 測試覆蓋排除項（所有自動生成的類不統計、不掃描） -->
+        <sonar.coverage.exclusions>
+            **/generated/**,**/*Generated*,**/*MapperImpl.class
+        </sonar.coverage.exclusions>
+        <sonar.exclusions>
+            **/generated/**,**/*Generated*,**/*MapperImpl.class
+        </sonar.exclusions>
     </properties>
 
     <dependencyManagement>

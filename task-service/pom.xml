@@ -15,7 +15,22 @@
 
     <properties>
         <gatling.skip>true</gatling.skip>
+        <spring.cloud.gcp.version>7.3.1</spring.cloud.gcp.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Cloud GCP BOM -->
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>spring-cloud-gcp-dependencies</artifactId>
+                <version>${spring.cloud.gcp.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 
     <dependencies>
 
@@ -32,6 +47,11 @@
         <dependency>
             <groupId>nus.edu.u</groupId>
             <artifactId>framework</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>spring-cloud-gcp-starter-pubsub</artifactId>
         </dependency>
 
         <dependency>
@@ -81,6 +101,12 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <configuration>
+                    <includes>
+                        <include>nus/edu/u/task/service/TaskLogServiceApplicationImpl*</include>
+                        <include>nus/edu/u/task/service/TaskApplicationServiceImpl*</include>
+                        <include>nus/edu/u/task/controller/TaskController*</include>
+                        <include>nus/edu/u/task/action/TaskActionFactory*</include>
+                    </includes>
                     <excludes>
                         <exclude>**/generated/**</exclude>
                         <exclude>**/*Generated*</exclude>

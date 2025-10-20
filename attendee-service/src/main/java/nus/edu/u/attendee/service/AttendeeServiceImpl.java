@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.attendee.domain.dataobject.EventAttendeeDO;
 import nus.edu.u.attendee.domain.vo.attendee.AttendeeInfoRespVO;
-import nus.edu.u.attendee.domain.vo.attendee.AttendeeInviteReqVO;
 import nus.edu.u.attendee.domain.vo.attendee.AttendeeQrCodeRespVO;
 import nus.edu.u.attendee.domain.vo.attendee.AttendeeReqVO;
 import nus.edu.u.attendee.domain.vo.checkin.CheckInRespVO;
@@ -19,10 +18,12 @@ import nus.edu.u.attendee.domain.vo.checkin.GenerateQrCodesReqVO;
 import nus.edu.u.attendee.domain.vo.checkin.GenerateQrCodesRespVO;
 import nus.edu.u.attendee.domain.vo.qrcode.QrCodeRespVO;
 import nus.edu.u.attendee.mapper.EventAttendeeMapper;
+import nus.edu.u.attendee.publisher.AttendeeNotificationPublisher;
 import nus.edu.u.attendee.service.qrcode.QrCodeService;
 import nus.edu.u.common.enums.EventStatusEnum;
 import nus.edu.u.shared.rpc.events.EventRespDTO;
 import nus.edu.u.shared.rpc.events.EventRpcService;
+import nus.edu.u.shared.rpc.notification.dto.Attendee.AttendeeInviteReqDTO;
 import nus.edu.u.shared.rpc.user.TenantDTO;
 import nus.edu.u.shared.rpc.user.UserRpcService;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -42,7 +43,7 @@ public class AttendeeServiceImpl implements AttendeeService {
 
     private final QrCodeService qrCodeService;
 
-    //    @Resource private AttendeeEmailService attendeeEmailService;
+    private final AttendeeNotificationPublisher attendeeNotificationPublisher;
 
     @DubboReference private UserRpcService userRpcService;
 
@@ -349,11 +350,12 @@ public class AttendeeServiceImpl implements AttendeeService {
                 }
             } catch (Exception e) {
                 log.error("Failed to get tenant info via RPC for tenantId: {}", currentTenantId, e);
+                throw exception(ATTENDEE_CREATION_FAILED);
             }
         }
 
-        AttendeeInviteReqVO emailReq =
-                AttendeeInviteReqVO.builder()
+        AttendeeInviteReqDTO emailReq =
+                AttendeeInviteReqDTO.builder()
                         .toEmail(attendee.getAttendeeEmail())
                         .attendeeMobile(attendee.getAttendeeMobile())
                         .attendeeName(attendee.getAttendeeName())
@@ -364,9 +366,10 @@ public class AttendeeServiceImpl implements AttendeeService {
                         .eventId(event.getId())
                         .eventLocation(event.getLocation())
                         .eventDate(event.getStartTime().toString())
-                        .organizationName(ObjectUtil.isNotNull(tenant) ? tenant.getName() : null)
+                        .organizationName(ObjectUtil.isNotNull(tenant) ? tenant.getName() : "")
                         .build();
-        //        attendeeEmailService.sendAttendeeInvite(emailReq);
+
+        attendeeNotificationPublisher.sendAttendeeInviteEmail(emailReq);
     }
 
     @Override

@@ -345,55 +345,95 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
 
     @Override
     public Map<Long, List<GroupDTO>> getGroupDTOsByEventIds(Collection<Long> eventIds) {
-        Map<Long, List<GroupRespVO>> groups = getGroupsByEventIds(eventIds);
-        if (groups.isEmpty()) {
+        if (CollectionUtils.isEmpty(eventIds)) {
             return Collections.emptyMap();
         }
 
+        List<Long> distinctEventIds =
+                eventIds.stream().filter(Objects::nonNull).distinct().toList();
+
+        List<DeptDO> groups =
+                distinctEventIds.isEmpty()
+                        ? List.of()
+                        : deptMapper.selectList(
+                                new LambdaQueryWrapper<DeptDO>()
+                                        .in(DeptDO::getEventId, distinctEventIds)
+                                        .eq(DeptDO::getDeleted, false));
+
+        Map<Long, List<DeptDO>> groupsByEvent =
+                groups.stream().collect(Collectors.groupingBy(DeptDO::getEventId));
+
         Set<Long> groupIds =
-                groups.values().stream()
-                        .flatMap(List::stream)
-                        .map(GroupRespVO::getId)
+                groups.stream()
+                        .map(DeptDO::getId)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
-        Map<Long, List<GroupRespVO.MemberInfo>> membersByGroup = fetchMembersByGroupIds(groupIds);
+
+        List<UserGroupDO> relations =
+                groupIds.isEmpty()
+                        ? List.of()
+                        : userGroupMapper.selectList(
+                                new LambdaQueryWrapper<UserGroupDO>()
+                                        .in(UserGroupDO::getDeptId, groupIds));
+
+        Set<Long> memberIds =
+                relations.stream()
+                        .map(UserGroupDO::getUserId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+        Map<Long, UserInfoDTO> users = fetchUsers(memberIds);
+
+        Map<Long, List<GroupMemberDTO>> membersByGroup = new HashMap<>();
+        for (UserGroupDO relation : relations) {
+            UserInfoDTO user = users.get(relation.getUserId());
+            if (user == null || !CommonStatusEnum.isEnable(user.getStatus())) {
+                continue;
+            }
+            GroupMemberDTO member =
+                    GroupMemberDTO.builder()
+                            .userId(user.getId())
+                            .username(user.getUsername())
+                            .build();
+            membersByGroup
+                    .computeIfAbsent(relation.getDeptId(), key -> new ArrayList<>())
+                    .add(member);
+        }
 
         Map<Long, List<GroupDTO>> result = new HashMap<>();
-        for (Map.Entry<Long, List<GroupRespVO>> entry : groups.entrySet()) {
+        for (Long eventId : eventIds) {
+            if (eventId == null) {
+                continue;
+            }
+            List<DeptDO> eventGroups = groupsByEvent.getOrDefault(eventId, List.of());
+            if (eventGroups.isEmpty()) {
+                result.put(eventId, List.of());
+                continue;
+            }
             List<GroupDTO> dtos =
-                    entry.getValue().stream()
+                    eventGroups.stream()
                             .map(
-                                    group ->
-                                            GroupDTO.builder()
-                                                    .eventId(group.getEventId())
-                                                    .id(group.getId())
-                                                    .name(group.getName())
-                                                    .sort(group.getSort())
-                                                    .leadUserId(group.getLeadUserId())
-                                                    .remark(group.getRemark())
-                                                    .status(group.getStatus())
-                                                    .members(
-                                                            membersByGroup
-                                                                    .getOrDefault(
-                                                                            group.getId(),
-                                                                            Collections.emptyList())
-                                                                    .stream()
-                                                                    .map(
-                                                                            member ->
-                                                                                    GroupMemberDTO
-                                                                                            .builder()
-                                                                                            .userId(
-                                                                                                    member
-                                                                                                            .getUserId())
-                                                                                            .username(
-                                                                                                    member
-                                                                                                            .getUsername())
-                                                                                            .build())
-                                                                    .toList())
-                                                    .build())
+                                    group -> {
+                                        List<GroupMemberDTO> members =
+                                                membersByGroup.getOrDefault(
+                                                        group.getId(), Collections.emptyList());
+                                        return GroupDTO.builder()
+                                                .eventId(group.getEventId())
+                                                .id(group.getId())
+                                                .name(group.getName())
+                                                .sort(group.getSort())
+                                                .leadUserId(group.getLeadUserId())
+                                                .remark(group.getRemark())
+                                                .status(group.getStatus())
+                                                .members(
+                                                        members.isEmpty()
+                                                                ? List.of()
+                                                                : List.copyOf(members))
+                                                .build();
+                                    })
                             .toList();
-            result.put(entry.getKey(), dtos);
+            result.put(eventId, dtos);
         }
+
         return result;
     }
 

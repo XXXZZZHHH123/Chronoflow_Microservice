@@ -18,6 +18,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import java.util.List;
+import nus.edu.u.common.constant.Constants;
 import nus.edu.u.common.enums.ErrorCodeConstants;
 import nus.edu.u.common.exception.ServiceException;
 import nus.edu.u.common.utils.exception.ServiceExceptionUtil;
@@ -56,6 +57,7 @@ class UserServiceImplTest {
     @Mock private UserRoleMapper userRoleMapper;
     @Mock private RoleMapper roleMapper;
     @Mock private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    @Mock private nus.edu.u.user.publisher.member.MemberNotificationPublisher memberNotificationPublisher;
 
     @BeforeAll
     static void initTableInfo() {
@@ -68,7 +70,13 @@ class UserServiceImplTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(service, "self", service);
+        ReflectionTestUtils.setField(service, "userMapper", userMapper);
+        ReflectionTestUtils.setField(service, "userRoleMapper", userRoleMapper);
+        ReflectionTestUtils.setField(service, "roleMapper", roleMapper);
+        ReflectionTestUtils.setField(service, "passwordEncoder", passwordEncoder);
         SaTokenContextMockUtil.setMockContext();
+        StpUtil.login(999L);
+        StpUtil.getSession().set(Constants.SESSION_TENANT_ID, 1L);
     }
 
     @AfterEach

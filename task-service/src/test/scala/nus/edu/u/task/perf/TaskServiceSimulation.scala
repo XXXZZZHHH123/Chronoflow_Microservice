@@ -21,6 +21,13 @@ class TaskServiceSimulation extends Simulation {
   private def propOrEnv(propKey: String, envKey: String): Option[String] =
     sys.props.get(propKey).orElse(sys.env.get(envKey))
 
+  private def extractCookie(rawCookies: Seq[String], name: String): Option[String] =
+    rawCookies
+      .flatMap(_.split(";"))
+      .map(_.trim)
+      .find(_.startsWith(s"$name="))
+      .map(_.substring(name.length + 1))
+
   private val baseUrl =
     propOrEnv("taskService.baseUrl", "TASK_SERVICE_BASE_URL")
       .getOrElse("http://localhost:8080")
@@ -69,9 +76,21 @@ class TaskServiceSimulation extends Simulation {
           ))
         .asJson
         .check(status.is(200))
-        .check(headerRegex("Set-Cookie", """Authorization=([^;]+)""").find.saveAs("authorizationCookie"))
-        .check(headerRegex("Set-Cookie", """refreshToken=([^;]+)""").find.saveAs("refreshTokenCookie"))
+        .check(headerValues("Set-Cookie").saveAs("rawCookies"))
     ).exitHereIfFailed
+      .exec { session =>
+        val rawCookies = session("rawCookies").asOption[Seq[String]].getOrElse(Seq.empty)
+        val authorization = extractCookie(rawCookies, "Authorization")
+        val refreshToken = extractCookie(rawCookies, "refreshToken")
+        (authorization, refreshToken) match {
+          case (Some(auth), Some(refresh)) =>
+            session
+              .set("authorizationCookie", auth)
+              .set("refreshTokenCookie", refresh)
+          case _ =>
+            session.markAsFailed
+        }
+      }
 
   private val getTaskScenario =
     scenario("Login and Get Task")

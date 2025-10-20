@@ -10,11 +10,15 @@ import java.util.List;
 import nus.edu.u.shared.rpc.file.FileResultDTO;
 import nus.edu.u.shared.rpc.file.FileUploadReqDTO;
 import nus.edu.u.shared.rpc.file.FileUploadReqDTO.FileResource;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.web.multipart.MultipartFile;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(
+        componentModel = "spring",
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        builder = @Builder(disableBuilder = true))
 public interface FileRpcConvert {
 
     FileResultDTO toRpc(nus.edu.u.file.domain.vo.FileResultVO bean);

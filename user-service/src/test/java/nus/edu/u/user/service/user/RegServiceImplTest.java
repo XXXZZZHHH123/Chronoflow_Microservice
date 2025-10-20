@@ -27,6 +27,7 @@ import nus.edu.u.user.mapper.role.RolePermissionMapper;
 import nus.edu.u.user.mapper.tenant.TenantMapper;
 import nus.edu.u.user.mapper.user.UserMapper;
 import nus.edu.u.user.mapper.user.UserRoleMapper;
+import nus.edu.u.user.publisher.organizer.OrganizerNotificationPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +36,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class RegServiceImplTest {
@@ -46,6 +48,7 @@ class RegServiceImplTest {
     @Mock private RoleMapper roleMapper;
     @Mock private UserRoleMapper userRoleMapper;
     @Mock private PasswordEncoder passwordEncoder;
+    @Mock private OrganizerNotificationPublisher organizerNotificationPublisher;
 
     @InjectMocks private RegServiceImpl service;
 
@@ -56,6 +59,13 @@ class RegServiceImplTest {
     @BeforeEach
     void setUp() {
         searchReq = RegSearchReqVO.builder().organizationId(tenantId).userId(userId).build();
+        ReflectionTestUtils.setField(service, "tenantMapper", tenantMapper);
+        ReflectionTestUtils.setField(service, "userMapper", userMapper);
+        ReflectionTestUtils.setField(service, "permissionMapper", permissionMapper);
+        ReflectionTestUtils.setField(service, "rolePermissionMapper", rolePermissionMapper);
+        ReflectionTestUtils.setField(service, "roleMapper", roleMapper);
+        ReflectionTestUtils.setField(service, "userRoleMapper", userRoleMapper);
+        ReflectionTestUtils.setField(service, "passwordEncoder", passwordEncoder);
     }
 
     @Test

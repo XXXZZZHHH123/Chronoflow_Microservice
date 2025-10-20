@@ -52,6 +52,8 @@ jobs:
               - 'event-service/**'
             attendee-service:
               - 'attendee-service/**'
+            wsgateway:
+              - 'wsgateway/**'
             shared-modules:
               - 'framework/**'
               - 'common/**'
@@ -61,7 +63,7 @@ jobs:
       - name: Set all services list
         id: set-services
         run: |
-          echo "all=[\"user-service\",\"task-service\",\"notification-service\",\"gateway\", \"file-service\", \"event-service\", \"attendee-service\"]" >> $GITHUB_OUTPUT
+          echo "all=[\"user-service\",\"task-service\",\"notification-service\",\"gateway\", \"file-service\", \"event-service\", \"attendee-service\", \"wsgateway\"]" >> $GITHUB_OUTPUT
 
       - name: Determine affected services
         id: resolve

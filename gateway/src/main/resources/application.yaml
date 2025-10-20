@@ -82,6 +82,21 @@ spring:
             - Path=/notifications/**
           filters:
             - RewritePath=/notifications/v3/api-docs, /v3/api-docs
+        # websocket gateway
+        - id: ws-upgrade
+          uri: lb:ws://ws-gateway
+          predicates:
+            - Path=/ws
+            - Header=Upgrade, websocket
+          order: -10
+
+        # 2) REST under /ws/**
+        - id: ws-api
+          uri: lb://ws-gateway
+          predicates:
+            - Path=/ws/**
+          order: 0
+
       x-forwarded:
         prefix-enabled: false
 
@@ -114,6 +129,8 @@ gateway:
     - /users/auth/login
     - /users/auth/refresh
     - /users/reg/**
+    - /ws
+    - /ws/internal/**
 
 ############## Sa-Token config (文档: https://sa-token.cc) ##############
 sa-token:

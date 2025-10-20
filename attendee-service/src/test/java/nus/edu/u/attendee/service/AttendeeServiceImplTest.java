@@ -31,6 +31,7 @@ import nus.edu.u.attendee.domain.vo.checkin.GenerateQrCodesReqVO;
 import nus.edu.u.attendee.domain.vo.checkin.GenerateQrCodesRespVO;
 import nus.edu.u.attendee.domain.vo.qrcode.QrCodeRespVO;
 import nus.edu.u.attendee.mapper.EventAttendeeMapper;
+import nus.edu.u.attendee.publisher.AttendeeNotificationPublisher;
 import nus.edu.u.attendee.service.qrcode.QrCodeService;
 import nus.edu.u.common.constant.Constants;
 import nus.edu.u.common.enums.EventStatusEnum;
@@ -55,6 +56,7 @@ class AttendeeServiceImplTest {
     @Mock private EventRpcService eventRpcService;
     @Mock private QrCodeService qrCodeService;
     @Mock private UserRpcService userRpcService;
+    @Mock private AttendeeNotificationPublisher attendeeNotificationPublisher;
 
     @InjectMocks private AttendeeServiceImpl service;
 
@@ -67,6 +69,8 @@ class AttendeeServiceImplTest {
         ReflectionTestUtils.setField(service, "eventRpcService", eventRpcService);
         ReflectionTestUtils.setField(service, "userRpcService", userRpcService);
         ReflectionTestUtils.setField(service, "baseUrl", BASE_URL);
+        ReflectionTestUtils.setField(
+                service, "attendeeNotificationPublisher", attendeeNotificationPublisher);
     }
 
     @Test

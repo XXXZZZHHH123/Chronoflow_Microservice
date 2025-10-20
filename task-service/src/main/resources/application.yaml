@@ -9,6 +9,12 @@ spring:
   main:
     allow-circular-references: true
   cloud:
+    gcp:
+      project-id: ${GCP_PROJECT_ID}
+      credentials:
+        encoded-key: ${PUB_SUB_SERVICE_ACCOUNT_JSON}
+      pubsub:
+        enabled: true
     nacos:
       server-addr: ${NACOS_HOST}:${NACOS_PORT} # Nacos host
       username: ${NACOS_USERNAME} # Nacos username
@@ -125,7 +131,7 @@ knife4j:
 
 # Mybatis-plus config
 mybatis-plus:
-  mapper-locations: classpath*:mapper/**/*.xml
+  mapper-locations: classpath*:mapper/*/.xml
   configuration:
     map-underscore-to-camel-case: true            # db: user_name -> java: userName
     cache-enabled: false
@@ -134,23 +140,6 @@ mybatis-plus:
     db-config:
       id-type: ASSIGN_ID     # snowflake-style; or AUTO for DB auto-increment
       table-underline: true
-
-# Dubbo config
-dubbo:
-  registry:
-    address: nacos://${NACOS_HOST}:${NACOS_PORT}?username=${NACOS_USERNAME}&password=${NACOS_PASSWORD}
-    # This will enable application-level service discovery only (the recommended service discovery method for Dubbo3).
-    # For users upgrading from Dubbo2.x, please set the value to 'all' for smooth migration.
-    register-mode: instance
-    parameters:
-      namespace: ${spring.profiles.active}
-  protocol:
-    name: tri
-    port: 50052
-  application:
-    name: task-service-rpc
-    logger: slf4j
-    qos-enable: false
 
 ############## Sa-Token config (文档: https://sa-token.cc) ##############
 sa-token:
@@ -172,13 +161,27 @@ sa-token:
   is-share: true
   # Whether to output operation logs
   is-log: true
-  # Jwt key
-  jwt-secret-key: chronoflow123
   # Token style
   token-style: uuid
   cookie:
     http-only: true
 
+# Dubbo config
+dubbo:
+  registry:
+    address: nacos://${NACOS_HOST}:${NACOS_PORT}?username=${NACOS_USERNAME}&password=${NACOS_PASSWORD}
+    # This will enable application-level service discovery only (the recommended service discovery method for Dubbo3).
+    # For users upgrading from Dubbo2.x, please set the value to 'all' for smooth migration.
+    register-mode: instance
+    parameters:
+      namespace: ${spring.profiles.active}
+  protocol:
+    name: tri
+    port: 50052
+  application:
+    name: task-service-rpc
+    logger: slf4j
+    qos-enable: false
 
 # Heath check
 management:
@@ -189,19 +192,3 @@ management:
   info:
     env:
       enabled: true
-  endpoint:
-    health:
-      show-details: always
-      group:
-        readiness.include: ping
-        liveness:
-          include:
-            - "*"
-          exclude:
-            - ${management.endpoint.health.group.readiness.include}
-    prometheus:
-      enabled: true
-  metrics:
-    export:
-      prometheus:
-        enabled: true

@@ -7,7 +7,7 @@ metadata:
     app: task-service
     version: v1
 spec:
-  replicas: 1
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -45,12 +45,22 @@ spec:
               value: "nacos"
             - name: NACOS_PASSWORD
               value: "nacos"
+            - name: PUB_SUB_SERVICE_ACCOUNT_JSON
+              valueFrom:
+                secretKeyRef:
+                  name: gcp
+                  key: pub-sub-service-account
+            - name: GCP_PROJECT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: noti-config
+                  key: gcp.project.id
           resources:
             requests:
               memory: "512Mi"
               cpu: "250m"
             limits:
-              memory: "800Mi"
+              memory: "900Mi"
               cpu: "600m"
           livenessProbe:
             httpGet:

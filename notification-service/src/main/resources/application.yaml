@@ -163,7 +163,7 @@ email:
 notification:
   ws:
     enabled: true
-    base-url: http://localhost:8087
+    base-url: ${WS_URL}
     rate-key: "rate:ws:global"
     rate-limit: 400
     rate-window: 1m

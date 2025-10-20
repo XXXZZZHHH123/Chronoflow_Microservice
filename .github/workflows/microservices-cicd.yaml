@@ -234,6 +234,44 @@ jobs:
         run: |
           kubectl apply -f /tmp/task-service-gatling-job.yaml
 
+      - name: Resolve Gatling pod name
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        run: |
+          set -euo pipefail
+          timeout=$((SECONDS + 300))
+          while [ $SECONDS -le $timeout ]; do
+            POD=$(kubectl get pods -n $K8S_NAMESPACE -l job-name=${PERF_JOB_NAME} -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+            if [ -n "${POD}" ]; then
+              echo "PERF_POD_NAME=${POD}" >> $GITHUB_ENV
+              echo "Resolved Gatling pod: ${POD}"
+              exit 0
+            fi
+            echo "Waiting for Gatling pod to be created..."
+            sleep 5
+          done
+          echo "Timed out waiting for Gatling pod name." >&2
+          exit 1
+
+      - name: Wait for Gatling results directory
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        run: |
+          set -euo pipefail
+          timeout=$((SECONDS + 600))
+          while [ $SECONDS -le $timeout ]; do
+            if kubectl exec ${PERF_POD_NAME} -n $K8S_NAMESPACE -- test -d /workspace/task-service/target/gatling 2>/dev/null; then
+              echo "Gatling results directory detected."
+              exit 0
+            fi
+            PHASE=$(kubectl get pod ${PERF_POD_NAME} -n $K8S_NAMESPACE -o jsonpath='{.status.phase}')
+            if [ "$PHASE" = "Succeeded" ] || [ "$PHASE" = "Failed" ]; then
+              echo "Pod already completed with phase $PHASE before results were detected."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Timed out waiting for Gatling results directory." >&2
+          exit 1
+
       - name: Wait for Gatling job completion
         if: ${{ steps.perf-check.outputs.should-run == 'true' }}
         run: |
@@ -273,9 +311,12 @@ jobs:
         if: ${{ steps.perf-check.outputs.should-run == 'true' && always() }}
         run: |
           set -euo pipefail
-          POD=$(kubectl get pods -n $K8S_NAMESPACE -l job-name=${PERF_JOB_NAME} -o jsonpath='{.items[0].metadata.name}')
+          if [ -z "${PERF_POD_NAME:-}" ]; then
+            echo "PERF_POD_NAME is not set; skipping copy."
+            exit 0
+          fi
           mkdir -p gatling-results
-          kubectl cp ${K8S_NAMESPACE}/${POD}:/workspace/task-service/target/gatling ./gatling-results || echo "No Gatling results copied."
+          kubectl cp ${K8S_NAMESPACE}/${PERF_POD_NAME}:/workspace/task-service/target/gatling ./gatling-results || echo "No Gatling results copied."
 
       - name: Upload Gatling report
         if: ${{ steps.perf-check.outputs.should-run == 'true' && always() }}

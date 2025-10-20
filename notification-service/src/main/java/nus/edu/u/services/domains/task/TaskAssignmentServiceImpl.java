@@ -1,6 +1,8 @@
 package nus.edu.u.services.domains.task;
 
-
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import nus.edu.u.domain.dto.common.NewTaskAssignmentDTO;
 import nus.edu.u.domain.dto.common.NotificationRequestDTO;
@@ -8,10 +10,6 @@ import nus.edu.u.enums.common.NotificationChannel;
 import nus.edu.u.enums.common.NotificationEventType;
 import nus.edu.u.services.common.NotificationService;
 import org.springframework.stereotype.Service;
-
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -25,8 +23,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
                 NotificationEventType.NEW_TASK_ASSIGN,
                 dto.getTaskId(),
                 dto.getEventId(),
-                dto.getAssigneeUserId()
-        );
+                dto.getAssigneeUserId());
     }
 
     private Map<String, Object> baseVars(NewTaskAssignmentDTO dto) {
@@ -36,8 +33,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
                 "taskName", dto.getTaskName(),
                 "assignerName", dto.getAssignerName(),
                 "eventName", dto.getEventName(),
-                "eventId", dto.getEventId()
-        );
+                "eventId", dto.getEventId());
     }
 
     /** PUSH (FCM) */
@@ -45,15 +41,16 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
     public String notifyNewTaskToAssigneePush(NewTaskAssignmentDTO dto) {
         String eventId = buildEventIdFor(dto);
 
-        NotificationRequestDTO req = NotificationRequestDTO.builder()
-                .channel(NotificationChannel.PUSH)
-                .userId(dto.getAssigneeUserId())
-                .templateId("new-task-assigned")
-                .variables(baseVars(dto))
-                .locale(Locale.ENGLISH)
-                .eventId(eventId)
-                .type(NotificationEventType.NEW_TASK_ASSIGN)
-                .build();
+        NotificationRequestDTO req =
+                NotificationRequestDTO.builder()
+                        .channel(NotificationChannel.PUSH)
+                        .userId(dto.getAssigneeUserId())
+                        .templateId("new-task-assigned")
+                        .variables(baseVars(dto))
+                        .locale(Locale.ENGLISH)
+                        .eventId(eventId)
+                        .type(NotificationEventType.NEW_TASK_ASSIGN)
+                        .build();
 
         return notificationService.send(req);
     }
@@ -67,16 +64,17 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
 
         String eventId = buildEventIdFor(dto);
 
-        NotificationRequestDTO req = NotificationRequestDTO.builder()
-                .channel(NotificationChannel.EMAIL)
-                .to(dto.getAssigneeEmail())
-                .recipientKey("email:" + dto.getAssigneeEmail())
-                .templateId("new-task-assigned")
-                .variables(baseVars(dto))
-                .locale(Locale.ENGLISH)
-                .eventId(eventId)
-                .type(NotificationEventType.NEW_TASK_ASSIGN)
-                .build();
+        NotificationRequestDTO req =
+                NotificationRequestDTO.builder()
+                        .channel(NotificationChannel.EMAIL)
+                        .to(dto.getAssigneeEmail())
+                        .recipientKey("email:" + dto.getAssigneeEmail())
+                        .templateId("new-task-assigned")
+                        .variables(baseVars(dto))
+                        .locale(Locale.ENGLISH)
+                        .eventId(eventId)
+                        .type(NotificationEventType.NEW_TASK_ASSIGN)
+                        .build();
 
         return notificationService.send(req);
     }
@@ -85,16 +83,18 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
     public String notifyNewTaskToAssigneeWs(NewTaskAssignmentDTO dto) {
         String eventId = buildEventIdFor(dto);
 
-        // For WS, same template key is fine — title/body render; extras can be used as payload data by the gateway
-        NotificationRequestDTO req = NotificationRequestDTO.builder()
-                .channel(NotificationChannel.WS)
-                .userId(dto.getAssigneeUserId())
-                .templateId("new-task-assigned")
-                .variables(baseVars(dto))
-                .locale(Locale.ENGLISH)
-                .eventId(eventId)
-                .type(NotificationEventType.NEW_TASK_ASSIGN)
-                .build();
+        // For WS, same template key is fine — title/body render; extras can be used as payload data
+        // by the gateway
+        NotificationRequestDTO req =
+                NotificationRequestDTO.builder()
+                        .channel(NotificationChannel.WS)
+                        .userId(dto.getAssigneeUserId())
+                        .templateId("new-task-assigned")
+                        .variables(baseVars(dto))
+                        .locale(Locale.ENGLISH)
+                        .eventId(eventId)
+                        .type(NotificationEventType.NEW_TASK_ASSIGN)
+                        .build();
 
         return notificationService.send(req);
     }
@@ -103,7 +103,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
     @Override
     public Map<String, String> notifyNewTaskAllChannels(NewTaskAssignmentDTO dto) {
         Map<String, String> result = new LinkedHashMap<>();
-        result.put("ws",   notifyNewTaskToAssigneeWs(dto));
+        result.put("ws", notifyNewTaskToAssigneeWs(dto));
         result.put("push", notifyNewTaskToAssigneePush(dto));
         if (dto.getAssigneeEmail() != null && !dto.getAssigneeEmail().isBlank()) {
             result.put("email", notifyNewTaskToAssigneeEmail(dto));

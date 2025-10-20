@@ -1,5 +1,8 @@
 package nus.edu.u.services.template.email;
 
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.domain.dto.common.RenderedTemplateDTO;
@@ -7,14 +10,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-/**
- * Renders email templates using Thymeleaf.
- * Handles only email templates (no channel switching).
- */
+/** Renders email templates using Thymeleaf. Handles only email templates (no channel switching). */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -23,7 +19,8 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
     private final TemplateEngine templateEngine;
 
     @Override
-    public RenderedTemplateDTO render(String templateKey, Map<String, Object> variables, Locale locale) {
+    public RenderedTemplateDTO render(
+            String templateKey, Map<String, Object> variables, Locale locale) {
         Locale effectiveLocale = (locale != null) ? locale : Locale.ENGLISH;
         Context context = new Context(effectiveLocale);
 
@@ -39,7 +36,8 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
             html = templateEngine.process(templatePath, context);
         } catch (Exception e) {
             log.error("Failed to render email template '{}': {}", templatePath, e.getMessage());
-            throw new IllegalArgumentException("Missing or invalid email template: " + templatePath, e);
+            throw new IllegalArgumentException(
+                    "Missing or invalid email template: " + templatePath, e);
         }
 
         String subject = getString(variables, "subject", "Notification");

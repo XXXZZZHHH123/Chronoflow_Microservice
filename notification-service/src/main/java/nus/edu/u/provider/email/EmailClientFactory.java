@@ -1,11 +1,9 @@
 package nus.edu.u.provider.email;
 
-
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import nus.edu.u.domain.dto.common.AttachmentDTO;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor

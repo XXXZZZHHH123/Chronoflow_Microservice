@@ -1,6 +1,7 @@
 package nus.edu.u.services.template.push;
 
-
+import java.util.Locale;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.domain.dto.common.RenderedTemplateDTO;
@@ -8,12 +9,9 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.util.Locale;
-import java.util.Map;
-
 /**
- * Renders push notification templates using Thymeleaf (optional .txt files).
- * If the template file is missing, it falls back to text from variables["body"].
+ * Renders push notification templates using Thymeleaf (optional .txt files). If the template file
+ * is missing, it falls back to text from variables["body"].
  */
 @Service
 @RequiredArgsConstructor
@@ -23,7 +21,8 @@ public class PushTemplateServiceImpl implements PushTemplateService {
     private final TemplateEngine templateEngine;
 
     @Override
-    public RenderedTemplateDTO render(String templateKey, Map<String, Object> variables, Locale locale) {
+    public RenderedTemplateDTO render(
+            String templateKey, Map<String, Object> variables, Locale locale) {
         Locale effectiveLocale = (locale != null) ? locale : Locale.ENGLISH;
         Context context = new Context(effectiveLocale);
         if (variables != null) variables.forEach(context::setVariable);

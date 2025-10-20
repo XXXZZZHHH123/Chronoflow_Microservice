@@ -1,6 +1,7 @@
 package nus.edu.u.domain.dataObject.common;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,8 +10,6 @@ import nus.edu.u.enums.common.NotificationChannel;
 import nus.edu.u.enums.common.NotificationEventType;
 import nus.edu.u.enums.common.NotificationStatus;
 
-import java.util.UUID;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,14 +17,13 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "notification_delivery",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_event_channel_recipient",
-                columnNames = {"event_id","channel","recipient_key"}
-        ),
+        uniqueConstraints =
+                @UniqueConstraint(
+                        name = "uk_event_channel_recipient",
+                        columnNames = {"event_id", "channel", "recipient_key"}),
         indexes = {
-                @Index(name = "idx_recipient_created", columnList = "recipient_key, created_at DESC")
-        }
-)
+            @Index(name = "idx_recipient_created", columnList = "recipient_key, created_at DESC")
+        })
 public class NotificationDeliveryDO extends BaseNotificationEntity {
 
     @Id

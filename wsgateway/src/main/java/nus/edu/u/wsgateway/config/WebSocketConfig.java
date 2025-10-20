@@ -1,5 +1,7 @@
 package nus.edu.u.wsgateway.config;
 
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,9 +13,6 @@ import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
-
-import java.util.List;
-import java.util.Map;
 
 @Configuration
 @EnableWebFlux
@@ -40,19 +39,20 @@ public class WebSocketConfig {
     @Bean
     public SimpleUrlHandlerMapping webSocketMapping() {
         var mapping = new SimpleUrlHandlerMapping();
-        mapping.setUrlMap(Map.of(
-                "/ws", wsHandler   // ws://<host>/ws?userId=...
-        ));
+        mapping.setUrlMap(
+                Map.of(
+                        "/ws", wsHandler // ws://<host>/ws?userId=...
+                        ));
         mapping.setOrder(-1); // before standard HTTP mappings
 
         // CORS for WebSocket handshake (origin check)
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "http://127.0.0.1:5173",
-                "http://localhost:5174",
-                "http://localhost:8080"
-        ));
+        cors.setAllowedOrigins(
+                List.of(
+                        "http://localhost:5173",
+                        "http://127.0.0.1:5173",
+                        "http://localhost:5174",
+                        "http://localhost:8080"));
         cors.setAllowCredentials(true);
         cors.setAllowedHeaders(List.of("*"));
         cors.setAllowedMethods(List.of("GET")); // WS handshake is GET

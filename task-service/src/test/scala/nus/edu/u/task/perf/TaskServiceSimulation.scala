@@ -69,6 +69,8 @@ class TaskServiceSimulation extends Simulation {
           ))
         .asJson
         .check(status.is(200))
+        .check(cookie("Authorization").saveAs("authorizationCookie"))
+        .check(cookie("refreshToken").saveAs("refreshTokenCookie"))
     ).exitHereIfFailed
 
   private val getTaskScenario =
@@ -79,6 +81,10 @@ class TaskServiceSimulation extends Simulation {
       .exec(
         http("get-task")
           .get("/tasks/${eventId}/${taskId}")
+          .header(
+            "Cookie",
+            "Authorization=${authorizationCookie}; refreshToken=${refreshTokenCookie}"
+          )
           .check(status.in(200, 404))
       )
 

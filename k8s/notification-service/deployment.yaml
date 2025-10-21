@@ -85,7 +85,7 @@ spec:
                   name: aws
                   key: access-key
             - name: WS_URL
-              value: wsgateway.chronoflow.svc.cluster.local
+              value: http://wsgateway.chronoflow.svc.cluster.local:8087
           resources:
             requests:
               memory: "512Mi"

@@ -28,7 +28,7 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: wsgateway
-          image: e1241986/wsgateway:latest
+          image: e1241986/wsgateway:v1.0.5
           imagePullPolicy: Always
           ports:
             - name: http
@@ -52,7 +52,7 @@ spec:
             - name: PUB_SUB_SERVICE_ACCOUNT_JSON
               valueFrom:
                 secretKeyRef:
-                  name: gcp
+                  name: pub-sub
                   key: pub-sub-service-account
             - name: GCP_PROJECT_ID
               valueFrom:

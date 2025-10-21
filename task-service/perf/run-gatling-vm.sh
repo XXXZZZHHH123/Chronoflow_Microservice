@@ -9,8 +9,11 @@ GIT_REF="${GIT_REF:-main}"
 IMAGE_NAME="${IMAGE_NAME:-chronoflow-gatling:latest}"
 DOCKERFILE_PATH="${DOCKERFILE_PATH:-task-service/perf/Dockerfile}"
 CONTAINER_RESULTS_PATH="/workspace/task-service/target/gatling"
+CONTAINER_M2_PATH="/root/.m2"
+M2_CACHE_DIR="${M2_CACHE_DIR:-$HOME/.m2}"
 
 mkdir -p "${RESULTS_ROOT}"
+mkdir -p "${M2_CACHE_DIR}"
 
 if [[ ! -d "${PROJECT_DIR}/.git" ]]; then
   if [[ -n "${GIT_CLONE_URL:-}" ]]; then
@@ -31,9 +34,15 @@ cd "${PROJECT_DIR}"
 if [[ "${SKIP_GIT_SYNC:-false}" != "true" ]]; then
   git fetch "${GIT_REMOTE}" "${GIT_REF}"
   git reset --hard "${GIT_REMOTE}/${GIT_REF}"
+else
+  echo "Skipping git fetch/reset because SKIP_GIT_SYNC=${SKIP_GIT_SYNC}"
 fi
 
-docker build -f "${DOCKERFILE_PATH}" -t "${IMAGE_NAME}" .
+if [[ "${SKIP_IMAGE_BUILD:-false}" != "true" ]]; then
+  docker build -f "${DOCKERFILE_PATH}" -t "${IMAGE_NAME}" .
+else
+  echo "Skipping Docker image build because SKIP_IMAGE_BUILD=${SKIP_IMAGE_BUILD}"
+fi
 
 RUN_ID="$(date -u +"%Y%m%dT%H%M%SZ")"
 RUN_RESULTS_DIR="${RESULTS_ROOT}/${RUN_ID}"
@@ -52,6 +61,7 @@ for optional_var in TASK_SERVICE_LOGIN_PATH TASK_SERVICE_USERNAME TASK_SERVICE_P
 done
 
 docker_args+=("-v" "${RUN_RESULTS_DIR}:${CONTAINER_RESULTS_PATH}")
+docker_args+=("-v" "${M2_CACHE_DIR}:${CONTAINER_M2_PATH}")
 docker_args+=("${IMAGE_NAME}")
 
 echo "Starting Gatling container: ${docker_args[*]}"

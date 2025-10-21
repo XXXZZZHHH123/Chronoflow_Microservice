@@ -1,6 +1,12 @@
 package nus.edu.u.attendee.service.qrcode;
 
+import static nus.edu.u.common.enums.ErrorCodeConstants.QRCODE_GENERATION_FAILED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -45,5 +51,22 @@ class QrCodeServiceImplTest {
 
         assertThat(resp.getContentType()).isEqualTo("image/png");
         assertThat(Base64.getDecoder().decode(resp.getBase64Image())).isNotEmpty();
+    }
+
+    @Test
+    void generateQrCode_whenBytesGenerationFails_throwsServiceException() throws Exception {
+        QrCodeServiceImpl spyService = spy(new QrCodeServiceImpl());
+        ReflectionTestUtils.setField(spyService, "baseUrl", "http://test-host");
+
+        QrCodeReqVO req = QrCodeReqVO.builder().content("boom").size(100).format("PNG").build();
+
+        doThrow(new IOException("encode failed"))
+                .when(spyService)
+                .generateQrCodeBytes(anyString(), anyInt(), anyString());
+
+        assertThatThrownBy(() -> spyService.generateQrCode(req))
+                .isInstanceOf(nus.edu.u.common.exception.ServiceException.class)
+                .extracting("code")
+                .isEqualTo(QRCODE_GENERATION_FAILED.getCode());
     }
 }

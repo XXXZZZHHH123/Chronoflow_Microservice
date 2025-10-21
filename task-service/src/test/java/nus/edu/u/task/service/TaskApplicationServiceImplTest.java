@@ -689,6 +689,106 @@ class TaskApplicationServiceImplTest {
     }
 
     @Test
+    void listTasksByEvent_whenGroupsMissing_returnsUsersWithoutGroupData() {
+        long eventId = 612L;
+        long organizerId = 710L;
+        long assigneeId = 711L;
+        EventRespDTO eventDto =
+                event(
+                        eventId,
+                        organizerId,
+                        "Briefing",
+                        LocalDateTime.now(),
+                        LocalDateTime.now().plusHours(1));
+        stubEvents(Map.of(eventId, eventDto));
+
+        TaskDO task =
+                TaskDO.builder()
+                        .id(90L)
+                        .eventId(eventId)
+                        .userId(assigneeId)
+                        .name("Set up stage")
+                        .build();
+        when(taskMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(task));
+
+        stubUsers(
+                Map.of(
+                        organizerId,
+                        user(organizerId, "Organizer", 8L),
+                        assigneeId,
+                        user(assigneeId, "Assignee", 8L)));
+        when(groupRpcService.getGroupsByEventIds(any())).thenReturn(null);
+
+        List<TaskRespVO> responses = service.listTasksByEvent(eventId);
+
+        assertThat(responses).hasSize(1);
+        TaskRespVO resp = responses.get(0);
+        assertThat(resp.getAssignerUser().getGroups()).isEmpty();
+        assertThat(resp.getAssignedUser().getGroups()).isEmpty();
+    }
+
+    @Test
+    void listTasksByMember_deduplicatesGroupAssignmentsPerUser() {
+        long memberId = 812L;
+        long eventId = 913L;
+        long organizerId = 1001L;
+
+        TaskDO task =
+                TaskDO.builder()
+                        .id(11L)
+                        .eventId(eventId)
+                        .userId(memberId)
+                        .name("Manage booth")
+                        .build();
+        when(taskMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(task));
+
+        stubUsers(
+                Map.of(
+                        memberId,
+                        user(memberId, "Member", 11L),
+                        organizerId,
+                        user(organizerId, "Organizer", 11L)));
+        EventRespDTO eventDto =
+                event(
+                        eventId,
+                        organizerId,
+                        "Expo",
+                        LocalDateTime.now(),
+                        LocalDateTime.now().plusHours(4));
+        stubEvents(Map.of(eventId, eventDto));
+
+        GroupDTO first =
+                GroupDTO.builder()
+                        .id(501L)
+                        .eventId(eventId)
+                        .name("Volunteers")
+                        .leadUserId(organizerId)
+                        .members(List.of(GroupMemberDTO.builder().userId(memberId).build()))
+                        .status(1)
+                        .build();
+        GroupDTO duplicate =
+                GroupDTO.builder()
+                        .id(501L)
+                        .eventId(eventId)
+                        .name("Volunteers Duplicate")
+                        .leadUserId(organizerId)
+                        .members(
+                                List.of(
+                                        GroupMemberDTO.builder().userId(memberId).build(),
+                                        GroupMemberDTO.builder().userId(memberId).build()))
+                        .status(1)
+                        .build();
+        stubGroups(Map.of(eventId, List.of(first, duplicate)));
+
+        List<TaskRespVO> responses = service.listTasksByMember(memberId);
+
+        assertThat(responses).hasSize(1);
+        TaskRespVO resp = responses.get(0);
+        assertThat(resp.getAssignedUser().getGroups()).hasSize(1);
+        assertThat(resp.getAssignedUser().getGroups().get(0).getId()).isEqualTo(501L);
+    }
+
+    @Test
     void listTasksByMember_enrichesAssignmentsUsingCaches() {
         long memberId = 600L;
         long eventA = 20L;

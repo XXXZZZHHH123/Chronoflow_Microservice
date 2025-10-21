@@ -74,6 +74,7 @@ class TaskStrategiesTest {
         return strategy;
     }
 
+    // deterministic helper so each test starts from the same baseline TaskDO
     private TaskDO baseTask() {
         TaskDO task =
                 TaskDO.builder()

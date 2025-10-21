@@ -6,8 +6,10 @@ if [[ -z "${TASK_SERVICE_BASE_URL:-}" ]]; then
   exit 1
 fi
 
+export MAVEN_OPTS="${MAVEN_OPTS:--Xms256m -Xmx512m -XX:+UseContainerSupport}"
+
 declare -a args
-args=(mvn -pl task-service -am gatling:test -Dgatling.skip=false "-DtaskService.baseUrl=${TASK_SERVICE_BASE_URL}")
+args=(mvn -f task-service/pom.xml io.gatling:gatling-maven-plugin:test -Dgatling.skip=false "-Dgatling.failOnAssertionFailure=false" "-DtaskService.baseUrl=${TASK_SERVICE_BASE_URL}")
 
 if [[ -n "${TASK_SERVICE_LOGIN_PATH:-}" ]]; then
   args+=("-DtaskService.loginPath=${TASK_SERVICE_LOGIN_PATH}")
@@ -26,4 +28,35 @@ if [[ -n "${TASK_SERVICE_TASK_ID:-}" ]]; then
 fi
 
 echo "Starting Gatling with command: ${args[*]}"
-exec "${args[@]}"
+set +e
+"${args[@]}"
+status=$?
+set -e
+
+RESULTS_DIR="/workspace/task-service/target/gatling"
+
+if [[ -n "${TASK_SERVICE_RESULTS_UPLOAD_URL:-}" ]]; then
+  if [[ -d "${RESULTS_DIR}" ]]; then
+    ARCHIVE="/tmp/gatling-results.tgz"
+    echo "Archiving Gatling results from ${RESULTS_DIR}..."
+    tar -czf "${ARCHIVE}" -C "${RESULTS_DIR}" .
+    echo "Uploading Gatling results archive to signed URL."
+    if curl -sS --fail -X PUT -T "${ARCHIVE}" -H "Content-Type: application/gzip" "${TASK_SERVICE_RESULTS_UPLOAD_URL}"; then
+      echo "Upload succeeded."
+    else
+      echo "Failed to upload Gatling results to signed URL." >&2
+      status=1
+    fi
+    rm -f "${ARCHIVE}"
+  else
+    echo "Results directory ${RESULTS_DIR} not found; skipping upload."
+  fi
+fi
+
+HOLD_SECONDS="${GATLING_HOLD_SECONDS:-300}"
+if [ "$HOLD_SECONDS" -gt 0 ]; then
+  echo "Gatling finished with status ${status}. Holding pod for ${HOLD_SECONDS}s to allow artifact collection..."
+  sleep "${HOLD_SECONDS}"
+fi
+
+exit "$status"

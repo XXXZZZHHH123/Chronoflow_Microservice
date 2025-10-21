@@ -4,7 +4,7 @@ metadata:
   name: __JOB_NAME__
   namespace: chronoflow
 spec:
-  ttlSecondsAfterFinished: 600
+  ttlSecondsAfterFinished: 120
   backoffLimit: 0
   template:
     spec:
@@ -13,6 +13,13 @@ spec:
         - name: gatling
           image: __IMAGE__
           imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
           env:
             - name: TASK_SERVICE_BASE_URL
               value: "__BASE_URL__"
@@ -26,3 +33,7 @@ spec:
               value: "__EVENT_ID__"
             - name: TASK_SERVICE_TASK_ID
               value: "__TASK_ID__"
+            - name: TASK_SERVICE_RESULTS_UPLOAD_URL
+              value: "__RESULT_UPLOAD_URL__"
+            - name: TASK_SERVICE_RESULTS_OBJECT
+              value: "__RESULT_OBJECT__"

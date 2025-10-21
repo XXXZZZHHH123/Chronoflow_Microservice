@@ -396,7 +396,7 @@ jobs:
           kubectl get events -n ${{ env.K8S_NAMESPACE }} \
             --field-selector involvedObject.name=${{ matrix.service }} \
             --sort-by='.lastTimestamp' \
-            | tail -10
+            | tail -30
 
   performance_test:
     name: Performance Test

@@ -4,5 +4,4 @@ metadata:
   name: noti-config
   namespace: chronoflow
 data:
-  gcp.project.id: "chronoflow-noti-service"
-  aws.region: "ap-southeast-1"
+  gcp.project.id: "Chronoflow-noti-service"

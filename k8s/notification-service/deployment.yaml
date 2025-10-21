@@ -28,7 +28,7 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: notification-service
-          image: e1241986/notification-service:latest
+          image: e1241986/notification-service:v1.0.3
           imagePullPolicy: Always
           ports:
             - name: http
@@ -52,12 +52,12 @@ spec:
             - name: GCP_SERVICE_ACCOUNT_JSON
               valueFrom:
                 secretKeyRef:
-                  name: gcp
+                  name: file
                   key: file-service-account
             - name: PUB_SUB_SERVICE_ACCOUNT_JSON
               valueFrom:
                 secretKeyRef:
-                  name: gcp
+                  name: pub-sub
                   key: pub-sub-service-account
             - name: GCP_PROJECT_ID
               valueFrom:

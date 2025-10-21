@@ -247,8 +247,7 @@ jobs:
     needs: [detect-changes, build-and-test]
     if: |
       needs.detect-changes.outputs.services != '[]' && 
-      (github.ref == 'refs/heads/main' || 
-       github.ref == 'refs/heads/dev')
+      (github.ref == 'refs/heads/main')
     strategy:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.services) }}

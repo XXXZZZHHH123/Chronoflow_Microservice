@@ -50,8 +50,6 @@ jobs:
               - 'event-service/**'
             attendee-service:
               - 'attendee-service/**'
-            wsgateway:
-              - 'wsgateway/**'
             shared-modules:
               - 'framework/**'
               - 'common/**'

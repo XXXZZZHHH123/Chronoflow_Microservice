@@ -398,13 +398,10 @@ jobs:
             --sort-by='.lastTimestamp' \
             | tail -10
 
-  performance-task-service:
-    name: Performance - task-service
+  performance_test:
+    name: Performance Test
     runs-on: ubuntu-latest
-    needs: deploy-to-gke
-    if: |
-      github.ref == 'refs/heads/main' &&
-      needs.deploy-to-gke.result == 'success'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     env:
       PERF_BASE_URL: ${{ secrets.TASK_SERVICE_PERF_BASE_URL }}
       PERF_EVENT_ID: ${{ secrets.TASK_SERVICE_PERF_EVENT_ID }}

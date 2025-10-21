@@ -1,6 +1,7 @@
 package nus.edu.u.event.domain.dto.event;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Data;
@@ -9,7 +10,9 @@ import lombok.Data;
 public class EventUpdateReqVO {
     private Long id;
 
+    @JsonProperty("name")
     private String eventName;
+
     private String description;
     private String location;
     private Long organizerId;

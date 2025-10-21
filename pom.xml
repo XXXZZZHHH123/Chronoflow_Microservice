@@ -20,7 +20,7 @@
         <module>event-service</module>
         <module>task-service</module>
         <module>attendee-service</module>
-        <module>notification-service</module>
+        <module>notification-service</module> 
         <module>file-service</module>
         <module>wsgateway</module>
     </modules>

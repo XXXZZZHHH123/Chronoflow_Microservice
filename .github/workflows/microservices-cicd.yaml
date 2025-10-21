@@ -247,7 +247,7 @@ jobs:
           ssh -p "$PORT" "${PERF_VM_USER}@${PERF_VM_HOST}" "$remote_cmd"
 
       - name: Copy Gatling report from perf VM
-        if: ${{ steps.perf-check.outputs.should-run == 'true' && always() }}
+        if: ${{ always() && steps.perf-check.outputs.should-run == 'true' }}
         id: fetch-report
         env:
           PERF_VM_HOST: ${{ secrets.PERF_VM_HOST }}
@@ -265,7 +265,7 @@ jobs:
           echo "report=gatling-report.tgz" >> "$GITHUB_OUTPUT"
 
       - name: Upload Gatling report
-        if: ${{ steps.perf-check.outputs.should-run == 'true' && steps.fetch-report.outputs.report != '' }}
+        if: ${{ always() && steps.perf-check.outputs.should-run == 'true' && steps.fetch-report.outputs.report != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: task-service-gatling-${{ github.run_id }}-${{ github.run_attempt }}

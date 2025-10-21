@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - dev
-      - cicd
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -17,7 +16,7 @@ permissions:
 env:
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GCP_REGION: asia-southeast1
+  GCP_REGION: asia-southeast1-b
   K8S_NAMESPACE: chronoflow
 
 jobs:
@@ -130,11 +129,281 @@ jobs:
           path: ./${{ matrix.service }}/target/*.jar
           retention-days: 1
 
+  sca-sbom:
+    name: SCA & SBOM - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build-and-test]
+    if: needs.detect-changes.outputs.services != '[]'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Build (skip tests) for ${{ matrix.service }}
+        run: mvn -B -pl ${{ matrix.service }} -am clean package -DskipTests
+
+      - name: Set report filenames
+        run: |
+          echo "SBOM_FILE=${{ matrix.service }}-sbom.cdx.json" >> $GITHUB_ENV
+          echo "SARIF_REPORT=${{ matrix.service }}-grype-report.sarif" >> $GITHUB_ENV
+          echo "TABLE_REPORT=${{ matrix.service }}-grype-report.txt" >> $GITHUB_ENV
+
+      - name: Generate SBOM (CycloneDX JSON)
+        uses: anchore/sbom-action@v0
+        with:
+          path: ./${{ matrix.service }}
+          format: cyclonedx-json
+          output-file: ${{ env.SBOM_FILE }}
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: SCA via Anchore (SARIF)
+        uses: anchore/scan-action@v6
+        with:
+          sbom: ${{ env.SBOM_FILE }}
+          fail-build: false
+          severity-cutoff: high
+          only-fixed: true
+          output-format: sarif
+          output-file: ${{ env.SARIF_REPORT }}
+
+      - name: SCA via Anchore (table)
+        uses: anchore/scan-action@v6
+        with:
+          sbom: ${{ env.SBOM_FILE }}
+          fail-build: false
+          severity-cutoff: high
+          only-fixed: true
+          output-format: table
+          output-file: ${{ env.TABLE_REPORT }}
+
+      - name: Upload SBOM & SCA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-and-sca-${{ matrix.service }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.SBOM_FILE }}
+            ${{ env.SARIF_REPORT }}
+            ${{ env.TABLE_REPORT }}
+          retention-days: 5
+
+  sonar-scan:
+    name: Sonar Scan
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+        run: |
+          mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization="${SONAR_ORGANIZATION}" \
+            -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
+            -Dsonar.exclusions="common/**/*,framework/**/*" \
+            -Dsonar.coverage.exclusions="common/**/*,framework/**/*"
+
+  build-and-push-docker:
+    name: Docker Build & Push - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build-and-test]
+    if: |
+      needs.detect-changes.outputs.services != '[]' && 
+      (github.ref == 'refs/heads/main' || 
+       github.ref == 'refs/heads/dev')
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.service }}-jar
+          path: ./${{ matrix.service }}/target
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}:buildcache,mode=max
+
+  deploy-to-gke:
+    name: Deploy to GKE - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build-and-push-docker]
+    if: |
+      needs.detect-changes.outputs.services != '[]' &&
+      (github.ref == 'refs/heads/main') && vars.USE_GKE == 'true'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          install_components: 'gke-gcloud-auth-plugin'
+
+      - name: Configure kubectl plugin
+        run: |
+          echo "USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> $GITHUB_ENV
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Verify kubectl connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Ensure namespace exists
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+
+      - name: Prepare Kubernetes manifests
+        run: |
+          IMAGE_TAG="${{ github.ref_name }}-${{ github.sha }}"
+          IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}:$IMAGE_TAG"
+
+          if [ ! -f "k8s/${{ matrix.service }}/deployment.yaml" ]; then
+          echo "Kubernetes manifest not found: k8s/${{ matrix.service }}/deployment.yaml"
+          echo "Falling back to kubectl set image..."
+          echo "USE_MANIFEST=false" >> $GITHUB_ENV
+          else
+          echo "Kubernetes manifest found"
+          echo "USE_MANIFEST=true" >> $GITHUB_ENV
+          
+          mkdir -p /tmp/k8s/${{ matrix.service }}
+          
+          cp k8s/${{ matrix.service }}/*.yaml /tmp/k8s/${{ matrix.service }}/
+          sed -i "s|DOCKER_HUB_USERNAME/${{ matrix.service }}:latest|$IMAGE|g" /tmp/k8s/${{ matrix.service }}/deployment.yaml
+          fi
+
+      - name: Deploy to GKE (using manifests)
+        if: env.USE_MANIFEST == 'true'
+        run: |
+          kubectl apply -f /tmp/k8s/${{ matrix.service }}/ -n ${{ env.K8S_NAMESPACE }}
+          
+      - name: Deploy to GKE (using set image)
+        if: env.USE_MANIFEST == 'false'
+        run: |
+          echo "Deploying ${{ matrix.service }} with kubectl set image..."
+          IMAGE_TAG="${{ github.ref_name }}-${{ github.sha }}"
+          IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service }}:$IMAGE_TAG"
+          
+          # Check whether the deployment exists
+          if kubectl get deployment ${{ matrix.service }} -n ${{ env.K8S_NAMESPACE }} &> /dev/null; then
+          echo "Updating existing deployment..."
+          kubectl set image deployment/${{ matrix.service }} \
+           ${{ matrix.service }}=$IMAGE \
+           -n ${{ env.K8S_NAMESPACE }}
+          else
+          echo "Deployment not found. Please create manifests or manually create the deployment first."
+          exit 1
+          fi
+
+      - name: Wait for rollout to complete
+        run: |
+          echo "Waiting for rollout to complete..."
+          kubectl rollout status deployment/${{ matrix.service }} \
+          -n ${{ env.K8S_NAMESPACE }} \
+          --timeout=5m
+
+      - name: Verify deployment
+        run: |
+          echo "Deployment status:"
+          kubectl get deployment ${{ matrix.service }} -n ${{ env.K8S_NAMESPACE }}
+          echo ""
+          echo "Pod status:"
+          kubectl get pods -n ${{ env.K8S_NAMESPACE }} -l app=${{ matrix.service }}
+          echo ""
+          echo "Service info:"
+          kubectl get service ${{ matrix.service }} -n ${{ env.K8S_NAMESPACE }} 2>/dev/null || echo "Service not configured"
+          echo ""
+          echo "Recent events:"
+          kubectl get events -n ${{ env.K8S_NAMESPACE }} \
+            --field-selector involvedObject.name=${{ matrix.service }} \
+            --sort-by='.lastTimestamp' \
+            | tail -10
+
   performance-task-service:
     name: Performance - task-service
     runs-on: ubuntu-latest
-    # TEMP: include cicd branch for full workflow testing
-    if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/cicd')}}
+    if: ${{ (github.ref == 'refs/heads/main')}}
     env:
       PERF_BASE_URL: ${{ secrets.TASK_SERVICE_PERF_BASE_URL }}
       PERF_EVENT_ID: ${{ secrets.TASK_SERVICE_PERF_EVENT_ID }}
@@ -271,3 +540,63 @@ jobs:
           name: task-service-gatling-${{ github.run_id }}-${{ github.run_attempt }}
           path: gatling-report.tgz
           retention-days: 3
+
+  dast-zap:
+    name: DAST (ZAP full scan)
+    runs-on: ubuntu-latest
+    needs: deploy-to-gke
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Prepare target URL
+        run: |
+          TARGET_URL="${{ vars.BASE_URL }}"
+          if [ -z "$TARGET_URL" ]; then
+            echo "BASE_URL secret is not configured. Configure secrets.BASE_URL before running DAST." >&2
+            exit 1
+          fi
+          CLEAN_URL="${TARGET_URL%/}"
+          echo "NORMALIZED_URL=$CLEAN_URL" >> $GITHUB_ENV
+
+      - name: ZAP full scan
+        run: |
+          set -euo pipefail
+          echo "Running ZAP full scan..."
+          docker pull ghcr.io/zaproxy/zaproxy:stable -q
+          set +e
+          docker run --rm \
+            -v "$PWD":/zap/wrk/:rw \
+            --network host \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-full-scan.py \
+              -t "$NORMALIZED_URL" \
+              -j zap-report.json \
+              -x zap-report.xml \
+              -r zap-report.html \
+              -P 1001 \
+              -m 5
+          ZAP_EXIT=$?
+          set -e
+          if [ "$ZAP_EXIT" -eq 2 ]; then
+            echo "ZAP reported warnings only (exit code 2). Continuing pipeline."
+          elif [ "$ZAP_EXIT" -ne 0 ]; then
+            echo "ZAP scan failed with exit code $ZAP_EXIT" >&2
+            exit "$ZAP_EXIT"
+          fi
+
+      - name: Collect ZAP artifacts
+        if: always()
+        run: |
+          mkdir -p zap-reports
+          for f in zap-report.json zap-report.xml zap-report.html; do
+            if [ -f "$f" ]; then
+              mv "$f" zap-reports/
+            fi
+          done
+
+      - name: Upload ZAP reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-dast-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: zap-reports
+          retention-days: 5

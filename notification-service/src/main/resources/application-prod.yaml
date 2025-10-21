@@ -49,6 +49,7 @@ spring:
     redis:
       host: ${PROD_REDIS_HOST}
       port: ${PROD_REDIS_PORT}
+
 # Lock4j config
 lock4j:
   acquire-timeout: 3000 # Get distributed lock timeout, the default is 3000 milliseconds

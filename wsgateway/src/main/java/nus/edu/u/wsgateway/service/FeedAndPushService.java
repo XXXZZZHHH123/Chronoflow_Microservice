@@ -27,7 +27,38 @@ public class FeedAndPushService {
      */
     public Mono<NotificationFeedDoc> createOrTouchAndPush(WsPushRequestDTO req) {
         return repo.findByUserIdAndEventId(req.getUserId(), req.getEventId())
-                .flatMap(existing -> pushIfOnline(existing, req).thenReturn(existing))
+                .flatMap(
+                        existing -> {
+                            // Optional: update mutable fields if provided
+                            boolean changed = false;
+                            if (req.getTitle() != null
+                                    && !req.getTitle().equals(existing.getTitle())) {
+                                existing.setTitle(req.getTitle());
+                                changed = true;
+                            }
+                            if (req.getBody() != null
+                                    && !req.getBody().equals(existing.getBody())) {
+                                existing.setBody(req.getBody());
+                                changed = true;
+                            }
+                            if (req.getType() != null
+                                    && !req.getType().equals(existing.getType())) {
+                                existing.setType(req.getType());
+                                changed = true;
+                            }
+                            if (req.getData() != null
+                                    && !req.getData().equals(existing.getData())) {
+                                existing.setData(req.getData());
+                                changed = true;
+                            }
+
+                            existing.setUpdatedAt(Instant.now());
+
+                            Mono<NotificationFeedDoc> afterSave =
+                                    changed ? repo.save(existing) : Mono.just(existing);
+
+                            return afterSave.flatMap(doc -> pushIfOnline(doc, req).thenReturn(doc));
+                        })
                 .switchIfEmpty(
                         repo.save(
                                         NotificationFeedDoc.builder()
@@ -41,6 +72,7 @@ public class FeedAndPushService {
                                                                 ? Map.of()
                                                                 : req.getData())
                                                 .createdAt(Instant.now())
+                                                .updatedAt(Instant.now())
                                                 .build())
                                 .flatMap(doc -> pushIfOnline(doc, req).thenReturn(doc)));
     }
@@ -91,7 +123,7 @@ public class FeedAndPushService {
     }
 
     public Mono<Long> unreadCount(String userId) {
-        return repo.countByUserIdAndSeenAtIsNull(userId);
+        return repo.countByUserIdAndOpenedAtIsNull(userId);
     }
 
     public Mono<Long> markSeen(String userId, Iterable<String> ids) {

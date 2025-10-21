@@ -17,5 +17,5 @@ public interface NotificationFeedRepository
     Flux<NotificationFeedDoc> findByUserIdAndCreatedAtLessThanOrderByCreatedAtDesc(
             String userId, Instant before, Pageable pageable);
 
-    Mono<Long> countByUserIdAndSeenAtIsNull(String userId);
+    Mono<Long> countByUserIdAndOpenedAtIsNull(String userId);
 }

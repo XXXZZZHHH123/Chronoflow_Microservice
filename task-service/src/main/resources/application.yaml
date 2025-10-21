@@ -9,6 +9,12 @@ spring:
   main:
     allow-circular-references: true
   cloud:
+    gcp:
+      project-id: ${GCP_PROJECT_ID}
+      credentials:
+        encoded-key: ${PUB_SUB_SERVICE_ACCOUNT_JSON}
+      pubsub:
+        enabled: true
     nacos:
       server-addr: ${NACOS_HOST}:${NACOS_PORT} # Nacos host
       username: ${NACOS_USERNAME} # Nacos username

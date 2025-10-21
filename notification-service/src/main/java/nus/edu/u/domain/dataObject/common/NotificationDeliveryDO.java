@@ -44,7 +44,6 @@ public class NotificationDeliveryDO extends BaseNotificationEntity {
     @Column(nullable = false, length = 64)
     private NotificationEventType type;
 
-    /** Now strongly typed enum instead of raw String */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private NotificationStatus status;

@@ -127,6 +127,8 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                         .build();
 
         taskNotificationPublisher.notifyNewTaskToAssigneeEmail(dto);
+        taskNotificationPublisher.notifyNewTaskToAssigneePush(dto);
+        taskNotificationPublisher.notifyNewTaskToAssigneeWs(dto);
 
         Map<Long, List<GroupDTO>> groupsByEvent = preloadGroups(List.of(eventId));
         Map<Long, List<DeptDO>> deptsByUser =

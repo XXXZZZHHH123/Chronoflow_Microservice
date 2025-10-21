@@ -66,7 +66,7 @@ public class WebSocketGatewayClientImpl implements WebSocketGatewayClient {
         String reqId = Optional.ofNullable(MDC.get("requestId")).orElse("");
 
         return client.post()
-                .uri("/internal/v1/ws/push")
+                .uri("/ws/internal/push")
                 .header("X-Request-Id", reqId)
                 .bodyValue(req)
                 .retrieve()

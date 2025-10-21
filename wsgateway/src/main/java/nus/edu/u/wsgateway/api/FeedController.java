@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping
+@RequestMapping("/ws")
 public class FeedController {
 
     private final FeedAndPushService feedService;
@@ -25,7 +25,7 @@ public class FeedController {
     // =========================
     // INTERNAL (NotificationSvc -> Gateway)
     // =========================
-    @PostMapping("/internal/v1/ws/push")
+    @PostMapping("/internal/push")
     public Mono<ResponseEntity<Map<String, Object>>> push(@RequestBody WsPushRequestDTO req) {
         return feedService
                 .createOrTouchAndPush(req)
@@ -34,8 +34,7 @@ public class FeedController {
                             String status = (doc.getDeliveredAt() != null) ? "DELIVERED" : "QUEUED";
                             Map<String, Object> body = new HashMap<>();
                             body.put("status", status);
-                            if (doc.getId() != null)
-                                body.put("id", doc.getId()); // avoid null in Map.of
+                            if (doc.getId() != null) body.put("id", doc.getId());
                             return ResponseEntity.accepted().body(body);
                         });
     }
@@ -43,40 +42,22 @@ public class FeedController {
     // =========================
     // PUBLIC API (Client -> Gateway)
     // =========================
-    @GetMapping("/api/feed")
+    @GetMapping("/feed")
     public Flux<NotificationFeedDoc> feed(
-            @RequestParam String userId,
-            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam("userId") String userId,
+            @RequestParam(name = "limit", defaultValue = "20") int limit,
             @RequestParam(name = "beforeEpochMs", required = false) Long beforeEpochMs) {
         Instant before = (beforeEpochMs == null) ? null : Instant.ofEpochMilli(beforeEpochMs);
         return feedService.page(userId, limit, before);
     }
 
-    @GetMapping("/api/unread/{userId}")
-    public Mono<Map<String, Long>> unread(@PathVariable String userId) {
+    @GetMapping("/unread/{userId}")
+    public Mono<Map<String, Long>> unread(@PathVariable("userId") String userId) {
         return feedService.unreadCount(userId).map(c -> Map.of("unread", c));
     }
 
-    @PostMapping("/api/mark-seen")
-    public Mono<Map<String, Object>> markSeen(@RequestBody MarkSeenRequestDTO req) {
-        return feedService
-                .markSeen(req.getUserId(), req.getNotificationIds())
-                .flatMap(
-                        updated ->
-                                feedService
-                                        .unreadCount(req.getUserId())
-                                        .map(
-                                                unread -> {
-                                                    Map<String, Object> resp = new HashMap<>();
-                                                    resp.put("updated", updated);
-                                                    resp.put("unread", unread);
-                                                    return resp;
-                                                }));
-    }
-
-    @PostMapping("/api/mark-opened")
+    @PostMapping("/mark-opened")
     public Mono<Map<String, Object>> markOpened(@RequestBody MarkSeenRequestDTO req) {
-        // Ensure FeedAndPushService has: Mono<Long> markOpened(String userId, Iterable<String> ids)
         return feedService
                 .markOpened(req.getUserId(), req.getNotificationIds())
                 .map(updated -> Map.of("updated", updated));

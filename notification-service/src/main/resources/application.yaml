@@ -140,17 +140,17 @@ knife4j:
 
 
 
-# Mybatis-plus config
-mybatis-plus:
-  mapper-locations: classpath*:mapper/*/.xml
-  configuration:
-    map-underscore-to-camel-case: true            # db: user_name -> java: userName
-    cache-enabled: false
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # dev-only SQL logs
-  global-config:
-    db-config:
-      id-type: ASSIGN_ID     # snowflake-style; or AUTO for DB auto-increment
-      table-underline: true
+## Mybatis-plus config
+#mybatis-plus:
+#  mapper-locations: classpath*:mapper/*/.xml
+#  configuration:
+#    map-underscore-to-camel-case: true            # db: user_name -> java: userName
+#    cache-enabled: false
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # dev-only SQL logs
+#  global-config:
+#    db-config:
+#      id-type: ASSIGN_ID     # snowflake-style; or AUTO for DB auto-increment
+#      table-underline: true
 
 ############## Sa-Token config (文档: https://sa-token.cc) ##############
 sa-token:
@@ -222,7 +222,7 @@ email:
 notification:
   ws:
     enabled: true
-    base-url: http://localhost:8085
+    base-url: ${WS_URL}
     rate-key: "rate:ws:global"
     rate-limit: 400
     rate-window: 1m

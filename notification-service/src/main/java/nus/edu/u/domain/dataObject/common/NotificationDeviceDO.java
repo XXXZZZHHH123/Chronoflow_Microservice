@@ -28,6 +28,7 @@ public class NotificationDeviceDO extends BaseNotificationEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "platform", length = 16, nullable = false)
+    @Builder.Default
     private PushPlatform platform = PushPlatform.WEB;
 
     @Column(name = "token", length = 1024, nullable = false)

@@ -1,16 +1,18 @@
 package nus.edu.u.wsgateway.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import java.util.Map;
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 
-@Value
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class WsPushRequestDTO {
-    String userId; // target user
-    String eventId; // idempotent key (opaque here)
-    String type; // e.g. "new-task-assigned"
-    String title; // optional
-    String body; // optional
-    Map<String, Object> data; // arbitrary payload (deepLink, taskId, etc.)
+    @NotBlank String userId;
+    @NotBlank String eventId;
+    @NotBlank String type;
+    String title;
+    String body;
+    Map<String, Object> data;
 }

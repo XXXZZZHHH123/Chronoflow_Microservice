@@ -17,17 +17,18 @@ import nus.edu.u.enums.push.PushStatus;
 @Table(name = "push_message")
 public class PushMessageDO extends BaseNotificationEntity {
 
-    /** Shared primary key = FK to notification_delivery.id */
+    /** Primary key doubles as FK to notification_delivery.id */
     @Id
     @Column(name = "delivery_id", length = 36, nullable = false)
     private String deliveryId;
 
-    /** Back-reference to master delivery row */
+    /** Back-reference to master delivery row (no @MapsId to avoid duplicate INSERTs) */
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @MapsId
     @JoinColumn(
             name = "delivery_id",
             referencedColumnName = "id",
+            insertable = false,
+            updatable = false,
             foreignKey = @ForeignKey(name = "fk_push_delivery"))
     private NotificationDeliveryDO delivery;
 
@@ -48,7 +49,14 @@ public class PushMessageDO extends BaseNotificationEntity {
     /** Error message (nullable) */
     @Lob private String errorMessage;
 
-    // --- convenient helpers ---
+    @PrePersist
+    void syncPkFromParent() {
+        if (this.deliveryId == null && this.delivery != null) {
+            this.deliveryId = this.delivery.getId();
+        }
+    }
+
+    // Helpers
     public PushMessageDO markSent(String fcmId) {
         this.status = PushStatus.SENT;
         this.fcmId = fcmId;

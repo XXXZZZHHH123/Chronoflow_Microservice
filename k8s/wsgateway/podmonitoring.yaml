@@ -1,0 +1,13 @@
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: wsgateway
+  namespace: chronoflow
+spec:
+  selector:
+    matchLabels:
+      app: wsgateway
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s

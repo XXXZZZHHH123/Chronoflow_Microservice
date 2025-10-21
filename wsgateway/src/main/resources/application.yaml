@@ -29,8 +29,8 @@ spring:
           # Minimum number of idle connections in the connection pool
           min-idle: 0
     mongodb:
-      uri: mongodb+srv://chronoflow:MqT4x15GWuCDJ3L9@chronoflow-mongo-cluster.nnye375.mongodb.net/?retryWrites=true&w=majority&appName=chronoflow-mongo-cluster
-      database: chronoflow
+      uri: mongodb+srv://chronoflow:MqT4x15GWuCDJ3L9@chronoflow-mongo-cluster.nnye375.mongodb.net/chronoflow?retryWrites=true&w=majority&appName=chronoflow-mongo-cluster
+
 
   cloud:
     nacos:
@@ -82,17 +82,17 @@ knife4j:
 
 
 
-# Mybatis-plus config
-mybatis-plus:
-  mapper-locations: classpath*:mapper/*/.xml
-  configuration:
-    map-underscore-to-camel-case: true            # db: user_name -> java: userName
-    cache-enabled: false
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # dev-only SQL logs
-  global-config:
-    db-config:
-      id-type: ASSIGN_ID     # snowflake-style; or AUTO for DB auto-increment
-      table-underline: true
+## Mybatis-plus config
+#mybatis-plus:
+#  mapper-locations: classpath*:mapper/*/.xml
+#  configuration:
+#    map-underscore-to-camel-case: true            # db: user_name -> java: userName
+#    cache-enabled: false
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # dev-only SQL logs
+#  global-config:
+#    db-config:
+#      id-type: ASSIGN_ID     # snowflake-style; or AUTO for DB auto-increment
+#      table-underline: true
 
 ############## Sa-Token config (文档: https://sa-token.cc) ##############
 sa-token:

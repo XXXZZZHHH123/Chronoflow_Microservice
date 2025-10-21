@@ -33,3 +33,7 @@ spec:
               value: "__EVENT_ID__"
             - name: TASK_SERVICE_TASK_ID
               value: "__TASK_ID__"
+            - name: TASK_SERVICE_RESULTS_UPLOAD_URL
+              value: "__RESULT_UPLOAD_URL__"
+            - name: TASK_SERVICE_RESULTS_OBJECT
+              value: "__RESULT_OBJECT__"

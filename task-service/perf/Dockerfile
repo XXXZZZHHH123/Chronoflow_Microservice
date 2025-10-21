@@ -26,6 +26,7 @@ COPY --from=deps /root/.m2 /root/.m2
 COPY --from=deps /workspace /workspace
 COPY task-service/perf/entrypoint.sh /entrypoint.sh
 
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 RUN chmod +x /entrypoint.sh
 
 ENV MAVEN_OPTS="-XX:+UseContainerSupport"

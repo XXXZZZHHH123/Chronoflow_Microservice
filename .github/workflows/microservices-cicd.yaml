@@ -403,7 +403,10 @@ jobs:
   performance_test:
     name: Performance Test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    needs: deploy-to-gke
+    if: |
+      github.ref == 'refs/heads/main' &&
+      needs.deploy-to-gke.result == 'success'
     env:
       PERF_BASE_URL: ${{ secrets.TASK_SERVICE_PERF_BASE_URL }}
       PERF_EVENT_ID: ${{ secrets.TASK_SERVICE_PERF_EVENT_ID }}

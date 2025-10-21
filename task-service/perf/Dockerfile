@@ -12,6 +12,7 @@ COPY notification-service/pom.xml notification-service/pom.xml
 COPY user-service/pom.xml user-service/pom.xml
 COPY common/pom.xml common/pom.xml
 COPY shared-api/pom.xml shared-api/pom.xml
+COPY wsgateway/pom.xml wsgateway/pom.xml
 
 RUN mvn -pl task-service -am dependency:go-offline
 

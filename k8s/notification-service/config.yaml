@@ -5,4 +5,3 @@ metadata:
   namespace: chronoflow
 data:
   gcp.project.id: "chronoflow-noti-service"
-  aws.region: "ap-southeast-1"

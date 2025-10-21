@@ -379,7 +379,7 @@ jobs:
           echo "Waiting for rollout to complete..."
           kubectl rollout status deployment/${{ matrix.service }} \
           -n ${{ env.K8S_NAMESPACE }} \
-          --timeout=5m
+          --timeout=10m
 
       - name: Verify deployment
         run: |

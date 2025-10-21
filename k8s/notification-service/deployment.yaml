@@ -28,7 +28,7 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: notification-service
-          image: e1241986/notification-service:v1.0.3
+          image: e1241986/notification-service:latest
           imagePullPolicy: Always
           ports:
             - name: http

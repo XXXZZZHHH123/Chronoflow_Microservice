@@ -28,7 +28,7 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: wsgateway
-          image: e1241986/wsgateway:v1.0.5
+          image: e1241986/wsgateway:latest
           imagePullPolicy: Always
           ports:
             - name: http

@@ -23,7 +23,6 @@ RUN mvn -pl task-service -am -DskipTests install
 FROM maven:3.9.6-eclipse-temurin-17 AS runner
 WORKDIR /workspace
 
-COPY --from=deps /root/.m2 /root/.m2
 COPY --from=deps /workspace /workspace
 COPY task-service/perf/entrypoint.sh /entrypoint.sh
 

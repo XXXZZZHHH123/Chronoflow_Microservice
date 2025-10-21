@@ -20,7 +20,6 @@ env:
   K8S_NAMESPACE: chronoflow
 
 jobs:
-  # Detect changed services
   detect-changes:
     name: Detect Changed Services
     runs-on: ubuntu-latest
@@ -404,7 +403,10 @@ jobs:
   performance-task-service:
     name: Performance - task-service
     runs-on: ubuntu-latest
-    if: ${{ (github.ref == 'refs/heads/main')}}
+    needs: deploy-to-gke
+    if: |
+      github.ref == 'refs/heads/main' &&
+      needs.deploy-to-gke.result == 'success'
     env:
       PERF_BASE_URL: ${{ secrets.TASK_SERVICE_PERF_BASE_URL }}
       PERF_EVENT_ID: ${{ secrets.TASK_SERVICE_PERF_EVENT_ID }}

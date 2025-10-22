@@ -565,13 +565,12 @@ jobs:
           docker pull ghcr.io/zaproxy/zaproxy:stable -q
           docker run --rm \
             -v "${GITHUB_WORKSPACE}/zap-reports:/zap/wrk:rw" \
-            -w /zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-full-scan.py \
               -t "$NORMALIZED_URL" \
-              -j zap-report.json \
-              -x zap-report.xml \
-              -r zap-report.html \
+              -j /zap/wrk/zap-report.json \
+              -x /zap/wrk/zap-report.xml \
+              -r /zap/wrk/zap-report.html \
               -P 1001 \
               -m 5
           ZAP_EXIT=$?

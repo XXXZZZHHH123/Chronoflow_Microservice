@@ -548,45 +548,46 @@ jobs:
     needs: deploy-to-gke
     if: github.ref == 'refs/heads/main'
     steps:
-      - name: Prepare target URL
+      - uses: actions/checkout@v4
+
+      - name: ZAP Full Scan
+        env:
+          TARGET_URL: ${{ vars.BASE_URL }}
         run: |
-          TARGET_URL="${{ vars.BASE_URL }}"
-          if [ -z "$TARGET_URL" ]; then
-            echo "BASE_URL secret is not configured. Configure secrets.BASE_URL before running DAST." >&2
+          set -euo pipefail
+          TARGET="${TARGET_URL%/}"
+          if [ -z "$TARGET" ]; then
+            echo "BASE_URL is not configured." >&2
             exit 1
           fi
-          CLEAN_URL="${TARGET_URL%/}"
-          echo "NORMALIZED_URL=$CLEAN_URL" >> $GITHUB_ENV
-
-      - name: ZAP full scan
-        run: |
-          set +e
-          mkdir -p "${GITHUB_WORKSPACE}/zap-reports"
+          echo "Running ZAP full scan against $TARGET"
           docker pull ghcr.io/zaproxy/zaproxy:stable -q
+          set +e
           docker run --rm \
-            -v "${GITHUB_WORKSPACE}/zap-reports:/zap/wrk:rw" \
+            -v "$PWD":/zap/wrk/:rw \
+            --network host \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-full-scan.py \
-              -t "$NORMALIZED_URL" \
-              -j /zap/wrk/zap-report.json \
-              -x /zap/wrk/zap-report.xml \
-              -r /zap/wrk/zap-report.html \
+              -t "$TARGET" \
+              -j zap-report.json \
+              -x zap-report.xml \
+              -r zap-report.html \
               -P 1001 \
               -m 5
           ZAP_EXIT=$?
-          echo "ZAP_EXIT=${ZAP_EXIT}"
-
-          if [ "$ZAP_EXIT" -ne 0 ] && [ "$ZAP_EXIT" -ne 2 ]; then
+          set -e
+          if [ "$ZAP_EXIT" -eq 2 ]; then
+            echo "ZAP reported warnings only (exit code 2). Continuing pipeline."
+          elif [ "$ZAP_EXIT" -ne 0 ]; then
+            echo "ZAP scan failed with exit code $ZAP_EXIT" >&2
             exit "$ZAP_EXIT"
           fi
 
-          echo "ZAP outputs in ${GITHUB_WORKSPACE}/zap-reports:"
-          ls -la "${GITHUB_WORKSPACE}/zap-reports" || true
-
       - name: Upload ZAP reports
-        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: zap-dast-reports-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ github.workspace }}/zap-reports
-          retention-days: 5
+          name: zap-dast-reports
+          path: |
+            zap-report.json
+            zap-report.xml
+            zap-report.html

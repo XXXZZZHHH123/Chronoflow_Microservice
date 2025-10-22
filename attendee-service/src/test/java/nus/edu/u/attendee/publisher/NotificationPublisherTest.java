@@ -19,8 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationPublisherTest {
@@ -147,10 +147,7 @@ class NotificationPublisherTest {
         RuntimeException root = new RuntimeException("pubsub down");
         Mockito.doThrow(root)
                 .when(pubSubTemplate)
-                .publish(
-                        eq("chronoflow-notification"),
-                        eq("{\"eventId\":\"evt-5\"}"),
-                        any());
+                .publish(eq("chronoflow-notification"), eq("{\"eventId\":\"evt-5\"}"), any());
 
         assertThatThrownBy(() -> publisher.publish(request))
                 .isInstanceOf(RuntimeException.class)
@@ -172,4 +169,3 @@ class NotificationPublisherTest {
         }
     }
 }
-

@@ -32,11 +32,7 @@ class FileStorageRpcServiceImplTest {
     @BeforeEach
     void setUp() {
         requestDto =
-                FileUploadReqDTO.builder()
-                        .taskLogId(10L)
-                        .eventId(20L)
-                        .files(List.of())
-                        .build();
+                FileUploadReqDTO.builder().taskLogId(10L).eventId(20L).files(List.of()).build();
     }
 
     @Test
@@ -49,7 +45,11 @@ class FileStorageRpcServiceImplTest {
                                 .size(5)
                                 .build());
         List<FileResultDTO> rpcList =
-                List.of(FileResultDTO.builder().objectName("obj").contentType("text/plain").build());
+                List.of(
+                        FileResultDTO.builder()
+                                .objectName("obj")
+                                .contentType("text/plain")
+                                .build());
 
         when(fileStorageService.downloadFilesByTaskLogId(99L)).thenReturn(domainList);
         when(fileRpcConvert.toRpcList(domainList)).thenReturn(rpcList);
@@ -90,4 +90,3 @@ class FileStorageRpcServiceImplTest {
         assertThrows(IllegalArgumentException.class, () -> rpcService.uploadToTaskLog(null));
     }
 }
-

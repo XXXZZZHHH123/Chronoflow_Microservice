@@ -50,8 +50,7 @@ class MemberNotificationPublisherTest {
         assertThat(dto.getChannel()).isEqualTo(NotificationChannel.EMAIL);
         assertThat(dto.getType()).isEqualTo(NotificationEventType.MEMBER_INVITE);
         assertThat(dto.getTo()).isEqualTo("member@example.com");
-        assertThat(dto.getEventId())
-                .isEqualTo("member-invitation-99-123");
+        assertThat(dto.getEventId()).isEqualTo("member-invitation-99-123");
         assertThat(dto.getVariables())
                 .containsEntry("organizationId", 99L)
                 .containsEntry("userId", 123L)

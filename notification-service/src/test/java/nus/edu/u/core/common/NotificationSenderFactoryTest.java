@@ -14,8 +14,7 @@ class NotificationSenderFactoryTest {
     void strategyReturnsMatchingSender() {
         NotificationSender emailSender =
                 new StubSender(NotificationChannel.EMAIL, "email-message-id");
-        NotificationSender pushSender =
-                new StubSender(NotificationChannel.PUSH, "push-message-id");
+        NotificationSender pushSender = new StubSender(NotificationChannel.PUSH, "push-message-id");
 
         NotificationSenderFactory factory =
                 new NotificationSenderFactory(List.of(emailSender, pushSender));
@@ -76,4 +75,3 @@ class NotificationSenderFactoryTest {
         }
     }
 }
-

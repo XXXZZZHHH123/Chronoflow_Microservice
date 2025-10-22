@@ -48,4 +48,3 @@ class NotificationServiceImplTest {
         verify(sender).send(request);
     }
 }
-

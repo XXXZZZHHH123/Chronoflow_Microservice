@@ -62,10 +62,7 @@ class ExcelServiceTest {
                 excelMockFile(
                         List.of(
                                 List.of("email", "roleKeys", "remark"),
-                                List.of(
-                                        " alice@example.com ",
-                                        "admin，member admin",
-                                        " leader "),
+                                List.of(" alice@example.com ", "admin，member admin", " leader "),
                                 List.of("bob@example.com", "member", "")));
 
         when(roleMapper.selectList(any()))
@@ -116,7 +113,9 @@ class ExcelServiceTest {
     void parseCreateOrUpdateRows_whenRolesCellEmpty_returnsEmptyRoleIds() throws IOException {
         MockMultipartFile file =
                 excelMockFile(
-                        List.of(List.of("email", "roleKeys", "remark"), List.of("carol@example.com", "", "")));
+                        List.of(
+                                List.of("email", "roleKeys", "remark"),
+                                List.of("carol@example.com", "", "")));
 
         List<CreateUserDTO> rows = excelService.parseCreateOrUpdateRows(file);
 

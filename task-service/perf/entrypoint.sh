@@ -6,15 +6,25 @@ if [[ -z "${TASK_SERVICE_BASE_URL:-}" ]]; then
   exit 1
 fi
 
+cd /workspace
+
 export MAVEN_OPTS="${MAVEN_OPTS:--Xms256m -Xmx512m -XX:+UseContainerSupport}"
+
+echo "PWD=$(pwd)"
+echo "Listing modules at repo root:"
+ls -la || true
 
 # 先构建 task-service 及其依赖，确保本地仓库有正确版本
 echo "Preparing local Maven repository for task-service..."
 mvn -B -f task-service/pom.xml -am -DskipTests install
 
 declare -a args
-args=(mvn -B -f task-service/pom.xml io.gatling:gatling-maven-plugin:test -Dgatling.skip=false "-Dgatling.failOnAssertionFailure=false" "-DtaskService.baseUrl=${TASK_SERVICE_BASE_URL}")
-
+args=(mvn -B -f task-service/pom.xml
+      -Dgatling.skip=false
+      -Dgatling.failOnAssertions=false
+      -DtaskService.baseUrl="${TASK_SERVICE_BASE_URL}"
+      io.gatling:gatling-maven-plugin:4.20.6:test)
+      
 if [[ -n "${TASK_SERVICE_LOGIN_PATH:-}" ]]; then
   args+=("-DtaskService.loginPath=${TASK_SERVICE_LOGIN_PATH}")
 fi

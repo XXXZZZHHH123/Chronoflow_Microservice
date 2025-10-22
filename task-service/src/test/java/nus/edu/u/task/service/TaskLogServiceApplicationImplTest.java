@@ -4,7 +4,9 @@ import static nus.edu.u.common.enums.ErrorCodeConstants.TASK_LOG_ERROR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -145,5 +147,32 @@ class TaskLogServiceApplicationImplTest {
         when(taskLogMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
 
         assertThat(service.getTaskLog(1L)).isEmpty();
+    }
+
+    @Test
+    void getTaskLog_whenSelectListNull_returnsEmptyList() {
+        when(taskLogMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(null);
+
+        assertThat(service.getTaskLog(777L)).isEmpty();
+        verify(userRpcService, never()).getUsers(any());
+        verify(fileStorageRpcService, never()).downloadFilesByTaskLogId(anyLong());
+    }
+
+    @Test
+    void getTaskLog_whenUserServiceReturnsNull_usesEmptyUserMap() {
+        when(taskLogMapper.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(sampleLog));
+        when(userRpcService.getUsers(any())).thenReturn(null);
+        when(fileStorageRpcService.downloadFilesByTaskLogId(sampleLog.getId())).thenReturn(null);
+
+        List<TaskLogRespVO> logs = service.getTaskLog(sampleLog.getTaskId());
+
+        assertThat(logs).hasSize(1);
+        TaskLogRespVO log = logs.get(0);
+        assertThat(log.getTargetUser()).isNull();
+        assertThat(log.getSourceUser()).isNotNull();
+        assertThat(log.getFileResults()).isNull();
+        verify(userRpcService).getUsers(any());
+        verify(fileStorageRpcService).downloadFilesByTaskLogId(sampleLog.getId());
     }
 }

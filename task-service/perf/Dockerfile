@@ -1,5 +1,5 @@
 FROM maven:3.9.6-eclipse-temurin-17 AS deps
-WORKDIR /workspace
+WORKDIR /workspace 
 
 COPY pom.xml .
 COPY task-service/pom.xml task-service/pom.xml

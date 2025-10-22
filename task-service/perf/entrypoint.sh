@@ -14,16 +14,17 @@ echo "PWD=$(pwd)"
 echo "Listing modules at repo root:"
 ls -la || true
 
-# 先构建 task-service 及其依赖，确保本地仓库有正确版本
 echo "Preparing local Maven repository for task-service..."
-mvn -B -f task-service/pom.xml -am -DskipTests install
+mvn -B -U -pl task-service -am -DskipTests install
 
 declare -a args
-args=(mvn -B -f task-service/pom.xml
-      -Dgatling.skip=false
-      -Dgatling.failOnAssertions=false
-      -DtaskService.baseUrl="${TASK_SERVICE_BASE_URL}"
-      io.gatling:gatling-maven-plugin:4.20.6:test)
+args=(
+  mvn -B -pl task-service -am \
+    io.gatling:gatling-maven-plugin:4.20.6:test \
+    -Dgatling.skip=false \
+    -Dgatling.failOnAssertionFailure=false \
+    -DtaskService.baseUrl="${TASK_SERVICE_BASE_URL}"
+)
       
 if [[ -n "${TASK_SERVICE_LOGIN_PATH:-}" ]]; then
   args+=("-DtaskService.loginPath=${TASK_SERVICE_LOGIN_PATH}")

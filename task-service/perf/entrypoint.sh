@@ -19,7 +19,7 @@ mvn -B -U -pl task-service -am -DskipTests install
 
 declare -a args
 args=(
-  mvn -B -pl task-service -am \
+  mvn -B -f task-service/pom.xml -am \
     io.gatling:gatling-maven-plugin:4.20.6:test \
     -Dgatling.skip=false \
     -Dgatling.failOnAssertionFailure=false \

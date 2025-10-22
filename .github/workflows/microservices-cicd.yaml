@@ -564,7 +564,7 @@ jobs:
           mkdir -p "${GITHUB_WORKSPACE}/zap-reports"
           docker pull ghcr.io/zaproxy/zaproxy:stable -q
           docker run --rm \
-            -v "${GITHUB_WORKSPACE}/zap-reports:/zap/wrk:rw" \
+            -v "${GITHUB_WORKSPACE}/zap-reports:/zap:rw" \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-full-scan.py \
               -t "$NORMALIZED_URL" \

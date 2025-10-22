@@ -615,4 +615,52 @@ class TaskStrategiesTest {
                     .isEqualTo(TASK_LOG_FILE_FAILED.getCode());
         }
     }
+
+    @Test
+    void createTask_whenStartNotBeforeEnd_throwsInvalidRange() {
+        TaskDO task = baseTask();
+        task.setStartTime(task.getEndTime());
+        TaskActionDTO dto = baseActionDto();
+
+        assertThatThrownBy(() -> createTask.execute(task, dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(TASK_TIME_RANGE_INVALID.getCode());
+        verify(taskMapper, never()).insert(task);
+    }
+
+    @Test
+    void createTask_whenStartBeforeEventStart_throwsOutsideEvent() {
+        TaskDO task = baseTask();
+        TaskActionDTO dto = baseActionDto();
+        dto.setEventStartTime(task.getStartTime().plusHours(1));
+
+        assertThatThrownBy(() -> createTask.execute(task, dto))
+                .isInstanceOf(ServiceException.class)
+                .extracting("code")
+                .isEqualTo(TASK_TIME_OUTSIDE_EVENT.getCode());
+        verify(taskMapper, never()).insert(task);
+    }
+
+    @Test
+    void submitTask_whenTaskLogIdNull_throwsTaskLogFileFailed() {
+        TaskDO task = baseTask();
+        task.setStatus(TaskStatusEnum.PROGRESS.getStatus());
+        TaskActionDTO dto = baseActionDto();
+        dto.setFiles(List.of(new MockMultipartFile("g", "g.txt", "text/plain", "data".getBytes())));
+        when(taskMapper.updateById(task)).thenReturn(1);
+        when(taskLogService.insertTaskLog(
+                        task.getId(), null, TaskActionEnum.SUBMIT.getCode(), "remark"))
+                .thenReturn(null);
+
+        try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
+            stp.when(StpUtil::getLoginId).thenReturn(task.getUserId());
+
+            assertThatThrownBy(() -> submitTask.execute(task, dto))
+                    .isInstanceOf(ServiceException.class)
+                    .extracting("code")
+                    .isEqualTo(TASK_LOG_FILE_FAILED.getCode());
+        }
+        verify(fileStorageRpcService, never()).uploadToTaskLog(any());
+    }
 }

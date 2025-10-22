@@ -211,6 +211,58 @@ class AttendeeServiceImplTest {
     }
 
     @Test
+    void update_whenTenantMissingStillSendsEmail() {
+        EventAttendeeDO attendee = attendee(21L, 4L);
+        attendee.setCheckInToken(null);
+        when(attendeeMapper.selectById(21L)).thenReturn(attendee);
+        EventRespDTO event = event(4L);
+        when(eventRpcService.getEvent(attendee.getEventId())).thenReturn(event);
+        when(attendeeMapper.updateById(attendee)).thenReturn(1);
+        when(qrCodeService.generateEventCheckInQrWithToken(any())).thenReturn(qrCodeResponse());
+        when(userRpcService.getTenantById(1L)).thenReturn(null);
+
+        SaTokenContextMockUtil.setMockContext();
+        StpUtil.login(456L);
+        StpUtil.getSession().set(Constants.SESSION_TENANT_ID, 1L);
+
+        try {
+            var response = service.update(21L, req());
+
+            assertThat(response.getQrCodeBase64()).isEqualTo(SAMPLE_BASE64);
+            verify(attendeeNotificationPublisher).sendAttendeeInviteEmail(any());
+        } finally {
+            StpUtil.logout(456L);
+            SaTokenContextMockUtil.clearContext();
+        }
+    }
+
+    @Test
+    void update_whenTenantLookupFails_throwsCreationFailed() {
+        EventAttendeeDO attendee = attendee(31L, 6L);
+        attendee.setCheckInToken(null);
+        when(attendeeMapper.selectById(31L)).thenReturn(attendee);
+        EventRespDTO event = event(6L);
+        when(eventRpcService.getEvent(attendee.getEventId())).thenReturn(event);
+        when(attendeeMapper.updateById(attendee)).thenReturn(1);
+        when(qrCodeService.generateEventCheckInQrWithToken(any())).thenReturn(qrCodeResponse());
+        when(userRpcService.getTenantById(1L)).thenThrow(new RuntimeException("rpc down"));
+
+        SaTokenContextMockUtil.setMockContext();
+        StpUtil.login(789L);
+        StpUtil.getSession().set(Constants.SESSION_TENANT_ID, 1L);
+
+        try {
+            ServiceException ex =
+                    assertThrows(ServiceException.class, () -> service.update(31L, req()));
+            assertThat(ex.getCode()).isEqualTo(ATTENDEE_CREATION_FAILED.getCode());
+            verify(attendeeNotificationPublisher, never()).sendAttendeeInviteEmail(any());
+        } finally {
+            StpUtil.logout(789L);
+            SaTokenContextMockUtil.clearContext();
+        }
+    }
+
+    @Test
     void checkIn_invalidTokenThrows() {
         when(attendeeMapper.selectByToken("missing")).thenReturn(null);
 

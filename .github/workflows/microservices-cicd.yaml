@@ -562,11 +562,10 @@ jobs:
         run: |
           set -euo pipefail
           echo "Running ZAP full scan..."
+          mkdir -p zap-reports
           docker pull ghcr.io/zaproxy/zaproxy:stable -q
-          set +e
           docker run --rm \
-            -v "$PWD":/zap/wrk/:rw \
-            --network host \
+            -v "$(pwd)/zap-reports":/zap/wrk/:rw \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-full-scan.py \
               -t "$NORMALIZED_URL" \
@@ -575,24 +574,8 @@ jobs:
               -r zap-report.html \
               -P 1001 \
               -m 5
-          ZAP_EXIT=$?
-          set -e
-          if [ "$ZAP_EXIT" -eq 2 ]; then
-            echo "ZAP reported warnings only (exit code 2). Continuing pipeline."
-          elif [ "$ZAP_EXIT" -ne 0 ]; then
-            echo "ZAP scan failed with exit code $ZAP_EXIT" >&2
-            exit "$ZAP_EXIT"
-          fi
-
-      - name: Collect ZAP artifacts
-        if: always()
-        run: |
-          mkdir -p zap-reports
-          for f in zap-report.json zap-report.xml zap-report.html; do
-            if [ -f "$f" ]; then
-              mv "$f" zap-reports/
-            fi
-          done
+          echo "ZAP outputs:"
+          ls -la zap-reports
 
       - name: Upload ZAP reports
         if: always()

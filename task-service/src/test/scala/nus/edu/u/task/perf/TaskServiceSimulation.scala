@@ -85,8 +85,8 @@ class TaskServiceSimulation extends Simulation {
 
   setUp(
     getTaskScenario.inject(
-      rampUsers(50).during(30.seconds),
-      constantUsersPerSec(50).during(60.seconds)
+      rampUsers(200).during(30.seconds),
+      constantUsersPerSec(200).during(60.seconds)
     )
   ).protocols(httpProtocol)
     .assertions(

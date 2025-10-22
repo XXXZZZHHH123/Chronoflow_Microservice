@@ -112,4 +112,25 @@ class GroupMemberRemovalServiceTest {
         verify(userGroupMapper).deleteById(captor.capture());
         assertThat(captor.getValue()).isEqualTo(relation.getId());
     }
+
+    @Test
+    void removeMemberFromGroup_whenTaskServiceUnavailable_stillRemovesRelation() {
+        ReflectionTestUtils.setField(service, "taskRpcService", null);
+
+        UserGroupDO relation =
+                UserGroupDO.builder().id(5L).deptId(1L).eventId(9L).userId(2L).build();
+        DeptDO group = DeptDO.builder().id(1L).leadUserId(3L).build();
+
+        when(userGroupMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(relation);
+        when(deptMapper.selectById(1L)).thenReturn(group);
+
+        service.removeMemberFromGroup(1L, 2L);
+
+        ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
+        verify(userGroupMapper).deleteById(captor.capture());
+        assertThat(captor.getValue()).isEqualTo(relation.getId());
+
+        // restore mocked field for other tests
+        ReflectionTestUtils.setField(service, "taskRpcService", taskRpcService);
+    }
 }

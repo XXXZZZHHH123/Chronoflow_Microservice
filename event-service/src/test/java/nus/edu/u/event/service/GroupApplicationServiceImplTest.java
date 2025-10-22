@@ -341,12 +341,29 @@ class GroupApplicationServiceImplTest {
     }
 
     @Test
+    void addMembersToGroup_withEmptyList_doesNothing() {
+        GroupApplicationServiceImpl spyService = spy(service);
+        ReflectionTestUtils.setField(spyService, "userRpcService", userRpcService);
+
+        spyService.addMembersToGroup(5L, List.of());
+
+        verify(spyService, never()).addMemberToGroup(any(), any());
+    }
+
+    @Test
     void removeMembersFromGroup_propagatesFirstException() {
         ServiceException failure = new ServiceException(USER_ALREADY_IN_OTHER_GROUP_OF_EVENT);
         doThrow(failure).when(groupMemberRemovalService).removeMemberFromGroup(1L, 2L);
 
         assertThatThrownBy(() -> service.removeMembersFromGroup(1L, List.of(2L, 3L)))
                 .isSameAs(failure);
+    }
+
+    @Test
+    void removeMembersFromGroup_withEmptyList_doesNothing() {
+        service.removeMembersFromGroup(9L, List.of());
+
+        verify(groupMemberRemovalService, never()).removeMemberFromGroup(any(), any());
     }
 
     @Test
@@ -508,6 +525,15 @@ class GroupApplicationServiceImplTest {
         assertThat(groupDto2.getMembers())
                 .extracting(GroupMemberDTO::getUserId)
                 .containsExactly(202L);
+    }
+
+    @Test
+    void getGroupDTOsByEventIds_whenInputEmpty_returnsEmptyMap() {
+        Map<Long, List<GroupDTO>> result = service.getGroupDTOsByEventIds(List.of());
+
+        assertThat(result).isEmpty();
+        verify(deptMapper, never()).selectList(any());
+        verify(userGroupMapper, never()).selectList(any());
     }
 
     @Test

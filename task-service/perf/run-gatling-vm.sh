@@ -11,6 +11,7 @@ DOCKERFILE_PATH="${DOCKERFILE_PATH:-task-service/perf/Dockerfile}"
 CONTAINER_RESULTS_PATH="/workspace/task-service/target/gatling"
 CONTAINER_M2_PATH="/root/.m2"
 M2_CACHE_DIR="${M2_CACHE_DIR:-$HOME/.m2}"
+DOCKER_NETWORK_MODE="${DOCKER_NETWORK_MODE:-}"
 
 mkdir -p "${RESULTS_ROOT}"
 mkdir -p "${M2_CACHE_DIR}"
@@ -50,6 +51,10 @@ mkdir -p "${RUN_RESULTS_DIR}"
 
 declare -a docker_args
 docker_args=(docker run --rm --name "gatling-${RUN_ID}")
+
+if [[ -n "${DOCKER_NETWORK_MODE}" ]]; then
+  docker_args+=("--network" "${DOCKER_NETWORK_MODE}")
+fi
 
 docker_args+=("-e" "TASK_SERVICE_BASE_URL=${TASK_SERVICE_BASE_URL:?TASK_SERVICE_BASE_URL is required}")
 docker_args+=("-e" "GATLING_HOLD_SECONDS=0")

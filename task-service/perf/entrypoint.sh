@@ -8,6 +8,10 @@ fi
 
 export MAVEN_OPTS="${MAVEN_OPTS:--Xms256m -Xmx512m -XX:+UseContainerSupport}"
 
+# 先构建 task-service 及其依赖，确保本地仓库有正确版本
+echo "Preparing local Maven repository for task-service..."
+mvn -f task-service/pom.xml -pl task-service -am -DskipTests install
+
 declare -a args
 args=(mvn -f task-service/pom.xml io.gatling:gatling-maven-plugin:test -Dgatling.skip=false "-Dgatling.failOnAssertionFailure=false" "-DtaskService.baseUrl=${TASK_SERVICE_BASE_URL}")
 

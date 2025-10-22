@@ -1,12 +1,16 @@
 package nus.edu.u.task.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import cn.dev33.satoken.context.mock.SaTokenContextMockUtil;
 import cn.dev33.satoken.stp.StpUtil;
 import java.util.List;
+import java.util.Map;
 import nus.edu.u.common.core.domain.CommonResult;
 import nus.edu.u.task.domain.vo.task.TaskCreateReqVO;
 import nus.edu.u.task.domain.vo.task.TaskDashboardRespVO;
@@ -22,12 +26,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
 
 @ExtendWith(MockitoExtension.class)
 class TaskControllerTest {
 
     @Mock private TaskApplicationService taskApplicationService;
     @Mock private TaskLogApplicationService taskLogApplicationService;
+    @Mock private com.google.cloud.spring.pubsub.core.PubSubTemplate pubSubTemplate;
+    @Mock private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     @InjectMocks private TaskController controller;
 
@@ -137,5 +144,33 @@ class TaskControllerTest {
 
         assertThat(result.getData()).isSameAs(logs);
         verify(taskLogApplicationService).getTaskLog(taskId);
+    }
+
+    @Test
+    void sendRawEmailPubSubMessage_publishesAndReturnsOk() {
+        ResponseEntity<?> response = controller.sendRawEmailPubSubMessage();
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody())
+                .isInstanceOf(Map.class)
+                .extracting(body -> ((Map<?, ?>) body).get("status"))
+                .isEqualTo("PUBLISHED");
+        verify(pubSubTemplate).publish(eq("chronoflow-notification"), anyString());
+    }
+
+    @Test
+    void sendRawEmailPubSubMessage_whenPublishFails_returnsServerError() {
+        doThrow(new RuntimeException("network down"))
+                .when(pubSubTemplate)
+                .publish(anyString(), anyString());
+
+        ResponseEntity<?> response = controller.sendRawEmailPubSubMessage();
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(500);
+        assertThat(response.getBody())
+                .isInstanceOf(Map.class)
+                .extracting(body -> ((Map<?, ?>) body).get("error").toString())
+                .asString()
+                .contains("network down");
     }
 }

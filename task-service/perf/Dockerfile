@@ -14,11 +14,11 @@ COPY common/pom.xml common/pom.xml
 COPY shared-api/pom.xml shared-api/pom.xml
 COPY wsgateway/pom.xml wsgateway/pom.xml
 
-RUN mvn -pl task-service -am dependency:go-offline
+RUN mvn -B -f pom.xml -pl task-service -am dependency:go-offline -DskipTests
 
 COPY . .
 
-RUN mvn -pl task-service -am -DskipTests install
+RUN mvn -B -pl task-service -am -DskipTests install
 
 FROM maven:3.9.6-eclipse-temurin-17 AS runner
 WORKDIR /workspace

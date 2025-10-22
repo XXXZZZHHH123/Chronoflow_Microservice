@@ -560,13 +560,11 @@ jobs:
 
       - name: ZAP full scan
         run: |
-          set -euo pipefail
-          echo "Running ZAP full scan..."
-          docker pull ghcr.io/zaproxy/zaproxy:stable -q
           set +e
+          mkdir -p "${GITHUB_WORKSPACE}/zap-reports"
+          docker pull ghcr.io/zaproxy/zaproxy:stable -q
           docker run --rm \
-            -v "$PWD":/zap/wrk/:rw \
-            --network host \
+            -v "${GITHUB_WORKSPACE}/zap-reports:/zap/wrk:rw" \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-full-scan.py \
               -t "$NORMALIZED_URL" \
@@ -576,28 +574,19 @@ jobs:
               -P 1001 \
               -m 5
           ZAP_EXIT=$?
-          set -e
-          if [ "$ZAP_EXIT" -eq 2 ]; then
-            echo "ZAP reported warnings only (exit code 2). Continuing pipeline."
-          elif [ "$ZAP_EXIT" -ne 0 ]; then
-            echo "ZAP scan failed with exit code $ZAP_EXIT" >&2
+          echo "ZAP_EXIT=${ZAP_EXIT}"
+
+          if [ "$ZAP_EXIT" -ne 0 ] && [ "$ZAP_EXIT" -ne 2 ]; then
             exit "$ZAP_EXIT"
           fi
 
-      - name: Collect ZAP artifacts
-        if: always()
-        run: |
-          mkdir -p zap-reports
-          for f in zap-report.json zap-report.xml zap-report.html; do
-            if [ -f "$f" ]; then
-              mv "$f" zap-reports/
-            fi
-          done
+          echo "ZAP outputs in ${GITHUB_WORKSPACE}/zap-reports:"
+          ls -la "${GITHUB_WORKSPACE}/zap-reports" || true
 
       - name: Upload ZAP reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: zap-dast-reports-${{ github.run_id }}-${{ github.run_attempt }}
-          path: zap-reports
+          path: ${{ github.workspace }}/zap-reports
           retention-days: 5

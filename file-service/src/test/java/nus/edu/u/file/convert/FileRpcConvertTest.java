@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import nus.edu.u.file.domain.vo.FileUploadReqVO;
 import nus.edu.u.shared.rpc.file.FileUploadReqDTO;
 import nus.edu.u.shared.rpc.file.FileUploadReqDTO.FileResource;
@@ -37,11 +37,7 @@ class FileRpcConvertTest {
         resources.add(resource);
         resources.add(null);
         FileUploadReqDTO dto =
-                FileUploadReqDTO.builder()
-                        .taskLogId(5L)
-                        .eventId(6L)
-                        .files(resources)
-                        .build();
+                FileUploadReqDTO.builder().taskLogId(5L).eventId(6L).files(resources).build();
 
         FileUploadReqVO domain = mapper.toDomain(dto);
 

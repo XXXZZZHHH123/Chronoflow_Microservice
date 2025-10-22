@@ -58,4 +58,3 @@ class RateLimiterImplTest {
         assertThat(allowed).isFalse();
     }
 }
-

@@ -3,7 +3,6 @@ package nus.edu.u.services.push;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -89,10 +88,7 @@ class DeviceRegistryServiceImplTest {
         when(repository.findByToken("token-123")).thenReturn(Optional.of(existing));
 
         DeviceRegisterDTO dto =
-                DeviceRegisterDTO.builder()
-                        .token("token-123")
-                        .platform(PushPlatform.IOS)
-                        .build();
+                DeviceRegisterDTO.builder().token("token-123").platform(PushPlatform.IOS).build();
 
         service.register("new-user", dto);
 
@@ -205,23 +201,16 @@ class DeviceRegistryServiceImplTest {
     @Test
     void revokeAllForUser_setsStatusAndSavesAll() {
         NotificationDeviceDO active1 =
-                NotificationDeviceDO.builder()
-                        .userId("user")
-                        .status(DeviceStatus.ACTIVE)
-                        .build();
+                NotificationDeviceDO.builder().userId("user").status(DeviceStatus.ACTIVE).build();
         NotificationDeviceDO active2 =
-                NotificationDeviceDO.builder()
-                        .userId("user")
-                        .status(DeviceStatus.ACTIVE)
-                        .build();
+                NotificationDeviceDO.builder().userId("user").status(DeviceStatus.ACTIVE).build();
         List<NotificationDeviceDO> activeDevices = new ArrayList<>(List.of(active1, active2));
         when(repository.findByUserIdAndStatus("user", DeviceStatus.ACTIVE))
                 .thenReturn(activeDevices);
 
         service.revokeAllForUser("user");
 
-        assertThat(activeDevices)
-                .allMatch(device -> device.getStatus() == DeviceStatus.REVOKED);
+        assertThat(activeDevices).allMatch(device -> device.getStatus() == DeviceStatus.REVOKED);
         verify(repository).saveAll(activeDevices);
     }
 }

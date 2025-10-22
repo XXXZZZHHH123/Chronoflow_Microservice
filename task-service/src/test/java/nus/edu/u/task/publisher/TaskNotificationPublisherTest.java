@@ -42,7 +42,8 @@ class TaskNotificationPublisherTest {
 
     @Test
     void notifyNewTaskToAssigneePushDelegatesToNotificationPublisher() {
-        when(notificationPublisher.publish(any(NotificationRequestDTO.class))).thenReturn("push-id");
+        when(notificationPublisher.publish(any(NotificationRequestDTO.class)))
+                .thenReturn("push-id");
         NotificationRequestDTO expected =
                 TaskNotificationMapper.taskAssignmentToPushNotification(request);
 
@@ -57,7 +58,8 @@ class TaskNotificationPublisherTest {
 
     @Test
     void notifyNewTaskToAssigneeEmailDelegatesToNotificationPublisher() {
-        when(notificationPublisher.publish(any(NotificationRequestDTO.class))).thenReturn("email-id");
+        when(notificationPublisher.publish(any(NotificationRequestDTO.class)))
+                .thenReturn("email-id");
         NotificationRequestDTO expected =
                 TaskNotificationMapper.taskAssignmentToEmailNotification(request);
 
@@ -85,4 +87,3 @@ class TaskNotificationPublisherTest {
         assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expected);
     }
 }
-

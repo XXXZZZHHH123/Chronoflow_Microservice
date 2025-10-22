@@ -41,7 +41,8 @@ class OrganizerNotificationPublisherTest {
                         .organizationAddress("Street 1")
                         .organizationCode("ORG001")
                         .build();
-        when(notificationPublisher.publish(any(NotificationRequestDTO.class))).thenReturn("msg-xyz");
+        when(notificationPublisher.publish(any(NotificationRequestDTO.class)))
+                .thenReturn("msg-xyz");
 
         String messageId = publisher.sendWelcomeOrganizerEmail(req);
 

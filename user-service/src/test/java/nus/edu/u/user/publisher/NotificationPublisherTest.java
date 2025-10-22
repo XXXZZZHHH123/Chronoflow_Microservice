@@ -2,7 +2,6 @@ package nus.edu.u.user.publisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -11,8 +10,8 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.spring.pubsub.core.PubSubTemplate;
-import java.util.concurrent.CompletableFuture;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import nus.edu.u.shared.rpc.notification.dto.common.NotificationRequestDTO;
 import nus.edu.u.shared.rpc.notification.enums.NotificationChannel;
 import nus.edu.u.shared.rpc.notification.enums.NotificationEventType;
@@ -73,7 +72,10 @@ class NotificationPublisherTest {
     @Test
     void publish_whenEventIdMissing_throwsIllegalArgumentException() {
         NotificationRequestDTO req =
-                NotificationRequestDTO.builder().channel(NotificationChannel.EMAIL).eventId("").build();
+                NotificationRequestDTO.builder()
+                        .channel(NotificationChannel.EMAIL)
+                        .eventId("")
+                        .build();
 
         assertThatThrownBy(() -> publisher.publish(req))
                 .isInstanceOf(IllegalArgumentException.class)

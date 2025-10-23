@@ -1,0 +1,152 @@
+name: Scheduled Performance Test
+
+on:
+  schedule:
+    # Runs at 02:00 UTC every Tuesday and Friday (adjust as needed)
+    - cron: '0 2 * * 2,5'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gatling:
+    name: Task Service Gatling
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    env:
+      PERF_BASE_URL: ${{ secrets.TASK_SERVICE_PERF_BASE_URL }}
+      PERF_EVENT_ID: ${{ secrets.TASK_SERVICE_PERF_EVENT_ID }}
+      PERF_TASK_ID: ${{ secrets.TASK_SERVICE_PERF_TASK_ID }}
+      PERF_USERNAME: ${{ secrets.TASK_SERVICE_PERF_USERNAME }}
+      PERF_PASSWORD: ${{ secrets.TASK_SERVICE_PERF_PASSWORD }}
+      PERF_LOGIN_PATH: ${{ secrets.TASK_SERVICE_PERF_LOGIN_PATH }}
+    steps:
+      - name: Validate performance secrets
+        id: perf-check
+        run: |
+          if [ -z "${PERF_BASE_URL}" ]; then
+            echo "Performance base URL secret is not set. Skipping Gatling job."
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip summary
+        if: ${{ steps.perf-check.outputs.should-run == 'false' }}
+        run: echo "task-service performance job skipped because TASK_SERVICE_PERF_BASE_URL is empty."
+
+      - uses: actions/checkout@v4
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+
+      - name: Add perf VM SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        with:
+          ssh-private-key: ${{ secrets.PERF_VM_SSH_KEY }}
+
+      - name: Trust perf VM host
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        env:
+          PERF_VM_HOST: ${{ secrets.PERF_VM_HOST }}
+          PERF_VM_PORT: ${{ secrets.PERF_VM_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          touch ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          PORT="${PERF_VM_PORT:-22}"
+          ssh-keyscan -p "$PORT" "$PERF_VM_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy Gatling runner script to perf VM
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        env:
+          PERF_VM_HOST: ${{ secrets.PERF_VM_HOST }}
+          PERF_VM_USER: ${{ secrets.PERF_VM_USER }}
+          PERF_VM_PORT: ${{ secrets.PERF_VM_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          PORT="${PERF_VM_PORT:-22}"
+          ssh -p "$PORT" "${PERF_VM_USER}@${PERF_VM_HOST}" "mkdir -p /opt/gatling"
+          scp -P "$PORT" task-service/perf/run-gatling-vm.sh "${PERF_VM_USER}@${PERF_VM_HOST}:/opt/gatling/run-gatling.sh"
+          ssh -p "$PORT" "${PERF_VM_USER}@${PERF_VM_HOST}" "chmod +x /opt/gatling/run-gatling.sh"
+
+      - name: Run Gatling on perf VM
+        if: ${{ steps.perf-check.outputs.should-run == 'true' }}
+        id: run-gatling
+        env:
+          PERF_VM_HOST: ${{ secrets.PERF_VM_HOST }}
+          PERF_VM_USER: ${{ secrets.PERF_VM_USER }}
+          PERF_VM_PORT: ${{ secrets.PERF_VM_SSH_PORT }}
+          TASK_SERVICE_PERF_BASE_URL: ${{ secrets.TASK_SERVICE_PERF_BASE_URL }}
+          TASK_SERVICE_PERF_LOGIN_PATH: ${{ secrets.TASK_SERVICE_PERF_LOGIN_PATH }}
+          TASK_SERVICE_PERF_USERNAME: ${{ secrets.TASK_SERVICE_PERF_USERNAME }}
+          TASK_SERVICE_PERF_PASSWORD: ${{ secrets.TASK_SERVICE_PERF_PASSWORD }}
+          TASK_SERVICE_PERF_EVENT_ID: ${{ secrets.TASK_SERVICE_PERF_EVENT_ID }}
+          TASK_SERVICE_PERF_TASK_ID: ${{ secrets.TASK_SERVICE_PERF_TASK_ID }}
+          TASK_SERVICE_RESULTS_UPLOAD_URL: ${{ secrets.TASK_SERVICE_RESULTS_UPLOAD_URL }}
+          TASK_SERVICE_RESULTS_OBJECT: ${{ secrets.TASK_SERVICE_RESULTS_OBJECT }}
+          PERF_VM_GIT_CLONE_URL: ${{ secrets.PERF_VM_GIT_CLONE_URL }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          PORT="${PERF_VM_PORT:-22}"
+          esc() {
+            printf "%s" "$1" | sed "s/'/'\"'\"'/g"
+          }
+          remote_cmd="TASK_SERVICE_BASE_URL='$(esc "$TASK_SERVICE_PERF_BASE_URL")'"
+          if [[ -n "${TASK_SERVICE_PERF_LOGIN_PATH:-}" ]]; then
+            remote_cmd+=" TASK_SERVICE_LOGIN_PATH='$(esc "$TASK_SERVICE_PERF_LOGIN_PATH")'"
+          fi
+          if [[ -n "${TASK_SERVICE_PERF_USERNAME:-}" ]]; then
+            remote_cmd+=" TASK_SERVICE_USERNAME='$(esc "$TASK_SERVICE_PERF_USERNAME")'"
+          fi
+          if [[ -n "${TASK_SERVICE_PERF_PASSWORD:-}" ]]; then
+            remote_cmd+=" TASK_SERVICE_PASSWORD='$(esc "$TASK_SERVICE_PERF_PASSWORD")'"
+          fi
+          if [[ -n "${TASK_SERVICE_PERF_EVENT_ID:-}" ]]; then
+            remote_cmd+=" TASK_SERVICE_EVENT_ID='$(esc "$TASK_SERVICE_PERF_EVENT_ID")'"
+          fi
+          if [[ -n "${TASK_SERVICE_PERF_TASK_ID:-}" ]]; then
+            remote_cmd+=" TASK_SERVICE_TASK_ID='$(esc "$TASK_SERVICE_PERF_TASK_ID")'"
+          fi
+          if [[ -n "${TASK_SERVICE_RESULTS_UPLOAD_URL:-}" ]]; then
+            remote_cmd+=" TASK_SERVICE_RESULTS_UPLOAD_URL='$(esc "$TASK_SERVICE_RESULTS_UPLOAD_URL")'"
+          fi
+          if [[ -n "${TASK_SERVICE_RESULTS_OBJECT:-}" ]]; then
+            remote_cmd+=" TASK_SERVICE_RESULTS_OBJECT='$(esc "$TASK_SERVICE_RESULTS_OBJECT")'"
+          fi
+          if [[ -n "${PERF_VM_GIT_CLONE_URL:-}" ]]; then
+            remote_cmd+=" GIT_CLONE_URL='$(esc "$PERF_VM_GIT_CLONE_URL")'"
+          fi
+          if [[ -n "${GITHUB_REF_NAME:-}" ]]; then
+            remote_cmd+=" GIT_REF='$(esc "$GITHUB_REF_NAME")'"
+          fi
+          remote_cmd+=" /opt/gatling/run-gatling.sh"
+          ssh -p "$PORT" "${PERF_VM_USER}@${PERF_VM_HOST}" "$remote_cmd"
+
+      - name: Copy Gatling report from perf VM
+        if: ${{ always() && steps.perf-check.outputs.should-run == 'true' }}
+        id: fetch-report
+        env:
+          PERF_VM_HOST: ${{ secrets.PERF_VM_HOST }}
+          PERF_VM_USER: ${{ secrets.PERF_VM_USER }}
+          PERF_VM_PORT: ${{ secrets.PERF_VM_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          PORT="${PERF_VM_PORT:-22}"
+          REMOTE_RESULTS_DIR="/opt/gatling/results"
+          if ! LATEST=$(ssh -p "$PORT" "${PERF_VM_USER}@${PERF_VM_HOST}" "cat ${REMOTE_RESULTS_DIR}/latest.txt" 2>/dev/null); then
+            echo "No Gatling report available on perf VM."
+            exit 0
+          fi
+          scp -P "$PORT" "${PERF_VM_USER}@${PERF_VM_HOST}:${REMOTE_RESULTS_DIR}/${LATEST}" gatling-report.tgz
+          echo "report=gatling-report.tgz" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Gatling report
+        if: ${{ always() && steps.perf-check.outputs.should-run == 'true' && steps.fetch-report.outputs.report != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: task-service-gatling-${{ github.run_id }}-${{ github.run_attempt }}
+          path: gatling-report.tgz
+          retention-days: 3

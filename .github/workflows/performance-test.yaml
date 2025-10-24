@@ -1,9 +1,6 @@
 name: Scheduled Performance Test
 
 on:
-  schedule:
-    # Runs at 02:00 UTC every Tuesday and Friday (adjust as needed)
-    - cron: '0 2 * * 2,5'
   workflow_dispatch:
 
 permissions:

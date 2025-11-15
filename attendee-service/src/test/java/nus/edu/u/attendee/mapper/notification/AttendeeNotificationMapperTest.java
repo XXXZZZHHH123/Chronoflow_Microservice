@@ -1,7 +1,6 @@
 package nus.edu.u.attendee.mapper.notification;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 import nus.edu.u.shared.rpc.notification.dto.Attendee.AttendeeInviteReqDTO;
 import nus.edu.u.shared.rpc.notification.dto.common.AttachmentDTO;
 import nus.edu.u.shared.rpc.notification.dto.common.NotificationRequestDTO;
@@ -30,7 +29,7 @@ class AttendeeNotificationMapperTest {
                 AttendeeNotificationMapper.attendeeInvitationToNotification(req);
 
         assertEquals("to@x.com", dto.getTo());
-        assertEquals("attendee-qr-invite", dto.getTemplateId());
+        assertEquals("attendee/attendee-qr-invite", dto.getTemplateId());
         assertEquals("email:to@x.com", dto.getRecipientKey());
         assertEquals(1, dto.getAttachment().size());
         AttachmentDTO a = dto.getAttachment().get(0);

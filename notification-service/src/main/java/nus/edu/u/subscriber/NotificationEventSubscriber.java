@@ -5,10 +5,14 @@ import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import jakarta.annotation.PostConstruct;
 import java.util.Locale;
 import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.domain.dto.common.NotificationRequestDTO;
-import nus.edu.u.services.common.NotificationService;
+import nus.edu.u.enums.common.NotificationChannel;
+import nus.edu.u.services.email.EmailNotificationService;
+import nus.edu.u.services.push.PushNotificationService;
+import nus.edu.u.services.ws.WSNotificationService;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -21,7 +25,10 @@ public class NotificationEventSubscriber {
     private final PubSubTemplate pubSubTemplate;
     private final ObjectMapper objectMapper;
 
-    private final NotificationService notificationService;
+    // mark these final so Lombok injects them
+    private final EmailNotificationService emailNotificationService;
+    private final PushNotificationService pushNotificationService;
+    private final WSNotificationService wsNotificationService;
 
     @PostConstruct
     public void startSubscriber() {
@@ -42,29 +49,45 @@ public class NotificationEventSubscriber {
                         // Validate required fields
                         if (req.getChannel() == null
                                 || req.getEventId() == null
-                                || req.getType() == null) {
+                                || req.getNotificationEventType() == null) {
                             log.warn("[PUBSUB] Invalid message, missing required fields: {}", data);
                             message.ack(); // prevent requeue
                             return;
                         }
 
-                        // Apply sane defaults
-                        if (req.getLocale() == null) req = req.withLocale(Locale.ENGLISH);
-                        if (req.getVariables() == null) req = req.withVariables(Map.of());
+                        NotificationRequestDTO requestDTO = req;
 
-                        // Call NotificationService (email/push/ws etc.)
-                        String result = notificationService.send(req);
+                        // Apply sane defaults
+                        if (req.getLocale() == null) {
+                            req.setLocale(Locale.ENGLISH);
+                        }
+                        if (req.getVariables() == null) {
+                            req.setVariables(Map.of());
+                        }
+
+                        NotificationChannel channel = req.getChannel();
+
+                        // Dispatch by channel
+                        switch (channel) {
+                            case EMAIL -> emailNotificationService.send(req);
+                            case PUSH -> pushNotificationService.send(req);
+                            case WS -> wsNotificationService.send(req);
+                            default -> {
+                                log.warn("[PUBSUB] Unsupported notification channel: {}", channel);
+                                message.ack();
+                                return;
+                            }
+                        }
+
                         log.info(
-                                "[PUBSUB] Processed notification. eventId={} channel={} result={}",
+                                "[PUBSUB] Processed notification. eventId={} channel={}",
                                 req.getEventId(),
-                                req.getChannel(),
-                                result);
+                                channel);
 
                         message.ack();
 
                     } catch (Exception e) {
                         log.error("[PUBSUB] Error processing message", e);
-
                         // Always ack to avoid infinite retry loops
                         message.ack();
                     }

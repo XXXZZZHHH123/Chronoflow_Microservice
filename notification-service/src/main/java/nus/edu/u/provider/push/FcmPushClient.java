@@ -6,6 +6,7 @@ import com.google.firebase.messaging.Notification;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import nus.edu.u.domain.dto.push.PushRequestDTO;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,19 +15,25 @@ public class FcmPushClient implements PushClient {
 
     private final FirebaseMessaging firebaseMessaging;
 
+    public static FcmPushClient defaultClient() {
+        return new FcmPushClient(FirebaseMessaging.getInstance());
+    }
+
     @Override
-    public String send(String token, String title, String body, Map<String, Object> data)
-            throws Exception {
-        // Build the notification (visible title/body)
-        Notification notification = Notification.builder().setTitle(title).setBody(body).build();
+    public String send(PushRequestDTO pushRequestDTO) throws Exception {
+        // Build the firebase notification (visible title/body)
+        Notification notification = Notification.builder()
+                .setTitle(pushRequestDTO.getTitle())
+                .setBody(pushRequestDTO.getBody())
+                .build();
 
         // Build the message to a device token (you can extend to topics if needed)
-        Message.Builder msg = Message.builder().setToken(token).setNotification(notification);
+        Message.Builder msg = Message.builder().setToken(pushRequestDTO.getToken()).setNotification(notification);
 
         // FCM "data" payload must be Map<String, String>
-        if (data != null && !data.isEmpty()) {
-            Map<String, String> stringData = new HashMap<>(data.size());
-            for (Map.Entry<String, Object> e : data.entrySet()) {
+        if (pushRequestDTO.getData() != null && !pushRequestDTO.getData().isEmpty()) {
+            Map<String, String> stringData = new HashMap<>(pushRequestDTO.getData().size());
+            for (Map.Entry<String, Object> e : pushRequestDTO.getData().entrySet()) {
                 if (e.getKey() == null || e.getValue() == null) continue; // skip nulls
                 stringData.put(e.getKey(), String.valueOf(e.getValue()));
             }

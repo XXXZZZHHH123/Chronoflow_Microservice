@@ -7,8 +7,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import nus.edu.u.shared.rpc.notification.enums.NotificationChannel;
-import nus.edu.u.shared.rpc.notification.enums.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationChannel;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.email.EmailProvider;
+import nus.edu.u.shared.rpc.notification.enums.push.PushProvider;
+import nus.edu.u.shared.rpc.notification.enums.template.TemplateProvider;
+import nus.edu.u.shared.rpc.notification.enums.ws.WSProvider;
+
 
 @Data
 @Builder(toBuilder = true)
@@ -16,23 +21,23 @@ import nus.edu.u.shared.rpc.notification.enums.NotificationEventType;
 @AllArgsConstructor
 public class NotificationRequestDTO {
 
-    private NotificationChannel channel;
-
-    private String to;
-
-    private String userId;
-
-    private String recipientKey;
-
-    private String templateId;
-
-    private Map<String, Object> variables;
-
-    private Locale locale;
-
-    private List<AttachmentDTO> attachments;
-
-    private String eventId;
-
-    private NotificationEventType type;
+    String userId;
+    NotificationChannel channel;
+    EmailProvider emailProvider;
+    PushProvider pushProvider;
+    WSProvider wsProvider;
+    NotificationEventType notificationEventType;
+    String eventId;
+    String to;
+    String templateId;
+    String subject;
+    String body;
+    String recipientKey;
+    String token;
+    String title;
+    TemplateProvider templateProvider;
+    Map<String, Object> variables;
+    Locale locale;
+    List<AttachmentDTO> attachment;
+    private Map<String, Object> data;
 }

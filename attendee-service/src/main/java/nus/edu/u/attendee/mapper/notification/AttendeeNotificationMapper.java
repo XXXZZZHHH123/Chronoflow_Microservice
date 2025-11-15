@@ -6,8 +6,11 @@ import java.util.Map;
 import nus.edu.u.shared.rpc.notification.dto.Attendee.AttendeeInviteReqDTO;
 import nus.edu.u.shared.rpc.notification.dto.common.AttachmentDTO;
 import nus.edu.u.shared.rpc.notification.dto.common.NotificationRequestDTO;
-import nus.edu.u.shared.rpc.notification.enums.NotificationChannel;
-import nus.edu.u.shared.rpc.notification.enums.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationChannel;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.email.EmailProvider;
+import nus.edu.u.shared.rpc.notification.enums.template.TemplateProvider;
+
 
 public class AttendeeNotificationMapper {
 
@@ -41,14 +44,16 @@ public class AttendeeNotificationMapper {
 
         return NotificationRequestDTO.builder()
                 .channel(NotificationChannel.EMAIL)
+                .emailProvider(EmailProvider.AWS_SES)
+                .templateProvider(TemplateProvider.Thymeleaf)
                 .to(req.getToEmail())
                 .recipientKey("email:" + req.getToEmail())
-                .templateId("attendee-qr-invite")
+                .templateId("attendee/attendee-qr-invite")
                 .variables(vars)
                 .locale(Locale.ENGLISH)
-                .attachments(attachments)
+                .attachment(attachments)
                 .eventId("attendee-invite-" + req.getEventId() + "-" + req.getToEmail())
-                .type(NotificationEventType.ATTENDEE_INVITE)
+                .notificationEventType(NotificationEventType.ATTENDEE_INVITE)
                 .build();
     }
 }

@@ -6,8 +6,10 @@ import java.util.Map;
 import nus.edu.u.shared.rpc.notification.dto.common.AttachmentDTO;
 import nus.edu.u.shared.rpc.notification.dto.common.NotificationRequestDTO;
 import nus.edu.u.shared.rpc.notification.dto.member.RegSearchReqDTO;
-import nus.edu.u.shared.rpc.notification.enums.NotificationChannel;
-import nus.edu.u.shared.rpc.notification.enums.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationChannel;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.email.EmailProvider;
+import nus.edu.u.shared.rpc.notification.enums.template.TemplateProvider;
 
 public class MemberNotificationMapper {
 
@@ -23,15 +25,17 @@ public class MemberNotificationMapper {
 
         return NotificationRequestDTO.builder()
                 .channel(NotificationChannel.EMAIL)
+                .emailProvider(EmailProvider.AWS_SES)
+                .templateProvider(TemplateProvider.Thymeleaf)
                 .to(req.getRecipientEmail())
                 .userId(String.valueOf(req.getUserId()))
                 .recipientKey("email:" + req.getRecipientEmail())
-                .templateId("member-invite")
+                .templateId("/user/member-invite")
                 .variables(vars)
                 .locale(Locale.ENGLISH)
-                .attachments(attachments)
+                .attachment(attachments)
                 .eventId("member-invitation-" + req.getOrganizationId() + "-" + req.getUserId())
-                .type(NotificationEventType.MEMBER_INVITE)
+                .notificationEventType(NotificationEventType.MEMBER_INVITE)
                 .build();
     }
 }

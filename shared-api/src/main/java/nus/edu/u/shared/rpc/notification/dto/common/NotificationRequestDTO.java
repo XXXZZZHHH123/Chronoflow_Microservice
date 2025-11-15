@@ -14,7 +14,6 @@ import nus.edu.u.shared.rpc.notification.enums.push.PushProvider;
 import nus.edu.u.shared.rpc.notification.enums.template.TemplateProvider;
 import nus.edu.u.shared.rpc.notification.enums.ws.WSProvider;
 
-
 @Data
 @Builder(toBuilder = true)
 @NoArgsConstructor

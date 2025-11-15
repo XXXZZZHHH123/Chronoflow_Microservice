@@ -2,6 +2,9 @@ package nus.edu.u.services.push;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
 import jakarta.transaction.Transactional;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.configuration.push.PushLimitPropertiesConfig;
@@ -23,10 +26,6 @@ import nus.edu.u.services.rateLimiter.RateLimiter;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 @Service("pushTransport")
 @RequiredArgsConstructor
 @Slf4j
@@ -44,7 +43,9 @@ public class PushTransport implements TransportImplementor {
         var devices = deviceRegistry.activeDevices(notificationRequestDTO.getUserId());
 
         if (devices.isEmpty()) {
-            log.info("Push skipped: no active devices for userId={}", notificationRequestDTO.getUserId());
+            log.info(
+                    "Push skipped: no active devices for userId={}",
+                    notificationRequestDTO.getUserId());
         }
 
         for (var d : devices) {
@@ -59,15 +60,15 @@ public class PushTransport implements TransportImplementor {
                             .title(notificationRequestDTO.getTitle())
                             .body(notificationRequestDTO.getBody())
                             .data(notificationRequestDTO.getData())
-                            .notificationEventType(notificationRequestDTO.getNotificationEventType())
+                            .notificationEventType(
+                                    notificationRequestDTO.getNotificationEventType())
                             .build();
 
             String status = null;
 
             try {
                 this.sendToUserDevices(dto);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 status = "Failed";
             }
 
@@ -81,14 +82,18 @@ public class PushTransport implements TransportImplementor {
     public void sendToUserDevices(NotificationRequestDTO notificationRequestDTO) {
         {
             // --- Guards ---
-            if (!rateLimiter.allow(props.getRateKey(), props.getRateLimit(), props.getRateWindow())) {
+            if (!rateLimiter.allow(
+                    props.getRateKey(), props.getRateLimit(), props.getRateWindow())) {
                 throw new RateLimitExceededException("Rate limit exceeded for push");
             }
-            if (notificationRequestDTO.getEventId() == null || notificationRequestDTO.getEventId().isBlank())
+            if (notificationRequestDTO.getEventId() == null
+                    || notificationRequestDTO.getEventId().isBlank())
                 throw new IllegalArgumentException("eventId is required");
-            if (notificationRequestDTO.getRecipientKey() == null || notificationRequestDTO.getRecipientKey().isBlank())
+            if (notificationRequestDTO.getRecipientKey() == null
+                    || notificationRequestDTO.getRecipientKey().isBlank())
                 throw new IllegalArgumentException("recipientKey is required");
-            if (notificationRequestDTO.getToken() == null || notificationRequestDTO.getToken().isBlank())
+            if (notificationRequestDTO.getToken() == null
+                    || notificationRequestDTO.getToken().isBlank())
                 throw new IllegalArgumentException("token is required");
             if (notificationRequestDTO.getNotificationEventType() == null)
                 throw new IllegalArgumentException("type (NotificationEventType) is required");
@@ -109,30 +114,34 @@ public class PushTransport implements TransportImplementor {
                                         .build());
 
                 // 2) Channel row (PENDING)
-                pushRow = pushRepo.save(
-                        PushMessageDO.builder()
-                                .delivery(delivery)
-                                .token(notificationRequestDTO.getToken())
-                                .status(PushStatus.PENDING)
-                                .build());
+                pushRow =
+                        pushRepo.save(
+                                PushMessageDO.builder()
+                                        .delivery(delivery)
+                                        .token(notificationRequestDTO.getToken())
+                                        .status(PushStatus.PENDING)
+                                        .build());
 
                 // 3) Send via provider
                 Map<String, Object> data =
-                        notificationRequestDTO.getData() == null ? Collections.emptyMap() : notificationRequestDTO.getData();
+                        notificationRequestDTO.getData() == null
+                                ? Collections.emptyMap()
+                                : notificationRequestDTO.getData();
 
-                PushRequestDTO pushRequestDTO = PushRequestDTO.builder()
-                        .token(notificationRequestDTO.getToken())
-                        .recipientKey(notificationRequestDTO.getRecipientKey())
-                        .type(notificationRequestDTO.getNotificationEventType())
-                        .title(notificationRequestDTO.getTitle())
-                        .body(notificationRequestDTO.getBody())
-                        .data(data)
-                        .build();
+                PushRequestDTO pushRequestDTO =
+                        PushRequestDTO.builder()
+                                .token(notificationRequestDTO.getToken())
+                                .recipientKey(notificationRequestDTO.getRecipientKey())
+                                .type(notificationRequestDTO.getNotificationEventType())
+                                .title(notificationRequestDTO.getTitle())
+                                .body(notificationRequestDTO.getBody())
+                                .data(data)
+                                .build();
 
-                PushClient pushClient = pushClientFactory.getClient(notificationRequestDTO.getPushProvider());
+                PushClient pushClient =
+                        pushClientFactory.getClient(notificationRequestDTO.getPushProvider());
 
-                String providerMsgId =
-                        pushClient.send(pushRequestDTO);
+                String providerMsgId = pushClient.send(pushRequestDTO);
 
                 // 4) Success state
                 pushRow.setFcmId(providerMsgId);
@@ -169,7 +178,9 @@ public class PushTransport implements TransportImplementor {
                 if ("UNREGISTERED".equals(code)) {
                     try {
                         deviceRegistry.revokeByToken(notificationRequestDTO.getToken());
-                        log.info("Token revoked due to UNREGISTERED: {}", notificationRequestDTO.getToken());
+                        log.info(
+                                "Token revoked due to UNREGISTERED: {}",
+                                notificationRequestDTO.getToken());
                     } catch (Exception ignore) {
                         // keep original failure
                     }

@@ -43,7 +43,9 @@ public class WSTransport implements TransportImplementor {
 
         // Only handle WS channel
         if (notificationRequestDTO.getChannel() != NotificationChannel.WS) {
-            log.debug("WSTransport skipping non-WS notification: {}", notificationRequestDTO.getChannel());
+            log.debug(
+                    "WSTransport skipping non-WS notification: {}",
+                    notificationRequestDTO.getChannel());
             return;
         }
 

@@ -36,7 +36,12 @@ public class NotificationPublisher {
             Map<String, String> attrs = new HashMap<>();
             put(attrs, "eventId", req.getEventId());
             put(attrs, "channel", req.getChannel() != null ? req.getChannel().name() : null);
-            put(attrs, "type", req.getNotificationEventType() != null ? req.getNotificationEventType().name() : null);
+            put(
+                    attrs,
+                    "type",
+                    req.getNotificationEventType() != null
+                            ? req.getNotificationEventType().name()
+                            : null);
             put(attrs, "userId", req.getUserId());
             put(attrs, "to", req.getTo());
 

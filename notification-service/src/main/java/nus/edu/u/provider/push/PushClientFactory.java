@@ -1,9 +1,8 @@
 package nus.edu.u.provider.push;
 
-import nus.edu.u.enums.push.PushProvider;
-
 import java.util.EnumMap;
 import java.util.Map;
+import nus.edu.u.enums.push.PushProvider;
 
 public final class PushClientFactory {
 

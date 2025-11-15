@@ -11,7 +11,6 @@ import jakarta.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
-
 import nus.edu.u.configuration.email.EmailProviderPropertiesConfig;
 import nus.edu.u.configuration.email.SesClientHolder;
 import nus.edu.u.domain.dto.common.AttachmentDTO;

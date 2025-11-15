@@ -11,7 +11,6 @@ import nus.edu.u.shared.rpc.notification.enums.common.NotificationEventType;
 import nus.edu.u.shared.rpc.notification.enums.email.EmailProvider;
 import nus.edu.u.shared.rpc.notification.enums.template.TemplateProvider;
 
-
 public class AttendeeNotificationMapper {
 
     public static NotificationRequestDTO attendeeInvitationToNotification(

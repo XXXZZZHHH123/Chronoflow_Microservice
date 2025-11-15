@@ -5,7 +5,6 @@ import lombok.*;
 import nus.edu.u.domain.dto.common.AttachmentDTO;
 import nus.edu.u.enums.email.EmailProvider;
 
-
 @Builder
 @Data
 @AllArgsConstructor

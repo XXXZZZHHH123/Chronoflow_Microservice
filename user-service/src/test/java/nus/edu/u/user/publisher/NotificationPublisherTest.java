@@ -13,8 +13,8 @@ import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import nus.edu.u.shared.rpc.notification.dto.common.NotificationRequestDTO;
-import nus.edu.u.shared.rpc.notification.enums.NotificationChannel;
-import nus.edu.u.shared.rpc.notification.enums.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationChannel;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationEventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +42,7 @@ class NotificationPublisherTest {
                 NotificationRequestDTO.builder()
                         .eventId("evt-1")
                         .channel(NotificationChannel.EMAIL)
-                        .type(NotificationEventType.MEMBER_INVITE)
+                        .notificationEventType(NotificationEventType.MEMBER_INVITE)
                         .to("user@example.com")
                         .userId("user-1")
                         .build();

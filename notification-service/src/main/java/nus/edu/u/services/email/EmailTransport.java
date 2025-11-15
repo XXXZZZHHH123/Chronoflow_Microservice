@@ -46,10 +46,12 @@ public class EmailTransport implements TransportImplementor {
         if (!rateLimiter.allow(props.getRateKey(), props.getRateLimit(), props.getRateWindow())) {
             throw new RateLimitExceededException("Rate limit exceeded for sending emails");
         }
-        if (notificationRequestDTO.getEventId() == null || notificationRequestDTO.getEventId().isBlank()) {
+        if (notificationRequestDTO.getEventId() == null
+                || notificationRequestDTO.getEventId().isBlank()) {
             throw new IllegalArgumentException("eventId is required for idempotency");
         }
-        if (notificationRequestDTO.getRecipientKey() == null || notificationRequestDTO.getRecipientKey().isBlank()) {
+        if (notificationRequestDTO.getRecipientKey() == null
+                || notificationRequestDTO.getRecipientKey().isBlank()) {
             throw new IllegalArgumentException("recipientKey is required");
         }
         if (notificationRequestDTO.getNotificationEventType() == null) {
@@ -58,7 +60,7 @@ public class EmailTransport implements TransportImplementor {
 
         try {
 
-            //Outbox microservice architecture
+            // Outbox microservice architecture
             // Create the Notification delivery DO object
             NotificationDeliveryDO delivery =
                     NotificationDeliveryDO.builder()
@@ -71,7 +73,6 @@ public class EmailTransport implements TransportImplementor {
 
             delivery = deliveryRepository.saveAndFlush(delivery);
 
-
             // Create only for the email
             EmailMessageDO emailRow =
                     EmailMessageDO.builder()
@@ -82,12 +83,11 @@ public class EmailTransport implements TransportImplementor {
 
             emailRow = emailMessageRepository.save(emailRow);
 
-            //Choose email provider/client
+            // Choose email provider/client
             EmailClient client =
                     emailClientFactory.getClient(notificationRequestDTO.getEmailProvider());
 
-
-            //Construct the EmailRequestDTO for client sending
+            // Construct the EmailRequestDTO for client sending
             EmailRequestDTO requestDTO =
                     EmailRequestDTO.builder()
                             .to(to)
@@ -97,10 +97,10 @@ public class EmailTransport implements TransportImplementor {
                             .provider(notificationRequestDTO.getEmailProvider())
                             .build();
 
-            //Send the email
+            // Send the email
             client.sendEmail(requestDTO);
 
-            //Mark successful
+            // Mark successful
             emailMessageRepository.save(emailRow);
 
             delivery.setStatus(NotificationStatus.DELIVERED);
@@ -130,4 +130,3 @@ public class EmailTransport implements TransportImplementor {
         }
     }
 }
-

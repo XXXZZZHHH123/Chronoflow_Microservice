@@ -1,8 +1,7 @@
 package nus.edu.u.configuration.ws;
 
-import java.time.Duration;
-
 import jakarta.annotation.PostConstruct;
+import java.time.Duration;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;

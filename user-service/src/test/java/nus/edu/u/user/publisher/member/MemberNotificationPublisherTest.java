@@ -7,8 +7,8 @@ import static org.mockito.Mockito.when;
 
 import nus.edu.u.shared.rpc.notification.dto.common.NotificationRequestDTO;
 import nus.edu.u.shared.rpc.notification.dto.member.RegSearchReqDTO;
-import nus.edu.u.shared.rpc.notification.enums.NotificationChannel;
-import nus.edu.u.shared.rpc.notification.enums.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationChannel;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationEventType;
 import nus.edu.u.user.publisher.NotificationPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ class MemberNotificationPublisherTest {
 
         NotificationRequestDTO dto = captor.getValue();
         assertThat(dto.getChannel()).isEqualTo(NotificationChannel.EMAIL);
-        assertThat(dto.getType()).isEqualTo(NotificationEventType.MEMBER_INVITE);
+        assertThat(dto.getNotificationEventType()).isEqualTo(NotificationEventType.MEMBER_INVITE);
         assertThat(dto.getTo()).isEqualTo("member@example.com");
         assertThat(dto.getEventId()).isEqualTo("member-invitation-99-123");
         assertThat(dto.getVariables())

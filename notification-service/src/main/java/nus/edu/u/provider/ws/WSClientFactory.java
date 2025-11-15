@@ -1,9 +1,8 @@
 package nus.edu.u.provider.ws;
 
-
-import nus.edu.u.enums.ws.WSProvider;
 import java.util.EnumMap;
 import java.util.Map;
+import nus.edu.u.enums.ws.WSProvider;
 
 public final class WSClientFactory {
     private static final WSClientFactory INSTANCE = new WSClientFactory();
@@ -26,5 +25,4 @@ public final class WSClientFactory {
                                     throw new IllegalArgumentException("Unsupported: " + provider);
                         });
     }
-
 }

@@ -36,25 +36,25 @@ public class NotificationPublisher {
             Map<String, String> attrs = new HashMap<>();
             put(attrs, "eventId", req.getEventId());
             put(attrs, "channel", req.getChannel() != null ? req.getChannel().name() : null);
-            put(attrs, "type", req.getType() != null ? req.getType().name() : null);
+            put(attrs, "type", req.getNotificationEventType() != null ? req.getNotificationEventType().name() : null);
             put(attrs, "userId", req.getUserId());
             put(attrs, "to", req.getTo());
 
             String messageId = String.valueOf(pubSubTemplate.publish(TOPIC_NAME, payload, attrs));
             log.info(
-                    "📤 Published Notification to topic={} msgId={} eventId={} channel={} type={}",
+                    "Published Notification to topic={} msgId={} eventId={} channel={} type={}",
                     TOPIC_NAME,
                     messageId,
                     req.getEventId(),
                     req.getChannel(),
-                    req.getType());
+                    req.getNotificationEventType());
 
             return messageId;
         } catch (Exception e) {
             log.error(
                     " Failed to publish notification eventId={} type={}",
                     req.getEventId(),
-                    req.getType(),
+                    req.getNotificationEventType(),
                     e);
             throw new RuntimeException("Pub/Sub publish failed", e);
         }

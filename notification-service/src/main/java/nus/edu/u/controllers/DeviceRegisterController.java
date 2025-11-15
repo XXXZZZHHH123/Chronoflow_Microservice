@@ -3,7 +3,7 @@ package nus.edu.u.controllers;
 import lombok.RequiredArgsConstructor;
 import nus.edu.u.domain.dto.common.DeviceRegisterDTO;
 import nus.edu.u.enums.push.PushPlatform;
-import nus.edu.u.services.push.DeviceRegistryService;
+import nus.edu.u.services.devices.DeviceRegistryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

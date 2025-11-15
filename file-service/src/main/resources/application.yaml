@@ -181,6 +181,13 @@ dubbo:
 
 # Heath check
 management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0        # dev: trace everything; lower in prod (e.g., 0.1)
+    zipkin:
+      tracing:
+        endpoint: http://zipkin.observability.svc.cluster.local:9411/api/v2/spans
   endpoints:
     web:
       exposure:
@@ -188,6 +195,33 @@ management:
   info:
     env:
       enabled: true
+  endpoint:
+    health:
+      show-details: always
+      group:
+        readiness.include: ping
+        liveness:
+          include:
+            - "*"
+          exclude:
+            - ${management.endpoint.health.group.readiness.include}
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+chronoflow:
+  security:
+    refresh-token-expire: 604800
+  cookie:
+    http-only: true
+    security: false
+
+logging:
+  pattern:
+    level: "%5p [service=${spring.application.name},traceId=%mdc{traceId:-},spanId=%mdc{spanId:-}]"
 
 
 file:

@@ -1,7 +1,7 @@
 package nus.edu.u.provider.push;
 
-import java.util.Map;
+import nus.edu.u.domain.dto.push.PushRequestDTO;
 
 public interface PushClient {
-    String send(String token, String title, String body, Map<String, Object> data) throws Exception;
+    String send(PushRequestDTO pushRequestDTO) throws Exception;
 }

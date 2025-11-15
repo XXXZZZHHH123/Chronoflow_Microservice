@@ -5,8 +5,12 @@ import java.util.Locale;
 import java.util.Map;
 import nus.edu.u.shared.rpc.notification.dto.common.NotificationRequestDTO;
 import nus.edu.u.shared.rpc.notification.dto.task.NewTaskAssignmentDTO;
-import nus.edu.u.shared.rpc.notification.enums.NotificationChannel;
-import nus.edu.u.shared.rpc.notification.enums.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationChannel;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.email.EmailProvider;
+import nus.edu.u.shared.rpc.notification.enums.push.PushProvider;
+import nus.edu.u.shared.rpc.notification.enums.template.TemplateProvider;
+import nus.edu.u.shared.rpc.notification.enums.ws.WSProvider;
 
 public class TaskNotificationMapper {
 
@@ -37,15 +41,17 @@ public class TaskNotificationMapper {
 
         return NotificationRequestDTO.builder()
                 .channel(NotificationChannel.EMAIL)
+                .emailProvider(EmailProvider.AWS_SES)
+                .templateProvider(TemplateProvider.Thymeleaf)
                 .to(req.getAssigneeEmail())
                 .userId(req.getAssigneeUserId())
                 .recipientKey("email:" + req.getAssigneeEmail())
-                .templateId("new-task-assigned")
+                .templateId("task/new-task-assigned")
                 .variables(vars)
                 .locale(Locale.ENGLISH)
-                .attachments(List.of())
+                .attachment(List.of())
                 .eventId(idempotentEventId(req))
-                .type(NotificationEventType.NEW_TASK_ASSIGN)
+                .notificationEventType(NotificationEventType.NEW_TASK_ASSIGN)
                 .build();
     }
 
@@ -56,27 +62,35 @@ public class TaskNotificationMapper {
                 Map.of(
                         "taskId", req.getTaskId(),
                         "eventId", req.getEventId(),
+                        "userId", req.getAssigneeUserId(),
                         "assigneeUserId", req.getAssigneeUserId(),
                         "assignerName", req.getAssignerName(),
                         "taskName", req.getTaskName(),
                         "eventName", req.getEventName(),
-                        "description", req.getDescription());
+                        "description", req.getDescription(),
+                        "templateProvider", TemplateProvider.Thymeleaf);
 
         return NotificationRequestDTO.builder()
                 .channel(NotificationChannel.PUSH)
+                .notificationEventType(NotificationEventType.NEW_TASK_ASSIGN)
+                .pushProvider(PushProvider.FCM)
+                .recipientKey("push" + req.getAssigneeEmail())
+                .templateProvider(TemplateProvider.Thymeleaf)
                 .userId(req.getAssigneeUserId()) // devices resolved by userId on consumer side
-                .templateId("new-task-assigned")
+                .templateId("task/new-task-assigned-inline")
                 .variables(vars)
                 .locale(Locale.ENGLISH)
                 .eventId(idempotentEventId(req)) // same idempotent ID as email
-                .type(NotificationEventType.NEW_TASK_ASSIGN)
+                .notificationEventType(NotificationEventType.NEW_TASK_ASSIGN)
                 .build();
     }
 
+    /** WS */
     public static NotificationRequestDTO taskAssignmentToWsNotification(NewTaskAssignmentDTO req) {
         Map<String, Object> vars =
                 Map.of(
                         "taskId", req.getTaskId(),
+                        "userId", req.getAssigneeUserId(),
                         "eventId", req.getEventId(),
                         "assigneeUserId", req.getAssigneeUserId(),
                         "assignerName", req.getAssignerName(),
@@ -88,13 +102,19 @@ public class TaskNotificationMapper {
                                         "/events/%s/tasks/%s", req.getEventId(), req.getTaskId()));
 
         return NotificationRequestDTO.builder()
+                .userId(req.getAssigneeUserId())
+                .channel(NotificationChannel.WS)
+                .notificationEventType(NotificationEventType.NEW_TASK_ASSIGN)
+                .wsProvider(WSProvider.FLUX)
+                .recipientKey("ws" + req.getAssigneeUserId())
                 .channel(NotificationChannel.WS)
                 .userId(req.getAssigneeUserId())
-                .templateId("new-task-assigned")
+                .templateProvider(TemplateProvider.Thymeleaf)
+                .templateId("task/new-task-assigned-inline")
                 .variables(vars)
                 .locale(Locale.ENGLISH)
                 .eventId(idempotentEventId(req))
-                .type(NotificationEventType.NEW_TASK_ASSIGN)
+                .notificationEventType(NotificationEventType.NEW_TASK_ASSIGN)
                 .build();
     }
 }

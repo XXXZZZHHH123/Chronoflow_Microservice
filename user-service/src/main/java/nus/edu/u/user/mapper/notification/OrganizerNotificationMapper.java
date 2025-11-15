@@ -6,8 +6,10 @@ import java.util.Map;
 import java.util.Objects;
 import nus.edu.u.shared.rpc.notification.dto.common.NotificationRequestDTO;
 import nus.edu.u.shared.rpc.notification.dto.organizer.RegOrganizerReqDTO;
-import nus.edu.u.shared.rpc.notification.enums.NotificationChannel;
-import nus.edu.u.shared.rpc.notification.enums.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationChannel;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.email.EmailProvider;
+import nus.edu.u.shared.rpc.notification.enums.template.TemplateProvider;
 
 public class OrganizerNotificationMapper {
 
@@ -38,13 +40,15 @@ public class OrganizerNotificationMapper {
                 .channel(NotificationChannel.EMAIL)
                 .to(to)
                 .userId(username.isEmpty() ? to : username) // fallback to email if username missing
+                .templateProvider(TemplateProvider.Thymeleaf)
+                .emailProvider(EmailProvider.AWS_SES)
                 .recipientKey(recipientKey)
-                .templateId("welcome-email-organizer")
+                .templateId("/user/welcome-email-organizer")
                 .variables(vars)
                 .locale(Locale.ENGLISH)
-                .attachments(List.of())
+                .attachment(List.of())
                 .eventId(eventId)
-                .type(NotificationEventType.ORGANIZER_WELCOME)
+                .notificationEventType(NotificationEventType.ORGANIZER_WELCOME)
                 .build();
     }
 }

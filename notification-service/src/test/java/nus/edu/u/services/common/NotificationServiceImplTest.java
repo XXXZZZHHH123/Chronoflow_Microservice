@@ -6,8 +6,6 @@ import static org.mockito.Mockito.when;
 
 import nus.edu.u.core.common.NotificationSender;
 import nus.edu.u.core.common.NotificationSenderFactory;
-import nus.edu.u.domain.dto.common.NotificationRequestDTO;
-import nus.edu.u.enums.common.NotificationChannel;
 import nus.edu.u.enums.common.NotificationEventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

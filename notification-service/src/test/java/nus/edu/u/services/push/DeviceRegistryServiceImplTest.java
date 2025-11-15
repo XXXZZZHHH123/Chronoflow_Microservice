@@ -18,6 +18,7 @@ import nus.edu.u.domain.dto.common.NotificationDeviceViewDTO;
 import nus.edu.u.enums.common.DeviceStatus;
 import nus.edu.u.enums.push.PushPlatform;
 import nus.edu.u.repositories.common.NotificationDeviceRepository;
+import nus.edu.u.services.devices.DeviceRegistryServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -1,6 +1,8 @@
 package nus.edu.u.configuration.ws;
 
 import java.time.Duration;
+
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +11,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "notification.ws")
 public class WsGatewayLimitPropertiesConfig {
+
+    public static volatile WsGatewayLimitPropertiesConfig CURRENT;
+
+    @PostConstruct
+    void registerSelf() {
+        CURRENT = this;
+    }
+
     private boolean enabled = true;
     private String baseUrl;
     private String rateKey = "rate:ws:global";

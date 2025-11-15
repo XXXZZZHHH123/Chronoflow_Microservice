@@ -12,8 +12,8 @@ import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import nus.edu.u.shared.rpc.notification.dto.common.NotificationRequestDTO;
-import nus.edu.u.shared.rpc.notification.enums.NotificationChannel;
-import nus.edu.u.shared.rpc.notification.enums.NotificationEventType;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationChannel;
+import nus.edu.u.shared.rpc.notification.enums.common.NotificationEventType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,7 +36,7 @@ class NotificationPublisherTest {
                 NotificationRequestDTO.builder()
                         .eventId("evt-1")
                         .channel(NotificationChannel.EMAIL)
-                        .type(NotificationEventType.ORGANIZER_WELCOME)
+                        .notificationEventType(NotificationEventType.ORGANIZER_WELCOME)
                         .userId("user-7")
                         .to("user@example.com")
                         .build();
@@ -70,7 +70,7 @@ class NotificationPublisherTest {
                 NotificationRequestDTO.builder()
                         .eventId("evt-2")
                         .channel(NotificationChannel.PUSH)
-                        .type(NotificationEventType.NEW_TASK_ASSIGN)
+                        .notificationEventType(NotificationEventType.NEW_TASK_ASSIGN)
                         .userId("user-5")
                         .to("   ")
                         .build();
@@ -96,7 +96,7 @@ class NotificationPublisherTest {
         NotificationRequestDTO request =
                 NotificationRequestDTO.builder()
                         .channel(NotificationChannel.EMAIL)
-                        .type(NotificationEventType.ORGANIZER_WELCOME)
+                        .notificationEventType(NotificationEventType.ORGANIZER_WELCOME)
                         .build();
 
         assertThatThrownBy(() -> publisher.publish(request))
@@ -109,7 +109,7 @@ class NotificationPublisherTest {
         NotificationRequestDTO request =
                 NotificationRequestDTO.builder()
                         .eventId("evt-3")
-                        .type(NotificationEventType.ORGANIZER_WELCOME)
+                        .notificationEventType(NotificationEventType.ORGANIZER_WELCOME)
                         .build();
 
         assertThatThrownBy(() -> publisher.publish(request))
@@ -123,7 +123,7 @@ class NotificationPublisherTest {
                 NotificationRequestDTO.builder()
                         .eventId("evt-4")
                         .channel(NotificationChannel.EMAIL)
-                        .type(NotificationEventType.ORGANIZER_WELCOME)
+                        .notificationEventType(NotificationEventType.ORGANIZER_WELCOME)
                         .build();
         RuntimeException root = new RuntimeException("boom");
         when(objectMapper.writeValueAsString(request)).thenThrow(root);
@@ -140,7 +140,7 @@ class NotificationPublisherTest {
                 NotificationRequestDTO.builder()
                         .eventId("evt-5")
                         .channel(NotificationChannel.EMAIL)
-                        .type(NotificationEventType.ORGANIZER_WELCOME)
+                        .notificationEventType(NotificationEventType.ORGANIZER_WELCOME)
                         .build();
 
         when(objectMapper.writeValueAsString(request)).thenReturn("{\"eventId\":\"evt-5\"}");

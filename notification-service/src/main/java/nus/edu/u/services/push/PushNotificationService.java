@@ -1,6 +1,5 @@
 package nus.edu.u.services.push;
 
-
 import nus.edu.u.domain.dto.common.NotificationRequestDTO;
 import nus.edu.u.domain.dto.template.TemplateRequestDTO;
 import nus.edu.u.domain.dto.template.TemplateResponseDTO;
@@ -19,8 +18,7 @@ public class PushNotificationService extends NotificationService {
         super(transportImplementor, templateEngineImplementor);
     }
 
-    public void send(NotificationRequestDTO dto)
-    {
+    public void send(NotificationRequestDTO dto) {
         TemplateRequestDTO templateRequestDTO =
                 TemplateRequestDTO.builder()
                         .templateId(dto.getTemplateId())
@@ -49,5 +47,4 @@ public class PushNotificationService extends NotificationService {
 
         transportImplementor.process(pushReq);
     }
-
 }

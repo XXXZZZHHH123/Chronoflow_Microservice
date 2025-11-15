@@ -9,7 +9,6 @@ import nus.edu.u.enums.common.NotificationChannel;
 import nus.edu.u.enums.email.EmailProvider;
 import nus.edu.u.enums.template.TemplateProvider;
 import nus.edu.u.services.email.EmailNotificationService;
-import nus.edu.u.services.notification.NotificationService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;

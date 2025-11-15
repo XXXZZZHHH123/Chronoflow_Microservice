@@ -33,25 +33,33 @@ public class FluxWSClient implements WSClient {
         WsGatewayLimitPropertiesConfig props = WsGatewayLimitPropertiesConfig.CURRENT;
         if (props == null) {
             throw new IllegalStateException(
-                    "WsGatewayLimitPropertiesConfig not initialized. " +
-                            "Make sure Spring has started and loaded notification.ws.* properties."
-            );
+                    "WsGatewayLimitPropertiesConfig not initialized. "
+                            + "Make sure Spring has started and loaded notification.ws.* properties.");
         }
 
-        HttpClient http = HttpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, props.getTimeouts().getConnectMs())
-                .responseTimeout(Duration.ofMillis(props.getTimeouts().getReadMs()))
-                .doOnConnected(c ->
-                        c.addHandlerLast(new WriteTimeoutHandler(
-                                props.getTimeouts().getWriteMs(), TimeUnit.MILLISECONDS)));
+        HttpClient http =
+                HttpClient.create()
+                        .option(
+                                ChannelOption.CONNECT_TIMEOUT_MILLIS,
+                                props.getTimeouts().getConnectMs())
+                        .responseTimeout(Duration.ofMillis(props.getTimeouts().getReadMs()))
+                        .doOnConnected(
+                                c ->
+                                        c.addHandlerLast(
+                                                new WriteTimeoutHandler(
+                                                        props.getTimeouts().getWriteMs(),
+                                                        TimeUnit.MILLISECONDS)));
 
-        WebClient webClient = WebClient.builder()
-                .baseUrl(props.getBaseUrl()) // <-- baseUrl from config
-                .clientConnector(new ReactorClientHttpConnector(http))
-                .defaultHeader("X-Source-Service",
-                        System.getProperty("spring.application.name", "notificationservice"))
-                .filter(errorFilter())
-                .build();
+        WebClient webClient =
+                WebClient.builder()
+                        .baseUrl(props.getBaseUrl()) // <-- baseUrl from config
+                        .clientConnector(new ReactorClientHttpConnector(http))
+                        .defaultHeader(
+                                "X-Source-Service",
+                                System.getProperty(
+                                        "spring.application.name", "notificationservice"))
+                        .filter(errorFilter())
+                        .build();
 
         return new FluxWSClient(props, webClient);
     }
@@ -66,11 +74,12 @@ public class FluxWSClient implements WSClient {
                 .bodyValue(req)
                 .retrieve()
                 .bodyToMono(Void.class)
-                .retryWhen(Retry.backoff(
-                                props.getRetry().getMaxRetries(),
-                                Duration.ofMillis(props.getRetry().getInitialBackoffMs()))
-                        .jitter(0.2)
-                        .filter(FluxWSClient::isRetryable));
+                .retryWhen(
+                        Retry.backoff(
+                                        props.getRetry().getMaxRetries(),
+                                        Duration.ofMillis(props.getRetry().getInitialBackoffMs()))
+                                .jitter(0.2)
+                                .filter(FluxWSClient::isRetryable));
     }
 
     private static boolean isRetryable(Throwable t) {
@@ -83,15 +92,24 @@ public class FluxWSClient implements WSClient {
     }
 
     private static ExchangeFilterFunction errorFilter() {
-        return ExchangeFilterFunction.ofResponseProcessor(resp -> {
-            if (resp.statusCode().is2xxSuccessful()) return Mono.just(resp);
-            return resp.bodyToMono(String.class).defaultIfEmpty("")
-                    .flatMap(body -> Mono.error(WebClientResponseException.create(
-                            resp.statusCode().value(),
-                            (resp.statusCode() instanceof HttpStatus hs) ? hs.getReasonPhrase() : "",
-                            resp.headers().asHttpHeaders(),
-                            body.getBytes(StandardCharsets.UTF_8),
-                            StandardCharsets.UTF_8)));
-        });
+        return ExchangeFilterFunction.ofResponseProcessor(
+                resp -> {
+                    if (resp.statusCode().is2xxSuccessful()) return Mono.just(resp);
+                    return resp.bodyToMono(String.class)
+                            .defaultIfEmpty("")
+                            .flatMap(
+                                    body ->
+                                            Mono.error(
+                                                    WebClientResponseException.create(
+                                                            resp.statusCode().value(),
+                                                            (resp.statusCode()
+                                                                            instanceof
+                                                                            HttpStatus hs)
+                                                                    ? hs.getReasonPhrase()
+                                                                    : "",
+                                                            resp.headers().asHttpHeaders(),
+                                                            body.getBytes(StandardCharsets.UTF_8),
+                                                            StandardCharsets.UTF_8)));
+                });
     }
 }

@@ -1,9 +1,8 @@
 package nus.edu.u.provider.email;
 
-import nus.edu.u.enums.email.EmailProvider;
-
 import java.util.EnumMap;
 import java.util.Map;
+import nus.edu.u.enums.email.EmailProvider;
 
 public final class EmailClientFactory {
     private static final EmailClientFactory INSTANCE = new EmailClientFactory();

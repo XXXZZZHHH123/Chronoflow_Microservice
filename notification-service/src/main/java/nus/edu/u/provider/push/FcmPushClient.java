@@ -22,13 +22,15 @@ public class FcmPushClient implements PushClient {
     @Override
     public String send(PushRequestDTO pushRequestDTO) throws Exception {
         // Build the firebase notification (visible title/body)
-        Notification notification = Notification.builder()
-                .setTitle(pushRequestDTO.getTitle())
-                .setBody(pushRequestDTO.getBody())
-                .build();
+        Notification notification =
+                Notification.builder()
+                        .setTitle(pushRequestDTO.getTitle())
+                        .setBody(pushRequestDTO.getBody())
+                        .build();
 
         // Build the message to a device token (you can extend to topics if needed)
-        Message.Builder msg = Message.builder().setToken(pushRequestDTO.getToken()).setNotification(notification);
+        Message.Builder msg =
+                Message.builder().setToken(pushRequestDTO.getToken()).setNotification(notification);
 
         // FCM "data" payload must be Map<String, String>
         if (pushRequestDTO.getData() != null && !pushRequestDTO.getData().isEmpty()) {

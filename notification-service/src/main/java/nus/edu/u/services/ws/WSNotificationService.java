@@ -18,8 +18,7 @@ public class WSNotificationService extends NotificationService {
         super(transportImplementor, templateEngineImplementor);
     }
 
-    public void send(NotificationRequestDTO notificationRequestDTO)
-    {
+    public void send(NotificationRequestDTO notificationRequestDTO) {
         TemplateRequestDTO templateRequestDTO =
                 TemplateRequestDTO.builder()
                         .templateId(notificationRequestDTO.getTemplateId())

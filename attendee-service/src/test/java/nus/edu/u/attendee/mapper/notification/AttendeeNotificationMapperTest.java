@@ -32,8 +32,8 @@ class AttendeeNotificationMapperTest {
         assertEquals("to@x.com", dto.getTo());
         assertEquals("attendee-qr-invite", dto.getTemplateId());
         assertEquals("email:to@x.com", dto.getRecipientKey());
-        assertEquals(1, dto.getAttachments().size());
-        AttachmentDTO a = dto.getAttachments().get(0);
+        assertEquals(1, dto.getAttachment().size());
+        AttachmentDTO a = dto.getAttachment().get(0);
         assertEquals("qrcode.png", a.getFilename());
         assertEquals("image/png", a.getContentType());
     }
@@ -58,6 +58,6 @@ class AttendeeNotificationMapperTest {
 
         assertEquals("to@x.com", dto.getTo());
         assertNotNull(dto.getVariables());
-        assertEquals(0, dto.getAttachments().size());
+        assertEquals(0, dto.getAttachment().size());
     }
 }

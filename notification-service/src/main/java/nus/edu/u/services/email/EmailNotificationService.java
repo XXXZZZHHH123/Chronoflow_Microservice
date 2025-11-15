@@ -1,6 +1,5 @@
 package nus.edu.u.services.email;
 
-
 import nus.edu.u.domain.dto.common.NotificationRequestDTO;
 import nus.edu.u.domain.dto.template.TemplateRequestDTO;
 import nus.edu.u.domain.dto.template.TemplateResponseDTO;

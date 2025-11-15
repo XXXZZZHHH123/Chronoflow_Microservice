@@ -1,6 +1,7 @@
 package nus.edu.u.attendee.mapper.notification;
 
 import static org.junit.jupiter.api.Assertions.*;
+
 import nus.edu.u.shared.rpc.notification.dto.Attendee.AttendeeInviteReqDTO;
 import nus.edu.u.shared.rpc.notification.dto.common.AttachmentDTO;
 import nus.edu.u.shared.rpc.notification.dto.common.NotificationRequestDTO;
